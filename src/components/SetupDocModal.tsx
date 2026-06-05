@@ -226,7 +226,7 @@ alter publication supabase_realtime add table public.chats;
         <div className="px-6 py-4 border-t border-gold-border/30 bg-black/40 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-gold-accent hover:to-gold-secondary text-black font-semibold text-xs tracking-wider uppercase rounded-full transition-all cursor-pointer shadow"
+            className="px-6 py-2 bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-semibold text-xs tracking-wider uppercase rounded transition-all cursor-pointer shadow"
           >
             Acknowledge & Proceed
           </button>

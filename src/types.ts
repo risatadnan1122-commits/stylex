@@ -22,13 +22,15 @@ export interface Product {
   image_url: string;
   created_at?: string;
   updated_at?: string;
+  coupon_code?: string;
+  coupon_discount?: number;
 }
 
 export interface Order {
   id: string;
   order_number: string;
   user_id?: string | null;
-  status: 'Pending' | 'Confirmed' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  status: 'Pending' | 'Confirmed' | 'Courier' | 'Delivered' | 'Cancelled' | 'Processing' | 'Shipped';
   subtotal: number;
   delivery_charge: number;
   total: number;
@@ -88,6 +90,8 @@ export interface SiteSettings {
   logo_text_title?: string;
   logo_text_subtitle?: string;
   banners?: string[];
+  lottery_coin_reward?: number;
+  campaign_coin_reward?: number;
 }
 
 export interface Coupon {

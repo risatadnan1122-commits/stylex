@@ -97,7 +97,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
   banners: [
     "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1800&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop"
-  ]
+  ],
+  lottery_coin_reward: 500,
+  campaign_coin_reward: 1000
 };
 
 const DEFAULT_COUPONS: Coupon[] = [
@@ -142,6 +144,12 @@ export const getSimulatedDB = () => {
   const settings = getStored<SiteSettings>('stylex_settings', DEFAULT_SETTINGS);
   if (!settings.apps_script_url) {
     settings.apps_script_url = DEFAULT_SETTINGS.apps_script_url;
+  }
+  if (settings.lottery_coin_reward === undefined) {
+    settings.lottery_coin_reward = DEFAULT_SETTINGS.lottery_coin_reward;
+  }
+  if (settings.campaign_coin_reward === undefined) {
+    settings.campaign_coin_reward = DEFAULT_SETTINGS.campaign_coin_reward;
   }
   const coupons = getStored<Coupon[]>('stylex_coupons', DEFAULT_COUPONS);
   const reviews = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);

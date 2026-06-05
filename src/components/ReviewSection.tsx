@@ -128,7 +128,7 @@ export default function ReviewSection({
           
           <button
             type="submit"
-            className="px-5 py-2 bg-gradient-to-r from-gold-secondary to-gold-accent text-black font-semibold font-mono text-[10px] tracking-widest uppercase rounded cursor-pointer"
+            className="px-5 py-2.5 bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-semibold font-mono text-[10px] tracking-widest uppercase rounded transition-all duration-300 cursor-pointer"
           >
             File Appraisal
           </button>

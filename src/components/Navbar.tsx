@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingBag, User, Database, Menu, X, Settings } from 'lucide-react';
+import { Search, ShoppingBag, User, Database, Menu, X, Settings, Compass } from 'lucide-react';
 import { AppUser, SiteSettings } from '../types';
 import { isRealSupabaseConfigured } from '../supabaseClient';
 
@@ -13,6 +13,7 @@ interface NavbarProps {
   onOpenSetupGuide: () => void;
   onSearch: (query: string) => void;
   onSelectCategory: (category: string) => void;
+  onOpenOrderStatus: () => void;
 }
 
 export default function Navbar({
@@ -24,7 +25,8 @@ export default function Navbar({
   onOpenAdmin,
   onOpenSetupGuide,
   onSearch,
-  onSelectCategory
+  onSelectCategory,
+  onOpenOrderStatus
 }: NavbarProps) {
   const [searchVal, setSearchVal] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,29 +46,29 @@ export default function Navbar({
   const categories = ['All', 'MEN'];
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-[#050505]/95 backdrop-blur-md border-b border-[#D4AF37]/30 select-none">
+    <nav className="sticky top-0 z-40 w-full bg-[#050505]/95 backdrop-blur-md border-b border-[#D4AF37]/45 select-none shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-2">
+        <div className="flex items-center justify-between h-24 gap-4 transition-all duration-500">
           
           {/* LEFT: Mini Monogram Card & Brand Name block */}
-          <div className="flex items-center space-x-3 shrink-0 group/brand">
+          <div className="flex items-center space-x-4 shrink-0 group/brand">
             {/* Visual Monogram Logo matching Screenshot 1 */}
             <div 
               onClick={handleLogoClick}
-              className="flex flex-col items-center justify-center border border-[#D4AF37]/50 bg-black/90 p-1.5 h-12 w-12 hover:border-[#D4AF37] transition-all duration-500 cursor-pointer shrink-0 select-none rounded shadow-[0_0_15px_rgba(212,175,55,0.25)] group-hover/brand:shadow-[0_0_30px_rgba(212,175,55,0.7)] group-hover/brand:scale-105 active:scale-95"
+              className="flex flex-col items-center justify-center border border-[#D4AF37]/30 bg-black p-2 h-14 w-14 hover:border-[#D4AF37] transition-all duration-300 cursor-pointer shrink-0 select-none rounded group-hover/brand:scale-102 active:scale-95"
             >
               <div className="-space-y-1.5 flex items-center justify-center h-4">
-                <span className="font-serif text-sm text-[#D4AF37] tracking-tighter font-semibold animate-pulse">
+                <span className="font-serif text-base text-[#D4AF37] tracking-tighter font-black">
                   {settings.logo_text_s || "S"}
                 </span>
-                <span className="font-serif text-sm text-white tracking-tighter font-semibold ml-0.5">
+                <span className="font-serif text-base text-white tracking-tighter font-black ml-0.5">
                   {settings.logo_text_x || "X"}
                 </span>
               </div>
-              <span className="text-[7px] text-white font-mono tracking-widest uppercase mt-1">
+              <span className="text-[8px] text-white font-mono tracking-widest uppercase mt-1.5 font-bold">
                 {settings.logo_text_title || "STYLE X"}
               </span>
-              <span className="text-[5px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-bold">
+              <span className="text-[6px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-black">
                 {settings.logo_text_subtitle || "LUXURY"}
               </span>
             </div>
@@ -75,30 +77,30 @@ export default function Navbar({
             <div className="flex flex-col text-left justify-center shrink-0">
               <span 
                 onClick={handleLogoClick}
-                className="text-xs font-mono tracking-[0.3em] text-[#D4AF37] hover:text-white transition-all duration-300 cursor-pointer uppercase font-extrabold drop-shadow-[0_0_8px_rgba(212,175,55,0.15)] group-hover/brand:drop-shadow-[0_0_12px_rgba(212,175,55,0.4)]"
+                className="text-xs sm:text-sm font-mono tracking-[0.35em] text-[#D4AF37] hover:text-white transition-all duration-300 cursor-pointer uppercase font-black"
               >
                 {settings.site_name || "STYLE X COLLECTIVE"}
               </span>
-              <div className="flex items-center space-x-4 mt-1.5 font-mono text-[9px] uppercase tracking-wider text-[#D4AF37]/50">
+              <div className="flex items-center space-x-3 mt-2 font-mono text-[9px] uppercase tracking-wider text-[#D4AF37]/50">
                 <button 
                   onClick={() => document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="hover:text-white transition-all duration-300 font-bold cursor-pointer relative py-1 px-3 bg-black/60 border border-[#D4AF37]/20 hover:border-[#D4AF37] hover:scale-105 active:scale-95 rounded uppercase tracking-[0.3em] shadow-[0_0_8px_rgba(212,175,55,0.05)] hover:shadow-[0_0_15px_rgba(212,175,55,0.5)]"
+                  className="hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 font-bold cursor-pointer transition-all duration-300 relative py-1 px-2.5 bg-transparent border border-[#D4AF37]/20 hover:border-[#D4AF37] rounded uppercase tracking-[0.2em] text-[9px] text-[#D4AF37]/80"
                 >
                   SHOP
                 </button>
-                <span className="text-[#D4AF37]/25 font-light select-none">|</span>
+                <span className="text-gray-800 font-light select-none">|</span>
                 <button 
-                  onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' }))}
-                  className="hover:text-white transition-all duration-300 font-bold cursor-pointer relative py-1 px-3 bg-black/60 border border-[#D4AF37]/10 hover:border-[#D4AF37] hover:scale-105 active:scale-95 rounded uppercase tracking-[0.2em] shadow-[0_0_8px_rgba(212,175,55,0.02)] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+                  onClick={onOpenOrderStatus}
+                  className="hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 font-bold cursor-pointer transition-all duration-300 relative py-1 px-2.5 bg-transparent border border-[#D4AF37]/10 hover:border-[#D4AF37]/50 rounded uppercase tracking-[0.2em] text-[9px] text-gray-400"
                 >
-                  Track Order
+                  TRACK ORDER
                 </button>
-                <span className="text-[#D4AF37]/25 font-light select-none">|</span>
+                <span className="text-gray-800 font-light select-none">|</span>
                 <button 
                   onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' }))}
-                  className="hover:text-white transition-all duration-300 font-bold cursor-pointer relative py-1 px-3 bg-black/60 border border-[#D4AF37]/10 hover:border-[#D4AF37] hover:scale-105 active:scale-95 rounded uppercase tracking-[0.2em] shadow-[0_0_8px_rgba(212,175,55,0.02)] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+                  className="hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 font-bold cursor-pointer transition-all duration-300 relative py-1 px-2.5 bg-transparent border border-[#D4AF37]/10 hover:border-[#D4AF37]/50 rounded uppercase tracking-[0.2em] text-[9px] text-gray-400"
                 >
-                  Contact
+                  CONTACT
                 </button>
               </div>
             </div>
@@ -112,9 +114,9 @@ export default function Navbar({
                 placeholder="SEARCH PRODUCTS..."
                 value={searchVal}
                 onChange={handleSearchChange}
-                className="w-full bg-[#0b0b0b] text-white placeholder-gray-500 pl-5 pr-12 py-2.5 rounded-full border border-[#D4AF37]/25 text-[10px] tracking-widest focus:outline-none focus:border-[#D4AF37] transition-all font-mono uppercase"
+                className="w-full bg-[#0b0b0b] text-white placeholder-gray-600 pl-4 pr-12 py-2.5 rounded border border-[#D4AF37]/20 text-[10px] tracking-widest focus:outline-none focus:border-[#D4AF37]/60 transition-all font-mono uppercase"
               />
-              <button className="absolute right-1 top-[3px] bg-[#D4AF37] hover:bg-[#B8860B] text-black rounded-full h-7 w-7 flex items-center justify-center transition-colors">
+              <button className="absolute right-1 top-[3px] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#D4AF37] rounded h-7 w-7 flex items-center justify-center transition-colors">
                 <Search className="h-3 w-3" />
               </button>
             </div>
@@ -122,7 +124,7 @@ export default function Navbar({
             {/* VIP Lounge quick access Present icon 🎁 */}
             <button 
               onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
-              className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] hover:border-[#D4AF37] hover:text-white rounded-full bg-[#0E0E0E] transition-all shrink-0 flex items-center justify-center h-9 w-9 cursor-pointer"
+              className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] hover:border-[#D4AF37] hover:text-white rounded bg-[#0E0E0E] transition-all shrink-0 flex items-center justify-center h-9 w-9 cursor-pointer"
               title="Aureum VIP Lounge"
             >
               <span className="text-sm select-none">🎁</span>
@@ -134,7 +136,7 @@ export default function Navbar({
             {/* ACCESS PORTAL user login pill */}
             <button 
               onClick={onOpenAuth}
-              className="hidden md:flex border border-[#D4AF37]/25 hover:border-[#D4AF37] bg-[#0A0A0A] rounded-full px-4 py-1.5 items-center space-x-3.5 transition-all text-left group shrink-0"
+              className="hidden md:flex border border-[#D4AF37]/25 hover:border-[#D4AF37] bg-[#0A0A0A] rounded px-4 py-1.5 items-center space-x-3.5 transition-all text-left group shrink-0"
             >
               <div className="flex flex-col">
                 <span className="text-[7px] text-gray-400 font-mono tracking-widest uppercase font-medium">ACCESS PORTAL</span>
@@ -142,7 +144,7 @@ export default function Navbar({
                   {user ? user.full_name : 'SIGN IN / UP'}
                 </span>
               </div>
-              <div className="h-6 w-6 rounded-full border border-gold-border flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors overflow-hidden shrink-0">
+              <div className="h-6 w-6 rounded border border-gold-border flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors overflow-hidden shrink-0">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={user.full_name} className="h-full w-full object-cover" />
                 ) : (
@@ -151,12 +153,22 @@ export default function Navbar({
               </div>
             </button>
 
+            {/* Persistent elegant ORDER STATUS navigation button */}
+            <button 
+              onClick={onOpenOrderStatus}
+              className="hidden lg:flex border border-[#D4AF37]/40 hover:border-[#ffdf6d] text-[#D4AF37] hover:text-black font-mono text-[10px] font-bold tracking-[0.18em] px-4.5 py-2.5 rounded bg-[#0E0E0E] hover:bg-[#D4AF37] transition-all duration-300 cursor-pointer shrink-0 items-center space-x-1.5 h-9"
+              title="Track Package Journey"
+            >
+              <Compass className="h-4 w-4 shrink-0" />
+              <span>ORDER STATUS</span>
+            </button>
+
             {/* CART Capsule Button */}
             <button 
               onClick={onOpenCart}
-              className="bg-[#D4AF37] hover:bg-[#B8860B] active:scale-95 text-black px-4 sm:px-5 py-2 rounded-full font-sans text-xs font-black tracking-widest flex items-center gap-2.5 transition-all duration-300 cursor-pointer shrink-0 select-none h-9 border border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:shadow-[0_0_25px_rgba(212,175,55,0.6)]"
+              className="bg-[#D4AF37] hover:bg-[#ffdf6d] active:scale-[0.98] text-black px-4 sm:px-5 py-2 rounded font-sans text-xs font-black tracking-widest flex items-center gap-2.5 transition-all duration-300 cursor-pointer shrink-0 select-none h-9 border border-[#D4AF37]"
             >
-              <span className="uppercase font-mono font-extrabold tracking-widest text-[10px]">CART</span>
+              <span className="uppercase font-mono font-extrabold tracking-widest text-[9.5px]">CART</span>
               <div className="bg-black text-[#D4AF37] h-4.5 w-4.5 rounded-full flex items-center justify-center font-mono text-[9px] font-bold shrink-0">
                 {cartCount}
               </div>
@@ -181,7 +193,7 @@ export default function Navbar({
             placeholder="SEARCH PRODUCTS..."
             value={searchVal}
             onChange={handleSearchChange}
-            className="w-full bg-[#0b0b0b] text-white placeholder-gray-500 pl-4 pr-10 py-2 border border-[#D4AF37]/15 rounded-full text-xs font-mono tracking-widest focus:outline-none focus:border-gold-accent"
+            className="w-full bg-[#0b0b0b] text-white placeholder-gray-500 pl-4 pr-10 py-2 border border-[#D4AF37]/15 rounded text-xs font-mono tracking-widest focus:outline-none focus:border-gold-accent"
           />
           <button className="absolute right-3 top-2.5 text-gold-accent">
             <Search className="h-4 w-4" />
@@ -191,7 +203,7 @@ export default function Navbar({
         {/* VIP Present */}
         <button 
           onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
-          className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] rounded-full bg-[#0E0E0E] shrink-0"
+          className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0"
         >
           🎁
         </button>
@@ -210,10 +222,10 @@ export default function Navbar({
             SHOP COLLECTION
           </button>
           <button 
-            onClick={() => { window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' })); setMobileMenuOpen(false); }}
-            className="block w-full text-left text-xs text-white hover:text-gold-accent font-mono uppercase tracking-widest py-1"
+            onClick={() => { onOpenOrderStatus(); setMobileMenuOpen(false); }}
+            className="block w-full text-left text-xs text-[#D4AF37] hover:text-[#ffdf6d] font-mono uppercase tracking-widest py-1 font-bold"
           >
-            TRACK SYSTEM ORDER
+            TRACK SYSTEM ORDER (-REALTIME-)
           </button>
           <button 
             onClick={() => { window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' })); setMobileMenuOpen(false); }}

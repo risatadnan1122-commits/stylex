@@ -52,7 +52,7 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
           <button 
             type="button"
             onClick={onClose}
-            className="p-1 px-2 border border-[#D4AF37]/20 text-gray-400 hover:text-white hover:border-[#D4AF37] rounded-full transition-all cursor-pointer"
+            className="p-1 px-2 border border-[#D4AF37]/20 text-gray-400 hover:text-white hover:border-[#D4AF37] rounded transition-all cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -95,7 +95,7 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-4 bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-gold-accent hover:to-gold-secondary text-black font-extrabold text-[10px] tracking-[0.3em] uppercase rounded-full shadow-[0_0_20px_rgba(212,175,55,0.2)] hover:shadow-[0_0_35px_rgba(212,175,55,0.65)] hover:scale-[1.01] transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full py-4 bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-extrabold text-[10px] tracking-[0.3em] uppercase rounded transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Sparkles className="h-3.5 w-3.5" />
               <span>TRANSMIT ACCESS CODES</span>

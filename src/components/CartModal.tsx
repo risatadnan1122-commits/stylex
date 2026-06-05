@@ -34,6 +34,7 @@ export default function CartModal({
   
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedProductCoupon, setAppliedProductCoupon] = useState<{ product_id: string; product_name: string; code: string; discount_percent: number } | null>(null);
   const [couponMessage, setCouponMessage] = useState('');
 
   if (!isOpen) return null;
@@ -48,6 +49,11 @@ export default function CartModal({
     } else {
       discountAmount = appliedCoupon.discount_value;
     }
+  } else if (appliedProductCoupon) {
+    const matchedItem = cartItems.find(item => item.product.id === appliedProductCoupon.product_id);
+    if (matchedItem) {
+      discountAmount = (matchedItem.product.price * matchedItem.quantity * appliedProductCoupon.discount_percent) / 100;
+    }
   }
 
   const deliveryCharge = subtotal > 0 ? settings.delivery_charge : 0;
@@ -58,6 +64,7 @@ export default function CartModal({
       setCouponMessage('Enter a valid coupon.');
       return;
     }
+    // Check 1: global coupons
     const match = coupons.find(c => c.code.toUpperCase() === couponCode.trim().toUpperCase() && c.active);
     if (match) {
       if (match.min_order_amount && subtotal < match.min_order_amount) {
@@ -65,11 +72,29 @@ export default function CartModal({
         setAppliedCoupon(null);
       } else {
         setAppliedCoupon(match);
+        setAppliedProductCoupon(null);
         setCouponMessage(`Successfully applied "${match.code}" Code!`);
       }
     } else {
-      setCouponMessage('Invalid coupon code.');
-      setAppliedCoupon(null);
+      // Check 2: product-specific coupons for items in cart
+      const productMatch = cartItems.find(
+        item => item.product.coupon_code && item.product.coupon_code.toUpperCase() === couponCode.trim().toUpperCase()
+      );
+      if (productMatch) {
+        const discRate = productMatch.product.coupon_discount || 10;
+        setAppliedProductCoupon({
+          product_id: productMatch.product.id,
+          product_name: productMatch.product.name,
+          code: productMatch.product.coupon_code!.toUpperCase(),
+          discount_percent: discRate
+        });
+        setAppliedCoupon(null);
+        setCouponMessage(`Applied special code "${productMatch.product.coupon_code}" for "${productMatch.product.name}" (-${discRate}%)!`);
+      } else {
+        setCouponMessage('Invalid coupon code.');
+        setAppliedCoupon(null);
+        setAppliedProductCoupon(null);
+      }
     }
   };
 
@@ -83,7 +108,7 @@ export default function CartModal({
       name,
       phone,
       address,
-      couponapplied: appliedCoupon ? appliedCoupon.code : ''
+      couponapplied: appliedCoupon ? appliedCoupon.code : (appliedProductCoupon ? appliedProductCoupon.code : '')
     }, total);
   };
 
@@ -118,14 +143,14 @@ export default function CartModal({
           {/* Cart item elements list */}
           {cartItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
-              <div className="h-16 w-16 rounded-full border border-gold-border flex items-center justify-center text-gold-border/50">
+              <div className="h-16 w-16 rounded border border-gold-border flex items-center justify-center text-gold-border/50">
                 <ShoppingBag className="h-7 w-7" />
               </div>
               <p className="font-serif text-lg text-gray-300">Your luxury cart represents a blank canvas.</p>
               <p className="text-xs text-gray-500 max-w-xs font-mono uppercase tracking-widest">Collect unique design garments to acquire.</p>
               <button 
                 onClick={onClose}
-                className="text-xs border border-gold-accent text-gold-accent px-6 py-2.5 rounded-full hover:bg-gold-accent hover:text-black transition-colors font-mono tracking-widest uppercase cursor-pointer"
+                className="text-xs border border-gold-accent text-gold-accent px-6 py-2.5 rounded hover:bg-gold-accent hover:text-black transition-colors font-mono tracking-widest uppercase cursor-pointer"
               >
                 Continue Exploration
               </button>
@@ -267,6 +292,15 @@ export default function CartModal({
                     <span>-৳{discountAmount.toLocaleString()}</span>
                   </div>
                 )}
+                {appliedProductCoupon && (
+                  <div className="flex flex-col text-green-400">
+                    <div className="flex justify-between text-xs">
+                      <span>Item Coupon ({appliedProductCoupon.code}):</span>
+                      <span>-৳{discountAmount.toLocaleString()}</span>
+                    </div>
+                    <span className="text-[9px] text-gray-500 text-right font-sans">Applied to {appliedProductCoupon.product_name}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span>Concierge Delivery charge:</span>
                   <span>৳{deliveryCharge.toLocaleString()}</span>
@@ -280,7 +314,7 @@ export default function CartModal({
               {/* Immediate Submit Actions */}
               <button
                 type="submit"
-                className="w-full py-4.5 rounded-full bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-[#ffeb9b] hover:to-[#ffdf6d] text-black font-black text-xs tracking-[0.25em] uppercase transition-all duration-500 shadow-[0_0_15px_rgba(212,175,55,0.35)] hover:shadow-[0_0_35px_rgba(212,175,55,0.75)] cursor-pointer text-center active:scale-95 relative overflow-hidden group/submit"
+                className="w-full py-4.5 rounded bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-black text-xs tracking-[0.25em] uppercase transition-all duration-300 cursor-pointer text-center active:scale-[0.98] relative overflow-hidden group/submit"
               >
                 {/* Light shimmer line trailing on hover */}
                 <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover/submit:animate-[shimmer_1.5s_infinite]" />

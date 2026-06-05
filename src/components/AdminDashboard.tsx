@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Package, ClipboardList, Image as ImageIcon, Megaphone, Coins, Globe, Search, MessageSquare
 } from 'lucide-react';
 import { Product, Order, Review, Coupon, SiteSettings, ChatMessage } from '../types';
+import SweepstakeLiveDrawModal from './SweepstakeLiveDrawModal';
 
 interface AdminDashboardProps {
   products: Product[];
@@ -66,6 +67,9 @@ export default function AdminDashboard({
   // Admin chat response state
   const [adminChatMsg, setAdminChatMsg] = useState('');
 
+  // Live Sweepstakes Mode state
+  const [isLiveSweepstakeOpen, setIsLiveSweepstakeOpen] = useState(false);
+
   // Computations
   const totalOrdersCount = orders.length;
   const totalRevenueValue = orders.reduce((acc, current) => {
@@ -97,7 +101,9 @@ export default function AdminDashboard({
       sizes: compiledSizes,
       stock: Number(productForm.stock || 1),
       featured: !!productForm.featured,
-      image_url: productForm.image_url
+      image_url: productForm.image_url,
+      coupon_code: productForm.coupon_code || undefined,
+      coupon_discount: productForm.coupon_discount ? Number(productForm.coupon_discount) : undefined
     };
 
     if (editingProductId) {
@@ -108,7 +114,7 @@ export default function AdminDashboard({
     }
 
     // Reset Form
-    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '' });
+    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
     setShowProductForm(false);
   };
 
@@ -124,7 +130,9 @@ export default function AdminDashboard({
       sizes: prod.sizes,
       stock: prod.stock,
       featured: prod.featured,
-      image_url: prod.image_url
+      image_url: prod.image_url,
+      coupon_code: prod.coupon_code || '',
+      coupon_discount: prod.coupon_discount
     });
     setShowProductForm(true);
   };
@@ -457,6 +465,34 @@ export default function AdminDashboard({
                       />
                     </div>
 
+                    {/* PRODUCT-SPECIFIC LUXURY COUPON CODES */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[#D4AF37]/15 pt-3">
+                      <div>
+                        <label className="text-[10px] font-mono text-gray-400 block mb-1">Product-Specific Coupon Code (Optional)</label>
+                        <input
+                          type="text"
+                          placeholder="E.g. AUREUMWATCH or SILKSLIP"
+                          value={productForm.coupon_code || ''}
+                          onChange={(e) => setProductForm({ ...productForm, coupon_code: e.target.value.toUpperCase().trim() })}
+                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded font-mono uppercase"
+                        />
+                        <span className="text-[9px] text-gray-500 font-mono mt-1 block">Specify a coupon code only valid for this specific luxury piece.</span>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-mono text-gray-400 block mb-1">Coupon Discount Rate (%)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="E.g. 15 (for 15% discount on this item)"
+                          value={productForm.coupon_discount || ''}
+                          onChange={(e) => setProductForm({ ...productForm, coupon_discount: e.target.value ? Number(e.target.value) : undefined })}
+                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded font-mono"
+                        />
+                        <span className="text-[9px] text-gray-500 font-mono mt-1 block">Percentage deduction of this specific item's individual price.</span>
+                      </div>
+                    </div>
+
                     <div className="flex items-center space-x-2.5">
                       <input
                         type="checkbox"
@@ -473,7 +509,7 @@ export default function AdminDashboard({
                         type="button"
                         onClick={() => {
                           setEditingProductId(null);
-                          setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '' });
+                          setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
                           setShowProductForm(false);
                         }}
                         className="px-4 py-2 border border-[#D4AF37]/25 hover:border-[#D4AF37] text-gray-400 rounded text-xs transition-colors"
@@ -633,7 +669,7 @@ export default function AdminDashboard({
                               onChange={(e) => onUpdateOrderStatus(ord.id, e.target.value as any)}
                               className="bg-black/85 text-xs text-gold-accent border border-gold-border rounded px-2.5 py-1 focus:outline-none"
                             >
-                              {['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(st => (
+                              {['Pending', 'Confirmed', 'Courier', 'Delivered', 'Cancelled'].map(st => (
                                 <option key={st} value={st}>{st}</option>
                               ))}
                             </select>
@@ -1113,8 +1149,52 @@ export default function AdminDashboard({
 
             {activeTab === 'lottery' && (
               <div className="p-4 sm:p-5 bg-black/60 border border-[#D4AF37]/25 rounded-lg space-y-4">
-                <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">CLIENT SWEEPSTAKES & LOTTERY</span>
-                <p className="text-xs text-gray-400">Manage client sweepstakes reward drops, promotional triggers and user contest lists.</p>
+                <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">CLIENT SWEEPSTAKES & LOTTERY REWARDS CONFIG</span>
+                <p className="text-xs text-gray-400">Determine how many premium mock coins are granted to clients on lottery victory, and configure promotional campaigns.</p>
+                
+                {/* SET COIN REWARDS BOX */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0a0a0a] border border-[#D4AF37]/15 p-4 rounded-lg">
+                  <div>
+                    <label className="text-[10px] font-mono text-gray-400 block mb-1">Standard Lottery Spin Coin Reward</label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={seoForm.lottery_coin_reward || 500}
+                      onChange={(e) => setSeoForm({ ...seoForm, lottery_coin_reward: Number(e.target.value) })}
+                      className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 rounded font-mono"
+                    />
+                    <span className="text-[9px] text-gray-500 font-mono mt-1 block">Coins earned from normal client spin interactions.</span>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono text-gray-400 block mb-1">Active Campaign Spin Coin Reward</label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={seoForm.campaign_coin_reward || 1000}
+                      onChange={(e) => setSeoForm({ ...seoForm, campaign_coin_reward: Number(e.target.value) })}
+                      className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 rounded font-mono"
+                    />
+                    <span className="text-[9px] text-gray-500 font-mono mt-1 block">Coins earned during active site campaigns.</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      onSaveSettings(seoForm);
+                      setIsLiveSweepstakeOpen(true);
+                    }}
+                    className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:scale-[1.01] text-white font-semibold text-[10px] tracking-wider rounded uppercase transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    <span>Sync Reward Coordinates & Launch Live Draw Center ✦</span>
+                  </button>
+                </div>
+
                 <div className="bg-[#0b0b0b] border border-[#D4AF37]/10 p-4 rounded text-xs space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-[#D4AF37]/10">
                     <div>
@@ -1132,8 +1212,8 @@ export default function AdminDashboard({
                   </div>
                 </div>
                 <div className="flex justify-end pt-2">
-                  <button onClick={() => alert('Lottery system initialized.')} className="px-5 py-2.5 bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-black font-semibold text-xs rounded uppercase tracking-widest transition-all">
-                    Trigger New Sweepstake
+                  <button onClick={() => setIsLiveSweepstakeOpen(true)} className="px-5 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#ffdf6d] text-black hover:scale-[1.01] font-semibold text-xs rounded uppercase tracking-widest transition-all cursor-pointer">
+                    Trigger Grand Sweepstake Live Draw
                   </button>
                 </div>
               </div>
@@ -1144,6 +1224,14 @@ export default function AdminDashboard({
         </div>
 
       </div>
+
+      {/* Cinematic Golden Live Draw Matrix Board Overlay */}
+      <SweepstakeLiveDrawModal
+        isOpen={isLiveSweepstakeOpen}
+        onClose={() => setIsLiveSweepstakeOpen(false)}
+        onAddCoupon={onAddCoupon}
+        lotteryRewardAmount={settings.lottery_coin_reward || 500}
+      />
     </div>
   );
 }

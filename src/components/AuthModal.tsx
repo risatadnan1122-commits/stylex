@@ -6,7 +6,7 @@ interface AuthModalProps {
   user: AppUser | null;
   isOpen: boolean;
   onClose: () => void;
-  onLogin: (email: string, role: 'admin' | 'customer', fullname: string, phone: string) => void;
+  onLogin: (email: string, role: 'admin' | 'customer', fullname: string, phone: string, isSignup?: boolean) => void;
   onLogout: () => void;
 }
 
@@ -42,7 +42,7 @@ export default function AuthModal({
       email.toLowerCase().includes('admin')
     ) ? 'admin' : 'customer';
 
-    onLogin(email.trim(), finalRole, cleanName, phone.trim());
+    onLogin(email.trim(), finalRole, cleanName, phone.trim(), isRegister);
     setNotice('');
     setEmail('');
     setPassword('');
@@ -117,7 +117,7 @@ export default function AuthModal({
 
             <button
               onClick={() => { onLogout(); onClose(); }}
-              className="w-full py-3 bg-red-950/40 border border-red-500/20 text-red-300 hover:bg-red-500 hover:text-white rounded-full font-semibold text-xs tracking-widest uppercase transition-all duration-300"
+              className="w-full py-3 bg-red-950/40 border border-red-500/20 text-red-300 hover:bg-red-500 hover:text-white rounded font-semibold text-xs tracking-widest uppercase transition-all duration-300"
             >
               LOGOUT PRESET PROFILE
             </button>
@@ -192,7 +192,7 @@ export default function AuthModal({
             {/* Submit */}
             <button
               type="submit"
-              className="w-full py-4 mt-2 bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-gold-accent hover:to-gold-secondary text-black font-semibold text-xs tracking-[0.25em] uppercase rounded-full transition-all duration-300 cursor-pointer shadow"
+              className="w-full py-4 mt-2 bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-gold-accent hover:to-gold-secondary text-black font-semibold text-xs tracking-[0.25em] uppercase rounded transition-all duration-300 cursor-pointer shadow"
             >
               {isRegister ? 'EXECUTE ENROLMENT' : 'AUTHORIZED ACCESS'}
             </button>
