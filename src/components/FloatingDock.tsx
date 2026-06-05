@@ -22,6 +22,18 @@ export default function FloatingDock({
   const [isTyping, setIsTyping] = useState(false);
   const messageEndRef = useRef<HTMLDivElement>(null);
 
+  // Allow other components to trigger states
+  useEffect(() => {
+    const handleOpenTab = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail === 'chat' || customEvent.detail === 'rewards' || customEvent.detail === 'notifications' || customEvent.detail === null) {
+        setActiveTab(customEvent.detail);
+      }
+    };
+    window.addEventListener('open-dock-tab', handleOpenTab);
+    return () => window.removeEventListener('open-dock-tab', handleOpenTab);
+  }, []);
+
   // Auto scroll messages
   useEffect(() => {
     if (activeTab === 'chat') {

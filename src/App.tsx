@@ -16,6 +16,7 @@ import AuthModal from './components/AuthModal';
 import AdminDashboard from './components/AdminDashboard';
 import SetupDocModal from './components/SetupDocModal';
 import ReviewSection from './components/ReviewSection';
+import AdminLoginModal from './components/AdminLoginModal';
 import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, Eye, X, MessageSquare, Clock, Globe } from 'lucide-react';
 
 export default function App() {
@@ -48,6 +49,7 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isSetupDocOpen, setIsSetupDocOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
@@ -125,7 +127,8 @@ export default function App() {
       quantity: item.quantity,
       price: item.product.price,
       product_name: item.product.name,
-      product_image: item.product.image_url
+      product_image: item.product.image_url,
+      selected_size: item.selectedSize
     }));
 
     const orderNumber = 'STLX-' + Math.floor(100000 + Math.random() * 900000);
@@ -145,6 +148,35 @@ export default function App() {
       order_items: itemsDetail
     };
 
+    // Trigger Google Apps Script Web App Integration
+    if (settings.apps_script_url && settings.apps_script_url.trim().startsWith('http')) {
+      const itemsListText = cartItems.map((item, index) => 
+        (index + 1) + ". " + item.product.name + " (Size: " + item.selectedSize + ", Qty: " + item.quantity + ")"
+      ).join('\n');
+
+      fetch(settings.apps_script_url.trim(), {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8'
+        },
+        body: JSON.stringify({
+          name: customerInfo.name,
+          phone: customerInfo.phone,
+          location: customerInfo.address,
+          items: itemsListText,
+          total: "৳" + totalSum.toLocaleString(),
+          payment: "Cash On Delivery (ক্যাশ অন ডেলিভারি)",
+          trxid: customerInfo.couponapplied || "N/A",
+          date: new Date().toLocaleString("en-US", { timeZone: "Asia/Dhaka" })
+        })
+      }).then(() => {
+        console.log('Order notification sent successfully to Google Apps Script!');
+      }).catch(err => {
+        console.error('Apps Script Mailer failure:', err);
+      });
+    }
+
     const updated = [...orders, freshOrder];
     setOrders(updated);
     db.saveOrders(updated);
@@ -158,7 +190,7 @@ export default function App() {
       id: 'bot_msg_' + Math.random().toString(36).substr(2, 9),
       sender_id: 'system',
       receiver_id: 'customer_guest',
-      message: `Greetings ${customerInfo.name}. Your luxury acquisition order ${orderNumber} is received! Outlay: $${totalSum.toLocaleString()}. Our curators are verifying dispatch routes.`,
+      message: `Greetings ${customerInfo.name}. Your luxury acquisition order ${orderNumber} is received! Outlay: ৳${totalSum.toLocaleString()}. Our curators are verifying dispatch routes and automated dispatch system notifications are transmitted.`,
       seen: false,
       created_at: new Date().toISOString()
     };
@@ -167,16 +199,11 @@ export default function App() {
     db.saveChats(newChats);
 
     // Prompt user with instant custom automated WhatsApp message redirection option
-    const textFormat = `★ STYLE X COLLECTIVE ★\nOrder Code: ${orderNumber}\nClient Name: ${customerInfo.name}\nAcquisitions: ${itemsDetail.map(i => `${i.product_name} (${i.quantity})`).join(', ')}\nTotal Outlay: $${totalSum.toLocaleString()}\nVerify Cash On Delivery.`;
+    const textFormat = `★ STYLE X COLLECTIVE ★\nOrder Code: ${orderNumber}\nClient Name: ${customerInfo.name}\nAcquisitions: ${itemsDetail.map(i => `${i.product_name} (${i.quantity})`).join(', ')}\nTotal Outlay: ৳${totalSum.toLocaleString()}\nVerify Cash On Delivery.`;
     const encoded = encodeURIComponent(textFormat);
     const whatsappUrl = `https://wa.me/${settings.whatsapp_number}?text=${encoded}`;
-    
-    // Auto redirect
-    setTimeout(() => {
-      window.open(whatsappUrl, '_blank');
-    }, 1500);
 
-    alert(`Order ${orderNumber} created successfully! Opening secure WhatsApp redirect for instant dispatcher confirmation...`);
+    alert(`Order ${orderNumber} placed successfully! Our curators have received your order requirements and are initiating immediate dispatch. Thank you for choosing STYLE X COLLECTIVE.`);
   };
 
   const handleUpdateOrderStatus = (orderId: string, status: Order['status']) => {
@@ -333,7 +360,7 @@ export default function App() {
   };
 
   const handleWhatsAppOrder = (product: Product, size: string) => {
-    const textFormat = `★ STYLE X COLLECTIVE ★\nRequesting direct acquisition:\nGarment: ${product.name}\nPremium Size Choice: ${size}\nListed Price: $${product.price.toLocaleString()}\nKindly coordinates dispatch.`;
+    const textFormat = `★ STYLE X COLLECTIVE ★\nRequesting direct acquisition:\nGarment: ${product.name}\nPremium Size Choice: ${size}\nListed Price: ৳${product.price.toLocaleString()}\nKindly coordinates dispatch.`;
     const encoded = encodeURIComponent(textFormat);
     const whatsappUrl = `https://wa.me/${settings.whatsapp_number}?text=${encoded}`;
     window.open(whatsappUrl, '_blank');
@@ -391,6 +418,9 @@ export default function App() {
       {/* 3. CINEMATIC HERO PRESENTATION STAGE */}
       <Hero
         siteName={settings.site_name}
+        banners={settings.banners}
+        logoTextTitle={settings.logo_text_title}
+        logoTextSubtitle={settings.logo_text_subtitle}
         onExplore={() => {
           document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' });
         }}
@@ -528,6 +558,16 @@ export default function App() {
         <SetupDocModal onClose={() => setIsSetupDocOpen(false)} />
       )}
 
+      {/* 4F. ADMIN CREDENTIAL GATEWAY OVERLAY */}
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => setIsAdminLoginOpen(false)}
+        onSuccess={() => {
+          setIsAdminLoginOpen(false);
+          setIsAdminOpen(true);
+        }}
+      />
+
       {/* 4E. PRODUCT DETAIL QUICK VIEW POPUP */}
       {quickViewProduct && (
         <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
@@ -560,8 +600,8 @@ export default function App() {
                 <h4 className="serif-title text-2xl font-light text-white uppercase tracking-wide mt-1.5">{quickViewProduct.name}</h4>
                 
                 <div className="flex items-baseline space-x-2.5 font-mono mt-3.5 mb-2.5">
-                  <span className="text-gold-accent text-xl font-semibold">${quickViewProduct.price.toLocaleString()}</span>
-                  {quickViewProduct.old_price && <span className="text-gray-500 line-through text-xs">${quickViewProduct.old_price.toLocaleString()}</span>}
+                  <span className="text-[#D4AF37] text-xl font-semibold">৳{quickViewProduct.price.toLocaleString()}</span>
+                  {quickViewProduct.old_price && <span className="text-gray-500 line-through text-xs">৳{quickViewProduct.old_price.toLocaleString()}</span>}
                 </div>
 
                 <div className="w-12 h-[1px] bg-gold-accent/40 my-4" />
@@ -636,7 +676,7 @@ export default function App() {
             <span>ESTABLISHED 2026 // ALL REFINEMENT PRESERVED</span>
             <span className="hidden sm:inline text-[#B8860B]/40">•</span>
             <span 
-              onClick={() => setIsAdminOpen(true)} 
+              onClick={() => setIsAdminLoginOpen(true)} 
               className="text-gold-accent hover:text-white transition-colors cursor-pointer font-bold underline decoration-[#D4AF37]/35 underline-offset-4 tracking-[0.2em]"
             >
               ADMIN PANEL

@@ -82,6 +82,12 @@ export interface SiteSettings {
   seo_description: string;
   seo_keywords: string;
   seo_og_image: string;
+  apps_script_url?: string;
+  logo_text_s?: string;
+  logo_text_x?: string;
+  logo_text_title?: string;
+  logo_text_subtitle?: string;
+  banners?: string[];
 }
 
 export interface Coupon {

@@ -886,7 +886,7 @@ export default function AdminDashboard({
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-mono text-gray-500 block mb-1">Platform Delivery Charge ($)</label>
+                    <label className="text-[10px] font-mono text-gray-500 block mb-1">Platform Delivery Charge (৳)</label>
                     <input
                       type="number"
                       required
@@ -894,6 +894,77 @@ export default function AdminDashboard({
                       onChange={(e) => setSeoForm({ ...seoForm, delivery_charge: Number(e.target.value) })}
                       className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded"
                     />
+                  </div>
+                </div>
+
+                {/* EMAIL ORDER HOOK INTEGRATION */}
+                <div className="p-4 bg-black/80 border border-[#D4AF37]/25 rounded-md space-y-3 pt-4">
+                  <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">AUTOMATED EMAIL ORDER NOTIFICATION</span>
+                  <p className="text-[10px] text-gray-400 leading-relaxed font-mono">
+                    Paste your Google Apps Script Web App Deployment URL here. Every acquisition automatically transmits a formatted email to <b>risatadnan5@gmail.com</b>.
+                  </p>
+                  <div>
+                    <label className="text-[9px] font-mono text-gray-500 block mb-1">Google Apps Script Web App URL</label>
+                    <input
+                      type="url"
+                      placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+                      value={seoForm.apps_script_url || ''}
+                      onChange={(e) => setSeoForm({ ...seoForm, apps_script_url: e.target.value })}
+                      className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 rounded font-mono"
+                    />
+                  </div>
+                </div>
+
+                {/* CUSTOM BRAND LOGO SETTINGS */}
+                <div className="p-4 bg-black/80 border border-[#D4AF37]/25 rounded-md space-y-3 pt-4">
+                  <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">CUSTOM BRAND LOGO DESIGN</span>
+                  <p className="text-[10px] text-gray-400 leading-relaxed font-mono">
+                    Change site initials, headers, subtitles, and global display identifiers.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="text-[9px] font-mono text-gray-500 block mb-1">Left Monogram Initial #1 (S)</label>
+                      <input
+                        type="text"
+                        maxLength={2}
+                        placeholder="S"
+                        value={seoForm.logo_text_s || ''}
+                        onChange={(e) => setSeoForm({ ...seoForm, logo_text_s: e.target.value })}
+                        className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-serif font-bold text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-mono text-gray-500 block mb-1">Left Monogram Initial #2 (X)</label>
+                      <input
+                        type="text"
+                        maxLength={2}
+                        placeholder="X"
+                        value={seoForm.logo_text_x || ''}
+                        onChange={(e) => setSeoForm({ ...seoForm, logo_text_x: e.target.value })}
+                        className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-serif font-bold text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-mono text-gray-500 block mb-1">Logo Brand Title</label>
+                      <input
+                        type="text"
+                        placeholder="STYLE X"
+                        value={seoForm.logo_text_title || ''}
+                        onChange={(e) => setSeoForm({ ...seoForm, logo_text_title: e.target.value })}
+                        className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-mono text-center"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-mono text-gray-500 block mb-1">Logo Brand Subtitle</label>
+                      <input
+                        type="text"
+                        placeholder="LUXURY"
+                        value={seoForm.logo_text_subtitle || ''}
+                        onChange={(e) => setSeoForm({ ...seoForm, logo_text_subtitle: e.target.value })}
+                        className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-sans font-bold text-center"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -962,22 +1033,79 @@ export default function AdminDashboard({
             {activeTab === 'banners' && (
               <div className="p-4 sm:p-5 bg-black/60 border border-[#D4AF37]/25 rounded-lg space-y-4">
                 <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">HOME PAGE BANNER CONFIGURATION</span>
-                <p className="text-xs text-gray-400">Configure promotional hero section slides, slider speeds and active campaigns.</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                  <div className="bg-[#0b0b0b] border border-[#D4AF37]/10 p-4 rounded text-xs">
-                    <span className="text-white block font-semibold mb-1">Banner Slide #1</span>
-                    <p className="text-gray-500 text-[10px] mb-2 font-mono">Currently: Main Carousel Majestic Cover</p>
-                    <input type="text" className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded" defaultValue="https://images.unsplash.com/photo-1549298916-b41d501d3772" />
-                  </div>
-                  <div className="bg-[#0b0b0b] border border-[#D4AF37]/10 p-4 rounded text-xs">
-                    <span className="text-white block font-semibold mb-1">Banner Slide #2</span>
-                    <p className="text-gray-500 text-[10px] mb-2 font-mono">Currently: Autumn Gold Accessories</p>
-                    <input type="text" className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded" defaultValue="https://images.unsplash.com/photo-1511556532299-8f662fc26c06" />
+                <p className="text-xs text-gray-400">Add, delete, or select high-end campaign hero banners and slides dynamically.</p>
+                
+                {/* Dynamic list of banners */}
+                <div className="space-y-3">
+                  {(seoForm.banners || []).map((bannerUrl, idx) => (
+                    <div key={idx} className="bg-[#0b0b0b] border border-[#D4AF37]/10 p-3 rounded text-xs flex items-center justify-between gap-3">
+                      <div className="flex items-center space-x-3 truncate">
+                        <img src={bannerUrl} alt={`Slide ${idx + 1}`} className="w-12 h-12 object-cover rounded border border-gold-border/25 shrink-0" />
+                        <div className="truncate">
+                          <span className="text-white block font-semibold">Banner Slide #{idx + 1}</span>
+                          <span className="text-gray-500 text-[10px] font-mono block truncate">{bannerUrl}</span>
+                        </div>
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const updatedBanners = (seoForm.banners || []).filter((_, i) => i !== idx);
+                          setSeoForm({ ...seoForm, banners: updatedBanners });
+                        }}
+                        className="p-1 px-2.5 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded text-[10px] font-mono uppercase cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+
+                  {(!seoForm.banners || seoForm.banners.length === 0) && (
+                    <div className="text-center py-6 text-gray-500 text-xs font-mono">
+                      No banners configured. System default slides will be activated.
+                    </div>
+                  )}
+                </div>
+
+                {/* Form to append new banner */}
+                <div className="pt-3 border-t border-gold-border/15 space-y-2">
+                  <span className="text-[10px] font-mono text-gray-400 uppercase">Load New Masterpiece Slider Image URL</span>
+                  <div className="flex gap-2">
+                    <input 
+                      type="url" 
+                      id="new-banner-url-input"
+                      placeholder="https://images.unsplash.com/photo-... (Resolution 1800x1200 recommended)" 
+                      className="flex-1 bg-black text-xs text-white border border-[#D4AF37]/20 p-2.5 rounded focus:outline-none focus:border-[#D4AF37]"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const input = document.getElementById('new-banner-url-input') as HTMLInputElement;
+                        if (input && input.value.trim().startsWith('http')) {
+                          const updatedBanners = [...(seoForm.banners || []), input.value.trim()];
+                          setSeoForm({ ...seoForm, banners: updatedBanners });
+                          input.value = '';
+                        } else {
+                          alert('Please enter a valid HTTP image url.');
+                        }
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-gold-secondary to-gold-accent text-black font-semibold text-xs tracking-wider uppercase rounded cursor-pointer"
+                    >
+                      Add Slide
+                    </button>
                   </div>
                 </div>
-                <div className="flex justify-end pt-2">
-                  <button onClick={() => alert('Banner configurations updated successfully.')} className="px-5 py-2.5 bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-black font-semibold text-xs rounded uppercase tracking-widest transition-all">
-                    Save Sliders
+
+                <div className="flex justify-end pt-4 border-t border-gold-border/15">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      onSaveSettings(seoForm);
+                      alert('Hero banner slide configuration saved successfully!');
+                    }} 
+                    className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:scale-[1.02] text-white font-semibold text-xs rounded uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Save className="h-4 w-4" />
+                    <span>Sync Banner Sliders</span>
                   </button>
                 </div>
               </div>

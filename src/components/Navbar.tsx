@@ -26,124 +26,146 @@ export default function Navbar({
   onSearch,
   onSelectCategory
 }: NavbarProps) {
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchVal, setSearchVal] = useState('');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchVal(e.target.value);
     onSearch(e.target.value);
   };
 
-  const categories = ['All', 'Timepieces', 'Leatherware', 'Apparel', 'Fragrances', 'Footwear'];
+  const handleLogoClick = () => {
+    setSearchVal('');
+    onSearch('');
+    onSelectCategory('All');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const categories = ['All', 'MEN'];
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-luxury-black/90 backdrop-blur-md border-b border-gold-border">
+    <nav className="sticky top-0 z-40 w-full bg-[#050505]/95 backdrop-blur-md border-b border-[#D4AF37]/30 select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-20 gap-2">
           
-          {/* Logo Left */}
-          <div className="flex-shrink-0 flex items-center space-x-2">
-            <span 
-              onClick={() => { onSearch(''); onSelectCategory('All'); }}
-              className="serif-title text-xl sm:text-2xl font-semibold tracking-[0.25em] text-white hover:text-gold-accent cursor-pointer transition-colors"
+          {/* LEFT: Mini Monogram Card & Brand Name block */}
+          <div className="flex items-center space-x-3 shrink-0 group/brand">
+            {/* Visual Monogram Logo matching Screenshot 1 */}
+            <div 
+              onClick={handleLogoClick}
+              className="flex flex-col items-center justify-center border border-[#D4AF37]/50 bg-black/90 p-1.5 h-12 w-12 hover:border-[#D4AF37] transition-all duration-500 cursor-pointer shrink-0 select-none rounded shadow-[0_0_15px_rgba(212,175,55,0.25)] group-hover/brand:shadow-[0_0_30px_rgba(212,175,55,0.7)] group-hover/brand:scale-105 active:scale-95"
             >
-              STYLE<span className="text-gold-accent">X</span>
-            </span>
-            <span className="hidden sm:inline text-[10px] tracking-widest text-[#B8860B] font-mono border border-gold-border px-1.5 py-0.5 rounded uppercase">
-              {isRealSupabaseConfigured ? 'Live' : 'Preview'}
-            </span>
-          </div>
-
-          {/* Search Center on Desktop */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8 relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-              <Search className="h-4 w-4 text-gold-accent" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search collective..."
-              value={searchVal}
-              onChange={handleSearchChange}
-              className="w-full bg-black/60 text-white placeholder-gray-500 pl-10 pr-4 py-2 rounded-full border border-gold-border text-sm focus:outline-none focus:border-gold-accent transition-all focus:ring-1 focus:ring-gold-accent"
-            />
-          </div>
-
-          {/* Icons Right */}
-          <div className="flex items-center space-x-3 sm:space-x-6">
-            {/* Supabase connection guide button */}
-            <button
-              onClick={onOpenSetupGuide}
-              title="Supabase Database Guidelines"
-              className="p-2 text-gray-300 hover:text-gold-accent hover:border-gold-accent rounded-full transition-colors flex items-center space-x-1 border border-transparent hover:bg-black/40"
-            >
-              <Database className="h-5 w-5" />
-              <span className="hidden lg:inline text-xs font-mono">SUPABASE DB</span>
-            </button>
-
-            {/* Admin toggle if logged in as admin */}
-            {user?.role === 'admin' ? (
-              <button
-                onClick={onOpenAdmin}
-                className="flex items-center space-x-1 shadow-md bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-gold-accent hover:to-gold-secondary text-black text-xs font-bold px-3 py-1.5 rounded-full transition-all tracking-wider uppercase cursor-pointer"
-              >
-                <Settings className="h-3.5 w-3.5 animate-spin" style={{ animationDuration: '6s' }} />
-                <span>Console</span>
-              </button>
-            ) : (
-              // Easy access to admin view in dry runs/simulation
-              <button
-                onClick={onOpenAdmin}
-                className="hidden lg:flex items-center text-[11px] font-mono border border-gold-border hover:bg-gold-accent hover:text-black hover:border-gold-accent text-gold-accent px-2.5 py-1 rounded transition-colors"
-              >
-                Admin Panel
-              </button>
-            )}
-
-            {/* Micro search trigger on mobile */}
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="md:hidden p-2 text-gray-400 hover:text-gold-accent transition-colors"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-
-            {/* User Account Account button */}
-            <button
-              onClick={onOpenAuth}
-              className="p-2 text-gray-300 hover:text-gold-accent transition-colors flex items-center space-x-2"
-            >
-              {user ? (
-                <div className="flex items-center space-x-1.5">
-                  <img
-                    src={user.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&auto=format&fit=crop"}
-                    alt={user.full_name}
-                    className="h-7 w-7 rounded-full border border-gold-accent object-cover"
-                  />
-                  <span className="hidden sm:inline text-xs font-medium tracking-wide text-white max-w-[80px] truncate">{user.full_name}</span>
-                </div>
-              ) : (
-                <User className="h-5.5 w-5.5" />
-              )}
-            </button>
-
-            {/* Cart Button */}
-            <button
-              onClick={onOpenCart}
-              className="p-2 text-gray-300 hover:text-gold-accent transition-colors relative"
-            >
-              <ShoppingBag className="h-5.5 w-5.5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gold-accent text-black text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-bounce">
-                  {cartCount}
+              <div className="-space-y-1.5 flex items-center justify-center h-4">
+                <span className="font-serif text-sm text-[#D4AF37] tracking-tighter font-semibold animate-pulse">
+                  {settings.logo_text_s || "S"}
                 </span>
-              )}
+                <span className="font-serif text-sm text-white tracking-tighter font-semibold ml-0.5">
+                  {settings.logo_text_x || "X"}
+                </span>
+              </div>
+              <span className="text-[7px] text-white font-mono tracking-widest uppercase mt-1">
+                {settings.logo_text_title || "STYLE X"}
+              </span>
+              <span className="text-[5px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-bold">
+                {settings.logo_text_subtitle || "LUXURY"}
+              </span>
+            </div>
+
+            {/* Typography brand names strip */}
+            <div className="flex flex-col text-left justify-center shrink-0">
+              <span 
+                onClick={handleLogoClick}
+                className="text-xs font-mono tracking-[0.3em] text-[#D4AF37] hover:text-white transition-all duration-300 cursor-pointer uppercase font-extrabold drop-shadow-[0_0_8px_rgba(212,175,55,0.15)] group-hover/brand:drop-shadow-[0_0_12px_rgba(212,175,55,0.4)]"
+              >
+                {settings.site_name || "STYLE X COLLECTIVE"}
+              </span>
+              <div className="flex items-center space-x-4 mt-1.5 font-mono text-[9px] uppercase tracking-wider text-[#D4AF37]/50">
+                <button 
+                  onClick={() => document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' })} 
+                  className="hover:text-white transition-all duration-300 font-bold cursor-pointer relative py-1 px-3 bg-black/60 border border-[#D4AF37]/20 hover:border-[#D4AF37] hover:scale-105 active:scale-95 rounded uppercase tracking-[0.3em] shadow-[0_0_8px_rgba(212,175,55,0.05)] hover:shadow-[0_0_15px_rgba(212,175,55,0.5)]"
+                >
+                  SHOP
+                </button>
+                <span className="text-[#D4AF37]/25 font-light select-none">|</span>
+                <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' }))}
+                  className="hover:text-white transition-all duration-300 font-bold cursor-pointer relative py-1 px-3 bg-black/60 border border-[#D4AF37]/10 hover:border-[#D4AF37] hover:scale-105 active:scale-95 rounded uppercase tracking-[0.2em] shadow-[0_0_8px_rgba(212,175,55,0.02)] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+                >
+                  Track Order
+                </button>
+                <span className="text-[#D4AF37]/25 font-light select-none">|</span>
+                <button 
+                  onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' }))}
+                  className="hover:text-white transition-all duration-300 font-bold cursor-pointer relative py-1 px-3 bg-black/60 border border-[#D4AF37]/10 hover:border-[#D4AF37] hover:scale-105 active:scale-95 rounded uppercase tracking-[0.2em] shadow-[0_0_8px_rgba(212,175,55,0.02)] hover:shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+                >
+                  Contact
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* CENTER: SEARCH PRODUCTS bar & VIP Present icon */}
+          <div className="hidden lg:flex flex-1 max-w-md mx-4 items-center space-x-2 justify-center">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="SEARCH PRODUCTS..."
+                value={searchVal}
+                onChange={handleSearchChange}
+                className="w-full bg-[#0b0b0b] text-white placeholder-gray-500 pl-5 pr-12 py-2.5 rounded-full border border-[#D4AF37]/25 text-[10px] tracking-widest focus:outline-none focus:border-[#D4AF37] transition-all font-mono uppercase"
+              />
+              <button className="absolute right-1 top-[3px] bg-[#D4AF37] hover:bg-[#B8860B] text-black rounded-full h-7 w-7 flex items-center justify-center transition-colors">
+                <Search className="h-3 w-3" />
+              </button>
+            </div>
+            
+            {/* VIP Lounge quick access Present icon 🎁 */}
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
+              className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] hover:border-[#D4AF37] hover:text-white rounded-full bg-[#0E0E0E] transition-all shrink-0 flex items-center justify-center h-9 w-9 cursor-pointer"
+              title="Aureum VIP Lounge"
+            >
+              <span className="text-sm select-none">🎁</span>
+            </button>
+          </div>
+
+          {/* RIGHT: Supabase status indicator, Access Portal pill & Cart Capsule */}
+          <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
+            {/* ACCESS PORTAL user login pill */}
+            <button 
+              onClick={onOpenAuth}
+              className="hidden md:flex border border-[#D4AF37]/25 hover:border-[#D4AF37] bg-[#0A0A0A] rounded-full px-4 py-1.5 items-center space-x-3.5 transition-all text-left group shrink-0"
+            >
+              <div className="flex flex-col">
+                <span className="text-[7px] text-gray-400 font-mono tracking-widest uppercase font-medium">ACCESS PORTAL</span>
+                <span className="text-[9px] text-white italic font-mono uppercase tracking-wider group-hover:text-gold-accent transition-colors">
+                  {user ? user.full_name : 'SIGN IN / UP'}
+                </span>
+              </div>
+              <div className="h-6 w-6 rounded-full border border-gold-border flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors overflow-hidden shrink-0">
+                {user?.avatar_url ? (
+                  <img src={user.avatar_url} alt={user.full_name} className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-3 w-3.5" />
+                )}
+              </div>
             </button>
 
-            {/* Mobile Menu Button */}
+            {/* CART Capsule Button */}
+            <button 
+              onClick={onOpenCart}
+              className="bg-[#D4AF37] hover:bg-[#B8860B] active:scale-95 text-black px-4 sm:px-5 py-2 rounded-full font-sans text-xs font-black tracking-widest flex items-center gap-2.5 transition-all duration-300 cursor-pointer shrink-0 select-none h-9 border border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:shadow-[0_0_25px_rgba(212,175,55,0.6)]"
+            >
+              <span className="uppercase font-mono font-extrabold tracking-widest text-[10px]">CART</span>
+              <div className="bg-black text-[#D4AF37] h-4.5 w-4.5 rounded-full flex items-center justify-center font-mono text-[9px] font-bold shrink-0">
+                {cartCount}
+              </div>
+            </button>
+
+            {/* Mobile Menu Toggle button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-300 hover:text-gold-accent transition-colors"
+              className="lg:hidden p-2 text-gray-300 hover:text-gold-accent transition-colors shrink-0"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -151,71 +173,61 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Mobile search bar dropdown */}
-      {searchOpen && (
-        <div className="md:hidden px-4 pb-4 animate-fade-in">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gold-accent" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search current catalogue..."
-              value={searchVal}
-              onChange={handleSearchChange}
-              className="w-full bg-black text-white placeholder-gray-500 pl-10 pr-4 py-2 border border-gold-border rounded focus:outline-none focus:border-gold-accent transition-colors"
-            />
-          </div>
+      {/* Mobile search bar block */}
+      <div className="lg:hidden px-4 pb-4 select-none flex items-center space-x-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder="SEARCH PRODUCTS..."
+            value={searchVal}
+            onChange={handleSearchChange}
+            className="w-full bg-[#0b0b0b] text-white placeholder-gray-500 pl-4 pr-10 py-2 border border-[#D4AF37]/15 rounded-full text-xs font-mono tracking-widest focus:outline-none focus:border-gold-accent"
+          />
+          <button className="absolute right-3 top-2.5 text-gold-accent">
+            <Search className="h-4 w-4" />
+          </button>
         </div>
-      )}
-
-      {/* Categories Bar / Premium navigation link row */}
-      <div className="bg-[#0a0a0a] border-t border-gold-border/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-x-auto">
-          <div className="flex py-3 space-x-8 text-xs font-mono tracking-widest uppercase justify-start md:justify-center whitespace-nowrap scrollbar-none">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => { onSelectCategory(cat); onSearch(''); setSearchVal(''); }}
-                className="text-gray-400 hover:text-gold-accent transition-colors scroll-ml-6 cursor-pointer"
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
+        
+        {/* VIP Present */}
+        <button 
+          onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
+          className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] rounded-full bg-[#0E0E0E] shrink-0"
+        >
+          🎁
+        </button>
       </div>
 
-      {/* Mobile menu view */}
+      {/* Mobile menu view overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-luxury-black/95 border-b border-gold-border px-4 py-4 space-y-3 animate-fade-in">
-          <span className="block text-xs font-mono text-[#D4AF37] border-b border-gold-border/20 pb-1.5 tracking-wider">
-            COLLECTIONS
+        <div className="lg:hidden bg-[#0A0A0A] border-b border-[#D4AF37]/35 px-4 py-4 space-y-3.5 animate-fade-in text-left">
+          <span className="block text-[9px] font-mono text-[#D4AF37] border-b border-gold-border/20 pb-1.5 tracking-widest uppercase">
+            QUICK NAVIGATION
           </span>
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => {
-                onSelectCategory(cat);
-                setMobileMenuOpen(false);
-              }}
-              className="block w-full text-left text-sm text-gray-300 py-1 hover:text-gold-accent transition-colors font-mono uppercase"
-            >
-              {cat}
-            </button>
-          ))}
+          <button 
+            onClick={() => { document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }}
+            className="block w-full text-left text-xs text-white hover:text-gold-accent font-mono uppercase tracking-widest py-1"
+          >
+            SHOP COLLECTION
+          </button>
+          <button 
+            onClick={() => { window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' })); setMobileMenuOpen(false); }}
+            className="block w-full text-left text-xs text-white hover:text-gold-accent font-mono uppercase tracking-widest py-1"
+          >
+            TRACK SYSTEM ORDER
+          </button>
+          <button 
+            onClick={() => { window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' })); setMobileMenuOpen(false); }}
+            className="block w-full text-left text-xs text-white hover:text-gold-accent font-mono uppercase tracking-widest py-1"
+          >
+            CONTACT PRIVATE CONCIERGE
+          </button>
+          
           <div className="border-t border-gold-border/20 pt-3 flex flex-col space-y-2">
             <button
               onClick={() => { onOpenSetupGuide(); setMobileMenuOpen(false); }}
-              className="flex items-center text-sm text-gray-300 hover:text-gold-accent py-1 font-mono"
+              className="flex items-center text-[10px] text-gray-400 hover:text-gold-accent py-1 font-mono uppercase tracking-wider"
             >
-              <Database className="h-4 w-4 mr-2" /> Supabase Connection Guide
-            </button>
-            <button
-              onClick={() => { onOpenAdmin(); setMobileMenuOpen(false); }}
-              className="flex items-center text-sm text-gray-300 hover:text-gold-accent py-1 font-mono"
-            >
-              <Settings className="h-4 w-4 mr-2" /> Administration Console
+              <Database className="h-4 w-4 mr-2 text-gold-accent" /> Metadata SQL Schema
             </button>
           </div>
         </div>

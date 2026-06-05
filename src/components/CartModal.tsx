@@ -61,7 +61,7 @@ export default function CartModal({
     const match = coupons.find(c => c.code.toUpperCase() === couponCode.trim().toUpperCase() && c.active);
     if (match) {
       if (match.min_order_amount && subtotal < match.min_order_amount) {
-        setCouponMessage(`Minimum order for this coupon is $${match.min_order_amount}.`);
+        setCouponMessage(`Minimum order for this coupon is ৳${match.min_order_amount}.`);
         setAppliedCoupon(null);
       } else {
         setAppliedCoupon(match);
@@ -162,7 +162,7 @@ export default function CartModal({
                     </div>
                     
                     <div className="text-right">
-                      <span className="font-mono text-sm text-gold-accent block">${(item.product.price * item.quantity).toLocaleString()}</span>
+                      <span className="font-mono text-sm text-gold-accent block">৳{(item.product.price * item.quantity).toLocaleString()}</span>
                       <button
                         onClick={() => onRemoveItem(idx)}
                         className="text-gray-500 hover:text-red-400 p-1 mt-1 transition-colors"
@@ -259,30 +259,32 @@ export default function CartModal({
               <div className="space-y-1.5 pt-3 font-mono text-xs text-gray-300">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>${subtotal.toLocaleString()}</span>
+                  <span>৳{subtotal.toLocaleString()}</span>
                 </div>
                 {appliedCoupon && (
                   <div className="flex justify-between text-green-400">
                     <span>Discount ({appliedCoupon.code}):</span>
-                    <span>-${discountAmount.toLocaleString()}</span>
+                    <span>-৳{discountAmount.toLocaleString()}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>Concierge Delivery charge:</span>
-                  <span>${deliveryCharge.toLocaleString()}</span>
+                  <span>৳{deliveryCharge.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-[#ffffff] font-medium text-sm pt-2 border-t border-gold-border/10">
-                  <span className="serif-title uppercase tracking-widest text-gold-accent">TOTAL OUTLAY:</span>
-                  <span className="text-gold-accent">${total.toLocaleString()}</span>
+                  <span className="serif-title uppercase tracking-widest text-[#D4AF37]">TOTAL OUTLAY:</span>
+                  <span className="text-[#D4AF37]">৳{total.toLocaleString()}</span>
                 </div>
               </div>
 
               {/* Immediate Submit Actions */}
               <button
                 type="submit"
-                className="w-full py-4 rounded-full bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-gold-accent hover:to-gold-secondary text-black font-semibold text-xs tracking-[0.2em] uppercase transition-all duration-300 shadow cursor-pointer text-center"
+                className="w-full py-4.5 rounded-full bg-gradient-to-r from-gold-secondary to-gold-accent hover:from-[#ffeb9b] hover:to-[#ffdf6d] text-black font-black text-xs tracking-[0.25em] uppercase transition-all duration-500 shadow-[0_0_15px_rgba(212,175,55,0.35)] hover:shadow-[0_0_35px_rgba(212,175,55,0.75)] cursor-pointer text-center active:scale-95 relative overflow-hidden group/submit"
               >
-                SUBMIT SECURE ACQUISITION ORDER
+                {/* Light shimmer line trailing on hover */}
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover/submit:animate-[shimmer_1.5s_infinite]" />
+                <span className="relative z-10">SUBMIT SECURE ACQUISITION ORDER</span>
               </button>
             </form>
           )}

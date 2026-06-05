@@ -22,7 +22,6 @@ export default function AuthModal({
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [role, setRole] = useState<'admin' | 'customer'>('customer');
   
   const [notice, setNotice] = useState('');
 
@@ -37,7 +36,13 @@ export default function AuthModal({
 
     // Capture or register credentials
     const cleanName = fullName.trim() || email.split('@')[0];
-    onLogin(email.trim(), role, cleanName, phone.trim());
+    const finalRole = (
+      email.toLowerCase() === 'admin@stylex.com' || 
+      email.toLowerCase() === 'risatadnan1122@gmail.com' || 
+      email.toLowerCase().includes('admin')
+    ) ? 'admin' : 'customer';
+
+    onLogin(email.trim(), finalRole, cleanName, phone.trim());
     setNotice('');
     setEmail('');
     setPassword('');
@@ -129,30 +134,17 @@ export default function AuthModal({
             )}
 
             {isRegister && (
-              <>
-                <div>
-                  <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="E.g. Alexander Vance"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-black text-xs text-white border border-gold-border/30 px-3.5 py-2.5 rounded focus:outline-none focus:border-gold-accent"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">VIP Contact Number</label>
-                  <input
-                    type="tel"
-                    placeholder="E.g. +880 1711223344"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-black text-xs text-white border border-gold-border/30 px-3.5 py-2.5 rounded focus:outline-none focus:border-gold-accent"
-                  />
-                </div>
-              </>
+              <div>
+                <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Full Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="E.g. Alexander Vance"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full bg-black text-xs text-white border border-gold-border/30 px-3.5 py-2.5 rounded focus:outline-none focus:border-gold-accent"
+                />
+              </div>
             )}
 
             <div>
@@ -179,39 +171,22 @@ export default function AuthModal({
               />
             </div>
 
-            {/* Premium Interactive Simulator Role Select Bar */}
-            <div className="bg-[#0b0b0b] p-3 rounded.md border border-gold-border/10 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-mono text-gold-accent uppercase">Preset Security Access Role:</span>
-                <span className="text-[9px] font-mono text-gray-500 bg-black px-2 py-0.5 rounded border border-gold-border/20 uppercase font-bold">Simulator Setting</span>
+            {/* VIP Contact Phone Number */}
+            <div>
+              <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">VIP Contact Number (Phone)</label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  required
+                  placeholder="E.g. +880 1711223344"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full bg-black text-xs text-white border border-gold-border/30 pl-10 pr-3.5 py-2.5 rounded focus:outline-none focus:border-gold-accent font-mono"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gold-accent/75">
+                  <Phone className="h-3.5 w-3.5" />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('customer')}
-                  className={`py-2 text-[10px] font-mono font-semibold uppercase rounded text-center border transition-all ${
-                    role === 'customer'
-                      ? 'bg-gold-accent/20 border-gold-accent text-gold-accent'
-                      : 'bg-black/50 border-gold-border/20 text-gray-500'
-                  }`}
-                >
-                  Customer Member
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('admin')}
-                  className={`py-2 text-[10px] font-mono font-semibold uppercase rounded text-center border transition-all ${
-                    role === 'admin'
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                      : 'bg-black/50 border-gold-border/20 text-gray-500'
-                  }`}
-                >
-                  Admin Console
-                </button>
-              </div>
-              <p className="text-[9px] text-gray-500 text-center leading-relaxed font-sans">
-                Selecting <b>Admin</b> allows testing the complete Administrator Dashboard layout!
-              </p>
             </div>
 
             {/* Submit */}

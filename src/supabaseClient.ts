@@ -17,80 +17,66 @@ export const realSupabase = isRealSupabaseConfigured
 const DEFAULT_PRODUCTS: Product[] = [
   {
     id: 'p1',
-    name: 'Gilded Chronograph Series X',
-    slug: 'gilded-chronograph-series-x',
-    price: 1850,
-    old_price: 2400,
-    description: 'An elite masterpiece of precision, featuring 18-karat brushed gold casings, a polished sapphire watch face, and high-precision self-winding movement.',
-    category: 'Timepieces',
-    sizes: ['40mm', '42mm', '44mm'],
-    stock: 12,
+    name: 'Risat Adnan',
+    slug: 'risat-adnan-curate',
+    price: 122,
+    old_price: 180,
+    description: 'A meticulous exploration of minimalist form and avant-garde structure. Curated exclusively by Risat Adnan for the modern visionary.',
+    category: 'MEN',
+    sizes: ['S', 'XS'],
+    stock: 322,
     featured: true,
-    image_url: 'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&auto=format&fit=crop'
+    image_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop'
   },
   {
     id: 'p2',
-    name: 'Aureum Velvet Evening Blazer',
-    slug: 'aureum-velvet-evening-blazer',
-    price: 1250,
-    old_price: 1600,
-    description: 'Crafted from premium Italian velvet, this exquisite blazer showcases embroidered silk lapels and custom gold-engraved buttons.',
-    category: 'Apparel',
-    sizes: ['S', 'M', 'L', 'XL'],
-    stock: 8,
+    name: 'Hello',
+    slug: 'hello-luxury-box',
+    price: 100,
+    old_price: 150,
+    description: 'An premium curated packaging work designed as an elegant container of elite accessories and high-precision items.',
+    category: 'MEN',
+    sizes: ['S', 'M', 'L'],
+    stock: 112,
     featured: true,
-    image_url: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop'
+    image_url: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=800&auto=format&fit=crop'
   },
   {
     id: 'p3',
-    name: 'Style X Signature Handbag',
-    slug: 'style-x-signature-handbag',
-    price: 3200,
-    old_price: 3950,
-    description: 'Our iconic flagship piece. Handcrafted full-grain calfskin leather, structured golden hardware accents, and an elegant velvet-lined chamber.',
-    category: 'Leatherware',
-    sizes: ['Medium', 'Large'],
-    stock: 5,
+    name: 'Risat',
+    slug: 'risat-espresso-crema',
+    price: 100,
+    description: 'A rich espresso extraction showcasing flawless crema structure. Designed for true connoisseurs of pure, concentrated energy.',
+    category: 'MEN',
+    sizes: ['S', 'XS'],
+    stock: 50,
     featured: true,
-    image_url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&auto=format&fit=crop'
+    image_url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop'
   },
   {
     id: 'p4',
-    name: 'Nocturnal Noir Premium Secret',
-    slug: 'nocturnal-noir-premium-secret',
-    price: 420,
-    old_price: 490,
-    description: 'An enchanting scent opening with cold cardamom, precious saffron, and deep undertones of premium dark oud and white musk.',
-    category: 'Fragrances',
-    sizes: ['50ml', '100ml'],
-    stock: 25,
+    name: 'Hi',
+    slug: 'hi-espresso-extraction',
+    price: 122,
+    old_price: 150,
+    description: 'Bespoke double extraction premium espresso shot, offering sensory balance and elegant crema form on a matte black stage.',
+    category: 'MEN',
+    sizes: ['S', 'M'],
+    stock: 12,
     featured: true,
-    image_url: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=800&auto=format&fit=crop'
+    image_url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop'
   },
   {
     id: 'p5',
-    name: 'Verdant Silk Kimono Gown',
-    slug: 'verdant-silk-kimono-gown',
-    price: 1450,
-    old_price: 1900,
-    description: 'A breath-taking emerald dream. 100% heavy mulberry silk meticulously hand-woven with fine golden thread patterns.',
-    category: 'Apparel',
+    name: 'Welcome',
+    slug: 'welcome-gilded-accessory',
+    price: 100,
+    description: 'Flawless design representation presenting minimalist symmetry and premium gilded detail. Crafted for the absolute visionary.',
+    category: 'MEN',
     sizes: ['S', 'M', 'L'],
-    stock: 7,
+    stock: 12,
     featured: false,
-    image_url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&auto=format&fit=crop'
-  },
-  {
-    id: 'p6',
-    name: 'Alabaster Gold Dress Slippers',
-    slug: 'alabaster-gold-dress-slippers',
-    price: 950,
-    description: 'Bespoke calfskin slip-ons embellished with minimalist metallic brass buckles, complete with memory cushioning.',
-    category: 'Footwear',
-    sizes: ['41', '42', '43', '44'],
-    stock: 14,
-    featured: false,
-    image_url: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=800&auto=format&fit=crop'
+    image_url: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=800&auto=format&fit=crop'
   }
 ];
 
@@ -102,7 +88,16 @@ const DEFAULT_SETTINGS: SiteSettings = {
   seo_title: 'Style X | Premium Luxury Fashion eCommerce',
   seo_description: 'Discover curated high-end apparel, limited timepieces, and hand-crafted leather goods framed in magnificent black and gold elegance.',
   seo_keywords: 'luxury, stylex, gold fashion, high fashion, premium timepieces, designer apparel',
-  seo_og_image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop'
+  seo_og_image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop',
+  apps_script_url: 'https://script.google.com/macros/s/AKfycbwlkTgUkW1XTScs7dIIym1mNpa6MVgY9JO9c0lACN7Jaj8zi6TWYs1LgNDp4V6NoDPa/exec',
+  logo_text_s: 'S',
+  logo_text_x: 'X',
+  logo_text_title: 'STYLE X',
+  logo_text_subtitle: 'LUXURY',
+  banners: [
+    "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1800&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop"
+  ]
 };
 
 const DEFAULT_COUPONS: Coupon[] = [
@@ -136,8 +131,18 @@ const setStored = (key: string, val: any) => {
 
 // VIRTUAL MEMORY MANAGER
 export const getSimulatedDB = () => {
-  const products = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
+  let products = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
+  
+  // Force migration for premium screenshot compliance
+  if (products.length > 0 && products[0].id === 'p1' && products[0].name !== 'Risat Adnan') {
+    products = DEFAULT_PRODUCTS;
+    setStored('stylex_products', DEFAULT_PRODUCTS);
+  }
+
   const settings = getStored<SiteSettings>('stylex_settings', DEFAULT_SETTINGS);
+  if (!settings.apps_script_url) {
+    settings.apps_script_url = DEFAULT_SETTINGS.apps_script_url;
+  }
   const coupons = getStored<Coupon[]>('stylex_coupons', DEFAULT_COUPONS);
   const reviews = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);
   const chats = getStored<ChatMessage[]>('stylex_chats', DEFAULT_CHATS);
