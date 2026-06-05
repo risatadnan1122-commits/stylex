@@ -1,0 +1,6 @@
+{
+  "name": "Style X Luxury Ecommerce",
+  "description": "Premium luxury fashion eCommerce platform with absolute elegance featuring custom gold-over-black theme, live messaging, and administrator control center.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

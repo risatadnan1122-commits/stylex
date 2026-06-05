@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --color-luxury-black: #050505;
+  --color-luxury-card: rgba(15, 15, 15, 0.95);
+  --color-gold-accent: #D4AF37;
+  --color-gold-secondary: #B8860B;
+  --color-gold-border: rgba(212, 175, 55, 0.15);
+  
+  --animate-fade-in: fade-in 0.6s ease-out;
+  --animate-gold-pulse: gold-pulse 2s infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gold-pulse {
+  0%, 100% { border-color: rgba(212,175,55,0.15); box-shadow: 0 0 0 rgba(212,175,55,0); }
+  50% { border-color: rgba(212,175,55,0.4); box-shadow: 0 0 10px rgba(212,175,55,0.1); }
+}
+
+/* Custom gorgeous scrollbar for luxury aesthetic */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8860B;
+}
+
+body {
+  background-color: #050505;
+  color: #FFFFFF;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.serif-title {
+  font-family: var(--font-serif);
+}
+
+/* Shimmer / Glassmorphism Luxury Utilities */
+.glass-luxury {
+  background: rgba(15, 15, 15, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.gold-text-shimmer {
+  background: linear-gradient(to right, #B8860B 0%, #D4AF37 50%, #B8860B 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shine 4s linear infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}
