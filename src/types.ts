@@ -89,6 +89,7 @@ export interface SiteSettings {
   logo_text_x?: string;
   logo_text_title?: string;
   logo_text_subtitle?: string;
+  logo_image_url?: string;
   banners?: string[];
   lottery_coin_reward?: number;
   campaign_coin_reward?: number;

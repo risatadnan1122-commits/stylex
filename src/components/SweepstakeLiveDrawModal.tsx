@@ -123,7 +123,7 @@ export default function SweepstakeLiveDrawModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl overflow-hidden select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl overflow-hidden select-none" data-lenis-prevent="true">
       
       {/* Dynamic Golden Space Background Particle Lights */}
       <div className="absolute inset-0 pointer-events-none">

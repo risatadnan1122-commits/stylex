@@ -27,7 +27,7 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fade-in select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fade-in select-none" data-lenis-prevent="true">
       
       {/* Background Interactive Backplane */}
       <div className="absolute inset-0" onClick={onClose} />

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   X, BarChart3, Plus, Edit3, Trash2, MailOpen, Layers, 
   Settings2, Percent, Check, Trash, CheckSquare, MessageCircle, AlertCircle, Save,
-  LayoutDashboard, Package, ClipboardList, Image as ImageIcon, Megaphone, Coins, Globe, Search, MessageSquare
+  LayoutDashboard, Package, ClipboardList, Image as ImageIcon, Megaphone, Coins, Globe, Search, MessageSquare, Database
 } from 'lucide-react';
 import { Product, Order, Review, Coupon, SiteSettings, ChatMessage } from '../types';
 import SweepstakeLiveDrawModal from './SweepstakeLiveDrawModal';
@@ -24,6 +24,7 @@ interface AdminDashboardProps {
   onDeleteCoupon: (couponId: string) => void;
   onSaveSettings: (settings: SiteSettings) => void;
   onAdminReplyChat: (msg: string) => void;
+  onOpenSetupGuide?: () => void;
   onClose: () => void;
 }
 
@@ -44,6 +45,7 @@ export default function AdminDashboard({
   onDeleteCoupon,
   onSaveSettings,
   onAdminReplyChat,
+  onOpenSetupGuide,
   onClose
 }: AdminDashboardProps) {
   
@@ -69,6 +71,10 @@ export default function AdminDashboard({
 
   // Live Sweepstakes Mode state
   const [isLiveSweepstakeOpen, setIsLiveSweepstakeOpen] = useState(false);
+
+  // Modern live simulation variables for premium design atelier mockup
+  const [previewAccent, setPreviewAccent] = useState<'emerald' | 'gold' | 'onyx' | 'pearl'>('gold');
+  const [previewSize, setPreviewSize] = useState<string>('M');
 
   // Computations
   const totalOrdersCount = orders.length;
@@ -163,9 +169,9 @@ export default function AdminDashboard({
   const categoriesChoices = ['Timepieces', 'Leatherware', 'Apparel', 'Fragrances', 'Footwear'];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md overflow-y-auto flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md overflow-y-auto flex items-center justify-center p-4" data-lenis-prevent="true">
       
-      <div id="admin-cabinet" className="relative bg-luxury-black border border-gold-accent w-full max-w-6xl h-[90vh] overflow-hidden rounded-xl shadow-2xl flex flex-col">
+      <div id="admin-cabinet" className="relative bg-luxury-black border border-gold-accent w-full max-w-6xl h-[90vh] overflow-hidden rounded-xl shadow-2xl flex flex-col" data-lenis-prevent="true">
         
         {/* Top Control bar */}
         <div className="px-6 py-4 border-b border-gold-border/30 bg-black/60 flex items-center justify-between">
@@ -192,12 +198,30 @@ export default function AdminDashboard({
             <div className="mb-6 p-4 rounded-xl border border-[#D4AF37]/20 bg-[#0B0B0B] flex flex-col items-center justify-center text-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-b from-[#151515]/60 via-transparent to-black pointer-events-none" />
               <div className="relative mb-2 flex items-center justify-center">
-                {/* Visual SX Logo monogram */}
-                <span className="serif-title font-serif text-3xl font-extralight tracking-widest text-[#D4AF37]">S</span>
-                <span className="serif-title font-serif text-3xl font-extralight tracking-widest text-white ml-2">X</span>
+                {settings.logo_image_url ? (
+                  <img 
+                    src={settings.logo_image_url} 
+                    alt="Logo" 
+                    className="h-10 w-auto max-w-full object-contain" 
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <>
+                    <span className="serif-title font-serif text-3xl font-extralight tracking-widest text-[#D4AF37]">
+                      {settings.logo_text_s || "S"}
+                    </span>
+                    <span className="serif-title font-serif text-3xl font-extralight tracking-widest text-white ml-2">
+                      {settings.logo_text_x || "X"}
+                    </span>
+                  </>
+                )}
               </div>
-              <div className="text-[11px] tracking-[0.3em] font-light text-white uppercase font-mono">STYLE X</div>
-              <div className="text-[8px] tracking-[0.4em] font-light text-[#D4AF37] uppercase font-sans mt-1">LUXURY FASHION</div>
+              <div className="text-[11px] tracking-[0.3em] font-light text-white uppercase font-mono">
+                {settings.logo_text_title || "STYLE X"}
+              </div>
+              <div className="text-[8px] tracking-[0.4em] font-light text-[#D4AF37] uppercase font-sans mt-1">
+                {settings.logo_text_subtitle || "LUXURY FASHION"}
+              </div>
             </div>
 
             <span className="text-[9px] font-sans tracking-[0.3em] text-[#D4AF37] uppercase mb-4 pl-2 font-semibold">ADMIN PANEL</span>
@@ -232,13 +256,25 @@ export default function AdminDashboard({
                 );
               })}
             </div>
+
+            {onOpenSetupGuide && (
+              <div className="mt-auto pt-6 border-t border-[#D4AF37]/15">
+                <button
+                  onClick={onOpenSetupGuide}
+                  className="w-full text-left font-mono text-[9px] tracking-[0.2em] uppercase px-4 py-3 bg-[#0B0B0B] hover:bg-[#D4AF37]/5 text-[#D4AF37] hover:text-white rounded-lg border border-[#D4AF37]/35 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-[inset_0_0_10px_rgba(212,175,55,0.05)] hover:shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                >
+                  <Database className="h-3.5 w-3.5 text-[#D4AF37]" />
+                  <span>SQL METADATA SCHEMA</span>
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Core dynamic body panel */}
           <div className="flex-1 overflow-y-auto p-5 md:p-6 bg-black/10">
             
             {/* Mobile dynamic navigation indicators button selectors */}
-            <div className="md:hidden flex space-x-2 overflow-x-auto pb-4 mb-4 border-b border-gold-border/20 scrollbar-none">
+            <div className="md:hidden flex space-x-2 overflow-x-auto pb-4 mb-2 border-b border-gold-border/20 scrollbar-none">
               {['analytics', 'products', 'orders', 'reviews', 'coupons', 'chat', 'seo'].map((tab) => (
                 <button
                   key={tab}
@@ -251,6 +287,19 @@ export default function AdminDashboard({
                 </button>
               ))}
             </div>
+
+            {/* Mobile Setup Guide Database Button */}
+            {onOpenSetupGuide && (
+              <div className="md:hidden mb-4">
+                <button
+                  onClick={onOpenSetupGuide}
+                  className="w-full text-center font-mono text-[9px] tracking-widest uppercase py-2.5 bg-[#0B0B0B] text-[#D4AF37] rounded border border-[#D4AF37]/30 flex items-center justify-center gap-2"
+                >
+                  <Database className="h-3.5 w-3.5 text-[#D4AF37]" />
+                  <span>SQL METADATA SCHEMA CONN</span>
+                </button>
+              </div>
+            )}
 
             {/* Cabinet Tab views */}
             
@@ -349,181 +398,550 @@ export default function AdminDashboard({
 
                 {/* Optional Expandable Product Creation / Edition Form */}
                 {showProductForm && (
-                  <form onSubmit={handleProductSubmit} className="p-6 bg-[#0B0B0B] border border-[#D4AF37]/25 rounded-xl space-y-4 animate-fade-in shadow-[0_4px_30px_rgba(212,175,55,0.05)]">
-                    <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold border-b border-[#D4AF37]/15 pb-2">
-                      {editingProductId ? 'EDIT PRODUCT METADATA' : 'LAUNCH NEW LUXURY GARMENT'}
-                    </span>
+                  <div className="absolute inset-0 bg-[#060606]/98 z-40 p-5 md:p-8 flex flex-col space-y-6 overflow-y-auto animate-fade-in border border-[#D4AF37]/35 rounded-xl shadow-[0_4px_45px_rgba(0,0,0,0.95)]">
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Atelier Header Panel */}
+                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 pb-5 border-b border-[#D4AF37]/20">
                       <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Garment Name *</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="E.g. Emerald Silk Lapel"
-                          value={productForm.name || ''}
-                          onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded"
-                        />
+                        <div className="flex items-center space-x-2 text-xs font-mono text-[#D4AF37] mb-1 select-none">
+                          <span className="opacity-60 uppercase">Console Directory</span>
+                          <span className="opacity-40">/</span>
+                          <span className="opacity-60 uppercase">Inventory Grid</span>
+                          <span className="opacity-40">/</span>
+                          <span className="font-bold uppercase tracking-wider text-white">Creative Atelier Studio</span>
+                        </div>
+                        <h2 className="serif-title font-serif italic text-3xl md:text-4xl text-white tracking-widest font-normal flex items-center gap-2">
+                          {editingProductId ? 'REINVENT MASTER PIECE' : 'EXCLUSIVE CREATIVE ATELIER'}
+                        </h2>
+                        <p className="text-[11.5px] text-gray-400 font-sans tracking-wide mt-1.5 max-w-2xl leading-normal">
+                          An immersive white-glove workspace to customize material specifications, configure automatic price deductions, and visualize instant 3D-style catalog listings within your luxury dashboard.
+                        </p>
                       </div>
 
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase block mb-2">Unique slug/SKU *</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="E.g. emerald-silk-lapel"
-                          value={productForm.slug || ''}
-                          onChange={(e) => setProductForm({ ...productForm, slug: e.target.value })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase block mb-2">Category *</label>
-                        <select
-                          value={productForm.category || 'Apparel'}
-                          onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                          className="w-full bg-black text-xs text-[#D4AF37] border border-[#D4AF37]/30 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded"
+                      <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                        {/* INSPIRATION PRESET GENERATOR */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const presets = [
+                              {
+                                name: "Aureum Imperial Silk Trench",
+                                slug: "aureum-imperial-silk-trench",
+                                category: "Apparel",
+                                price: 38500,
+                                old_price: 49000,
+                                stock: 5,
+                                sizes: "S, M, L, XL",
+                                image_url: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=1200&auto=format&fit=crop",
+                                description: "Finely woven Imperial mulberry silk fibers paired with bespoke Italian linen interlinings. Highly custom draped fall silhouette crafted for elite evening events.",
+                                coupon_code: "IMPERIAL35",
+                                coupon_discount: 35,
+                                featured: true
+                              },
+                              {
+                                name: "Obsidian Tourbillion Skeleton Watch",
+                                slug: "obsidian-tourbillion-skeleton",
+                                category: "Timepieces",
+                                price: 345000,
+                                old_price: 395000,
+                                stock: 2,
+                                sizes: "One Size",
+                                image_url: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=1200&auto=format&fit=crop",
+                                description: "Caliber-829 high-complication tourbillion movement set in raw obsidian composite micro-case. Anti-reflective dual sapphire crystals with white-glove tracking hands.",
+                                coupon_code: "OBSIDIAN20",
+                                coupon_discount: 20,
+                                featured: true
+                              },
+                              {
+                                name: "Nouveau Crocodile Leather Portfolio",
+                                slug: "nouveau-crocodile-leather-portfolio",
+                                category: "Leatherware",
+                                price: 184000,
+                                old_price: 220000,
+                                stock: 3,
+                                sizes: "Medium",
+                                image_url: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=1200&auto=format&fit=crop",
+                                description: "Ethically farmed ultra-gloss crocodile hide dyed with botanical indigo oil. Features pristine solid gold physical rivets and fully padded laptop/tablet slot.",
+                                coupon_code: "PORTFOLIO15",
+                                coupon_discount: 15,
+                                featured: false
+                              },
+                              {
+                                name: "Elite Royale Emerald Parfum",
+                                slug: "elite-royale-emerald-parfum",
+                                category: "Fragrances",
+                                price: 42000,
+                                old_price: 48500,
+                                stock: 12,
+                                sizes: "100ml",
+                                image_url: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1200&auto=format&fit=crop",
+                                description: "Enchanted green moss accords carefully distilled with Bulgarian rose petals, rich Siberian agarwood extracts, and organic golden amber resins.",
+                                coupon_code: "ROYALEMER",
+                                coupon_discount: 10,
+                                featured: true
+                              },
+                              {
+                                name: "Raw Oro Gilded Sunglasses",
+                                slug: "raw-oro-gilded-sunglasses",
+                                category: "Footwear",
+                                price: 89000,
+                                old_price: 110000,
+                                stock: 7,
+                                sizes: "Standard",
+                                image_url: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=1200&auto=format&fit=crop",
+                                description: "Sculptured titanium arms plated with thick 18-karat recycled yellow gold dust. Incorporates custom Zeiss green lenses with triple ultraviolet guard layers.",
+                                coupon_code: "GOLDDUST",
+                                coupon_discount: 12,
+                                featured: false
+                              }
+                            ];
+                            const random = presets[Math.floor(Math.random() * presets.length)];
+                            setProductForm({
+                              name: random.name,
+                              slug: random.slug,
+                              category: random.category,
+                              price: random.price,
+                              old_price: random.old_price,
+                              stock: random.stock,
+                              sizes: random.sizes,
+                              image_url: random.image_url,
+                              description: random.description,
+                              coupon_code: random.coupon_code,
+                              coupon_discount: random.coupon_discount,
+                              featured: random.featured
+                            });
+                          }}
+                          className="px-4 py-2 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/25 text-[#D4AF37] border border-[#D4AF37]/45 text-[10.5px] font-mono hover:scale-[1.02] active:scale-95 tracking-widest uppercase rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
                         >
-                          {categoriesChoices.map(c => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
+                          <svg className="h-3.5 w-3.5 text-[#D4AF37] animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                          </svg>
+                          <span>Auto-Draft Specs</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProductId(null);
+                            setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
+                            setShowProductForm(false);
+                          }}
+                          className="px-4 py-2 border border-gray-700 hover:border-white text-gray-300 text-[10.5px] font-mono hover:scale-[1.02] active:scale-95 tracking-widest uppercase rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          <span>Cancel</span>
+                        </button>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Price (৳ BDT) *</label>
-                        <input
-                          type="number"
-                          required
-                          min="1"
-                          placeholder="122"
-                          value={productForm.price || ''}
-                          onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded"
-                        />
+                    {/* Atelier Interactive Splitting Pane Grid layout */}
+                    <form onSubmit={handleProductSubmit} className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                      
+                      {/* Left: Physical Configurator Workspace */}
+                      <div className="lg:col-span-7 space-y-6">
+                        
+                        {/* Section 1: Classification Ledger */}
+                        <div className="p-5 bg-black/40 border border-gold-border/20 rounded-xl space-y-4">
+                          <span className="text-[9.5px] font-mono text-[#D4AF37] font-bold tracking-widest block uppercase border-b border-gold-border/10 pb-2">
+                            01 // Identity & Catalogue Classification
+                          </span>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Garment / Piece Name *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="E.g. Sapphire Velvet Dinner Jacket"
+                                value={productForm.name || ''}
+                                onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans transition-all"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Unique slug SKU *</label>
+                              <input
+                                type="text"
+                                required
+                                placeholder="E.g. sapphire-velvet-jacket"
+                                value={productForm.slug || ''}
+                                onChange={(e) => setProductForm({ ...productForm, slug: e.target.value })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono transition-all"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Category Classification *</label>
+                              <select
+                                value={productForm.category || 'Apparel'}
+                                onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                                className="w-full bg-black text-xs text-[#D4AF37] border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded transition-all font-mono"
+                              >
+                                {categoriesChoices.map(c => (
+                                  <option key={c} value={c}>{c}</option>
+                                ))}
+                              </select>
+                            </div>
+                            
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Exhibition Status</label>
+                              <div className="flex items-center h-10 bg-black/60 px-3 border border-gold-border/15 rounded">
+                                <input
+                                  type="checkbox"
+                                  id="featured_atelier"
+                                  checked={productForm.featured || false}
+                                  onChange={(e) => setProductForm({ ...productForm, featured: e.target.checked })}
+                                  className="accent-[#D4AF37] h-4 w-4 cursor-pointer"
+                                />
+                                <label htmlFor="featured_atelier" className="text-[9.5px] font-mono text-gray-300 uppercase ml-2.5 select-none cursor-pointer">
+                                  Feature on Front Carousel
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 2: Economics Ledger */}
+                        <div className="p-5 bg-black/40 border border-gold-border/20 rounded-xl space-y-4">
+                          <span className="text-[9.5px] font-mono text-[#D4AF37] font-bold tracking-widest block uppercase border-b border-gold-border/10 pb-2">
+                            02 // Acquisition Formula & Inventory Volume
+                          </span>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Atelier Price (৳ BDT) *</label>
+                              <input
+                                type="number"
+                                required
+                                min="1"
+                                placeholder="E.g. 125000"
+                                value={productForm.price || ''}
+                                onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">MSRP Valuation (Optional)</label>
+                              <input
+                                type="number"
+                                placeholder="E.g. 150000"
+                                value={productForm.old_price || ''}
+                                onChange={(e) => setProductForm({ ...productForm, old_price: e.target.value ? Number(e.target.value) : undefined })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Vessel Chamber Stock *</label>
+                              <input
+                                type="number"
+                                required
+                                min="0"
+                                value={productForm.stock ?? 10}
+                                onChange={(e) => setProductForm({ ...productForm, stock: Number(e.target.value) })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 3: Sizing & Promo Matrix */}
+                        <div className="p-5 bg-black/40 border border-gold-border/20 rounded-xl space-y-4">
+                          <span className="text-[9.5px] font-mono text-[#D4AF37] font-bold tracking-widest block uppercase border-b border-gold-border/10 pb-2">
+                            03 // Bespoke Draping Specs & Reward Deductions
+                          </span>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="sm:col-span-1">
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Draping Sizes (Split)</label>
+                              <input
+                                type="text"
+                                placeholder="S, M, L, XL or One Size"
+                                value={Array.isArray(productForm.sizes) ? productForm.sizes.join(', ') : productForm.sizes || ''}
+                                onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans"
+                              />
+                              <span className="text-[8px] text-gray-500 font-mono mt-1 block">Separate sizes with commas</span>
+                            </div>
+
+                            <div className="sm:col-span-1">
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Vapor Coupon Code</label>
+                              <input
+                                type="text"
+                                placeholder="E.g. SAPPHIRE20"
+                                value={productForm.coupon_code || ''}
+                                onChange={(e) => setProductForm({ ...productForm, coupon_code: e.target.value.toUpperCase().trim() })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono uppercase"
+                              />
+                              <span className="text-[8px] text-gray-500 font-mono mt-1 block">Valid only for this item</span>
+                            </div>
+
+                            <div className="sm:col-span-1">
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Coupon Deduction (%)</label>
+                              <input
+                                type="number"
+                                min="0"
+                                max="100"
+                                placeholder="E.g. 20"
+                                value={productForm.coupon_discount || ''}
+                                onChange={(e) => setProductForm({ ...productForm, coupon_discount: e.target.value ? Number(e.target.value) : undefined })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono"
+                              />
+                              <span className="text-[8px] text-gray-500 font-mono mt-1 block">Percentage off rate</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Section 4: Textures & Delineation */}
+                        <div className="p-5 bg-black/40 border border-gold-border/20 rounded-xl space-y-4">
+                          <span className="text-[9.5px] font-mono text-[#D4AF37] font-bold tracking-widest block uppercase border-b border-gold-border/10 pb-2">
+                            04 // Material Textures & Visual Delineation
+                          </span>
+
+                          <div className="space-y-3.5">
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Model / Texture Image URL *</label>
+                              <input
+                                type="url"
+                                required
+                                placeholder="https://images.unsplash.com/photo-..."
+                                value={productForm.image_url || ''}
+                                onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Comprehensive Copie d'Atelier (Description)</label>
+                              <textarea
+                                rows={3}
+                                placeholder="Woven elegantly with authentic micro-knit textures..."
+                                value={productForm.description || ''}
+                                onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans resize-none text-left"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Save Actions Bottom */}
+                        <div className="pt-2 flex justify-end gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingProductId(null);
+                              setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
+                              setShowProductForm(false);
+                            }}
+                            className="px-6 py-3 border border-gray-700 hover:border-gray-500 text-gray-400 rounded-lg text-xs font-mono tracking-widest uppercase transition-colors"
+                          >
+                            Dismiss
+                          </button>
+                          
+                          <button
+                            type="submit"
+                            className="px-8 py-3 bg-gradient-to-r from-[#D4AF37] to-[#ffeb9e] hover:brightness-110 active:scale-95 text-black font-semibold text-xs tracking-widest uppercase rounded-lg shadow-[0_3px_20px_rgba(212,175,55,0.25)] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                          >
+                            <Save className="h-4 w-4 text-black" />
+                            <span>{editingProductId ? 'APPLY MASTER SPEC REVISIONS' : 'COMMISSION DESIGN UNIT'}</span>
+                          </button>
+                        </div>
+
                       </div>
 
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Old MSRP Price (Optional)</label>
-                        <input
-                          type="number"
-                          placeholder="200"
-                          value={productForm.old_price || ''}
-                          onChange={(e) => setProductForm({ ...productForm, old_price: e.target.value ? Number(e.target.value) : undefined })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded"
-                        />
+                      {/* Right: Immersive Digital Twin Twin simulator */}
+                      <div className="lg:col-span-5 space-y-6">
+                        
+                        <div className="bg-[#0b0b0b] border border-[#D4AF37]/30 rounded-xl p-5 relative overflow-hidden group shadow-[0_5px_40px_rgba(0,0,0,0.85)]">
+                          {/* Visual decorative lines like high-tech blueprint */}
+                          <div className="absolute top-0 right-0 p-2 text-right pointer-events-none">
+                            <span className="text-[7.5px] font-mono text-gray-600 block">DIGITAL TWIN M3</span>
+                            <span className="text-[6px] font-mono text-[#D4AF37]/45 block">SX-ENGINE COMPATIBLE</span>
+                          </div>
+
+                          <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t border-l border-[#D4AF37]/50" />
+                          <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t border-r border-[#D4AF37]/50" />
+                          <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b border-l border-[#D4AF37]/50" />
+                          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b border-r border-[#D4AF37]/50" />
+
+                          <span className="text-[10px] font-mono text-[#D4AF37]/75 font-bold tracking-widest block uppercase border-b border-[#D4AF37]/10 pb-2 mb-4">
+                            Real-time Live Simulation
+                          </span>
+
+                          {/* Glowing Card Container with customizable accent borders */}
+                          <div 
+                            className={`p-4 rounded-lg bg-black border transition-all duration-500 shadow-md ${
+                              previewAccent === 'emerald' ? 'border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.1)]' :
+                              previewAccent === 'onyx' ? 'border-zinc-700/60 shadow-[0_0_20px_rgba(24,24,27,0.1)]' :
+                              previewAccent === 'pearl' ? 'border-indigo-400/40 shadow-[0_0_20px_rgba(129,140,248,0.1)]' :
+                              'border-[#D4AF37]/50 shadow-[0_0_20px_rgba(212,175,55,0.12)]'
+                            }`}
+                          >
+                            <div className="flex justify-between items-start mb-3">
+                              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded">
+                                {productForm.category || 'Apparel'}
+                              </span>
+                              
+                              {productForm.coupon_code && (
+                                <span className="text-[7.5px] font-mono text-emerald-400 uppercase tracking-wider bg-emerald-950/40 border border-emerald-500/20 px-2 py-0.5 rounded animate-pulse">
+                                  Promo Active (-{productForm.coupon_discount || 10}%)
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Center visual Image simulator */}
+                            <div className="relative h-56 w-full rounded overflow-hidden bg-zinc-950 border border-zinc-900/50 flex items-center justify-center group mb-4">
+                              {productForm.image_url ? (
+                                <img 
+                                  src={productForm.image_url} 
+                                  alt="Live preview" 
+                                  className="h-full w-full object-cover grayscale-[25%] hover:grayscale-0 transition-all duration-700"
+                                  referrerPolicy="no-referrer"
+                                />
+                              ) : (
+                                <div className="text-center p-4 space-y-2">
+                                  <ImageIcon className="h-9 w-9 text-gray-600 mx-auto animate-bounce" />
+                                  <span className="text-[9px] font-mono text-gray-500 uppercase block">Pending Model Image Media Link</span>
+                                </div>
+                              )}
+
+                              {productForm.featured && (
+                                <div className="absolute top-2 left-2 bg-[#D4AF37] text-black font-bold font-mono text-[8px] px-2 py-0.5 rounded uppercase tracking-wider">
+                                  Featured Showcase
+                                </div>
+                              )}
+
+                              <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm border border-[#D4AF37]/30 px-2 py-0.5 rounded text-[7px] font-mono text-[#D4AF37]">
+                                STOCK COUNT: {productForm.stock ?? 10} UNITS
+                              </div>
+                            </div>
+
+                            {/* Titles details & pricing formulas */}
+                            <div className="space-y-2.5 text-left">
+                              <div>
+                                <h3 className="serif-title font-serif italic text-lg text-white group-hover:text-[#D4AF37] transition-colors line-clamp-1">
+                                  {productForm.name || 'Untitled Gilded piece'}
+                                </h3>
+                                <span className="text-[8.5px] font-mono text-gray-500 block uppercase select-none mt-0.5">
+                                  SKU SLUG: {productForm.slug || 'generating-code...'}
+                                </span>
+                              </div>
+
+                              <p className="text-[10px] text-gray-400 leading-relaxed line-clamp-2 h-7 overflow-hidden font-sans border-t border-zinc-900 pt-2 text-left">
+                                {productForm.description || 'Description pending textile drafting copy. Live specs will render instantly once compiled.'}
+                              </p>
+
+                              {/* Price box display tag block */}
+                              <div className="flex justify-between items-baseline pt-1 border-t border-zinc-900">
+                                <div>
+                                  <span className="text-[8px] font-mono text-gray-500 uppercase block">Acquisition Value</span>
+                                  <div className="flex items-center gap-1.5 mt-0.5">
+                                    <span className="text-sm font-bold font-mono text-white">৳{(productForm.price || 0).toLocaleString()} BDT</span>
+                                    {productForm.old_price && (
+                                      <span className="text-[9.5px] font-mono text-gray-500 line-through">৳{productForm.old_price.toLocaleString()}</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="text-right">
+                                  <span className="text-[8px] font-mono text-gray-500 uppercase block font-semibold">SIZE VIEWPORT</span>
+                                  <span className="text-[9.5px] font-mono text-[#D4AF37] font-semibold block uppercase">
+                                    {previewSize} MATCHED
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* INTERACTIVE COLOR CONFIGURATION SIMULATOR */}
+                          <div className="mt-5 space-y-2 text-left bg-black/40 border border-gold-border/10 p-3 rounded">
+                            <span className="text-[8.5px] font-mono text-gray-400 uppercase tracking-wider block font-bold">
+                              Interactive Hue Accent Configurator (Simulate Shell)
+                            </span>
+                            <div className="flex gap-2">
+                              {[
+                                { id: 'gold', label: 'Gold Dust', color: 'bg-yellow-500' },
+                                { id: 'emerald', label: 'Imperial Emerald', color: 'bg-emerald-500' },
+                                { id: 'onyx', label: 'Onyx Black', color: 'bg-zinc-800' },
+                                { id: 'pearl', label: 'Royal Violet Pearl', color: 'bg-indigo-500' }
+                              ].map((option) => (
+                                <button
+                                  key={option.id}
+                                  type="button"
+                                  onClick={() => setPreviewAccent(option.id as any)}
+                                  className={`h-5 w-5 rounded-full border cursor-pointer transition-transform ${option.color} ${previewAccent === option.id ? 'scale-110 ring-2 ring-white/50 border-white' : 'border-black'}`}
+                                  title={option.label}
+                                />
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* INTERACTIVE ACTIVE SIZE SELECTOR SIMULATOR */}
+                          <div className="mt-3.5 space-y-2 text-left bg-black/40 border border-gold-border/10 p-3 rounded">
+                            <span className="text-[8.5px] font-mono text-gray-400 uppercase tracking-wider block font-bold">
+                              Size Showcase Selector (Interactive)
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {['S', 'M', 'L', 'XL', 'One Size'].map((sz) => (
+                                <button
+                                  key={sz}
+                                  type="button"
+                                  onClick={() => setPreviewSize(sz)}
+                                  className={`px-2 py-1 font-mono text-[9px] rounded uppercase border text-center cursor-pointer transition-all ${
+                                    previewSize === sz 
+                                      ? 'bg-[#D4AF37] text-black font-semibold border-[#D4AF37]' 
+                                      : 'bg-black/60 border-zinc-800 text-gray-400 hover:text-white'
+                                  }`}
+                                >
+                                  {sz}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* SUB ESTIMATED VALUE COEFFICIENTS */}
+                          <div className="mt-5 grid grid-cols-2 gap-3 pt-3 border-t border-gold-border/10 text-left font-mono">
+                            <div>
+                              <span className="text-[7.5px] text-gray-500 uppercase block">Estimated Margin Formula</span>
+                              <span className="text-[10px] text-green-400 font-bold block">
+                                ৳{(productForm.price ? Math.floor(productForm.price * 0.72) : 0).toLocaleString()} BDT (72%)
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-[7.5px] text-gray-500 uppercase block">Luxury Valuation Coefficient</span>
+                              <span className="text-[10px] text-[#D4AF37] font-bold block">
+                                AUREUM ELITE INDEX
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Virtual high-tech barcode matching slug */}
+                          <div className="mt-4 pt-3.5 border-t border-gold-border/10 flex flex-col items-center justify-center space-y-1 opacity-70">
+                            <span className="text-[6.5px] font-mono text-gray-500 uppercase tracking-widest">Atelier Master Barcode</span>
+                            <div className="h-6 w-full max-w-[200px] bg-white rounded p-1 flex justify-between">
+                              {Array.from({ length: 42 }).map((_, inx) => (
+                                <div 
+                                  key={inx} 
+                                  style={{ width: `${(inx % 3 === 0 || inx % 5 === 0) ? 2.5 : 1}px` }} 
+                                  className={`h-full bg-black ${inx % 7 === 0 ? 'opacity-20' : 'opacity-100'}`} 
+                                />
+                              ))}
+                            </div>
+                            <span className="text-[7px] font-mono text-gray-400 uppercase tracking-widest">
+                              *{(productForm.slug || 'generating-sku').replace(/[^a-zA-Z0-9]/g, '').slice(0, 15).toUpperCase()}*
+                            </span>
+                          </div>
+
+                        </div>
                       </div>
 
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Stock count</label>
-                        <input
-                          type="number"
-                          required
-                          min="0"
-                          value={productForm.stock ?? 10}
-                          onChange={(e) => setProductForm({ ...productForm, stock: Number(e.target.value) })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded"
-                        />
-                      </div>
+                    </form>
 
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Sizes (comma split)</label>
-                        <input
-                          type="text"
-                          placeholder="S, M, L, XL"
-                          value={Array.isArray(productForm.sizes) ? productForm.sizes.join(', ') : productForm.sizes || ''}
-                          onChange={(e) => setProductForm({ ...productForm, sizes: e.target.value })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">High-Res Image URL *</label>
-                      <input
-                        type="url"
-                        required
-                        placeholder="https://images.unsplash.com/photo-..."
-                        value={productForm.image_url || ''}
-                        onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
-                        className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-mono text-gray-500 uppercase block mb-1">Detailed Description Copy</label>
-                      <textarea
-                        rows={2}
-                        placeholder="Tailored precisely utilizing heavy mulberry silk with internal memory padding..."
-                        value={productForm.description || ''}
-                        onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                        className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded resize-none"
-                      />
-                    </div>
-
-                    {/* PRODUCT-SPECIFIC LUXURY COUPON CODES */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-[#D4AF37]/15 pt-3">
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-400 block mb-1">Product-Specific Coupon Code (Optional)</label>
-                        <input
-                          type="text"
-                          placeholder="E.g. AUREUMWATCH or SILKSLIP"
-                          value={productForm.coupon_code || ''}
-                          onChange={(e) => setProductForm({ ...productForm, coupon_code: e.target.value.toUpperCase().trim() })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded font-mono uppercase"
-                        />
-                        <span className="text-[9px] text-gray-500 font-mono mt-1 block">Specify a coupon code only valid for this specific luxury piece.</span>
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-mono text-gray-400 block mb-1">Coupon Discount Rate (%)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          placeholder="E.g. 15 (for 15% discount on this item)"
-                          value={productForm.coupon_discount || ''}
-                          onChange={(e) => setProductForm({ ...productForm, coupon_discount: e.target.value ? Number(e.target.value) : undefined })}
-                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 focus:outline-none rounded font-mono"
-                        />
-                        <span className="text-[9px] text-gray-500 font-mono mt-1 block">Percentage deduction of this specific item's individual price.</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-2.5">
-                      <input
-                        type="checkbox"
-                        id="featured"
-                        checked={productForm.featured || false}
-                        onChange={(e) => setProductForm({ ...productForm, featured: e.target.checked })}
-                        className="accent-gold-accent h-4 w-4"
-                      />
-                      <label htmlFor="featured" className="text-[10px] font-mono text-gray-300 uppercase select-none">Feature on Front Carousel</label>
-                    </div>
-
-                    <div className="flex justify-end space-x-2 border-t border-[#D4AF37]/10 pt-3">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingProductId(null);
-                          setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
-                          setShowProductForm(false);
-                        }}
-                        className="px-4 py-2 border border-[#D4AF37]/25 hover:border-[#D4AF37] text-gray-400 rounded text-xs transition-colors"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-6 py-2 bg-[#D4AF37] hover:bg-[#D4AF37]/80 text-black font-semibold text-xs tracking-widest uppercase rounded cursor-pointer transition-all"
-                      >
-                        {editingProductId ? 'APPLY MASTER REVISIONS' : 'COMMISSION PIECE'}
-                      </button>
-                    </div>
-                  </form>
+                  </div>
                 )}
 
                 {/* Search Bar & New Product Block (Pill format) */}
@@ -952,10 +1370,10 @@ export default function AdminDashboard({
                 </div>
 
                 {/* CUSTOM BRAND LOGO SETTINGS */}
-                <div className="p-4 bg-black/80 border border-[#D4AF37]/25 rounded-md space-y-3 pt-4">
+                <div className="p-4 bg-black/80 border border-[#D4AF37]/25 rounded-md space-y-4 pt-4">
                   <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">CUSTOM BRAND LOGO DESIGN</span>
                   <p className="text-[10px] text-gray-400 leading-relaxed font-mono">
-                    Change site initials, headers, subtitles, and global display identifiers.
+                    Change site initials, headers, subtitles, and global display identifiers, or upload a custom brand image logo.
                   </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1001,6 +1419,70 @@ export default function AdminDashboard({
                         className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-sans font-bold text-center"
                       />
                     </div>
+                  </div>
+
+                  {/* Dynamic Logo Image URL and Local Uploader */}
+                  <div className="pt-3 border-t border-gold-border/15 space-y-2">
+                    <label className="text-[9px] font-mono text-[#D4AF37] block uppercase tracking-widest font-semibold">
+                      OR: Upload Custom Logo Image / Set Image URL
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input
+                        type="text"
+                        placeholder="https://example.com/logo.png"
+                        value={seoForm.logo_image_url || ''}
+                        onChange={(e) => setSeoForm({ ...seoForm, logo_image_url: e.target.value })}
+                        className="flex-1 bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-mono placeholder:text-gray-700"
+                      />
+                      <div className="flex gap-2">
+                        <label className="bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black font-mono font-bold text-[10px] tracking-wider uppercase px-4 py-2.5 rounded transition-all duration-300 cursor-pointer text-center flex items-center justify-center shrink-0">
+                          <span>Upload File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setSeoForm({ ...seoForm, logo_image_url: reader.result as string });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                            className="hidden"
+                          />
+                        </label>
+                        {seoForm.logo_image_url && (
+                          <button
+                            type="button"
+                            onClick={() => setSeoForm({ ...seoForm, logo_image_url: '' })}
+                            className="p-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded transition-colors text-[10px] uppercase font-mono tracking-wider px-3"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {seoForm.logo_image_url && (
+                      <div className="mt-2 flex items-center space-x-4 bg-black/40 border border-[#D4AF37]/15 p-3 rounded">
+                        <div className="relative h-12 w-12 bg-zinc-950 border border-gold-border flex items-center justify-center rounded overflow-hidden shadow-inner p-1">
+                          <img
+                            src={seoForm.logo_image_url}
+                            alt="Brand Logo Design"
+                            className="h-full w-full object-contain"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              (e.target as any).src = 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=100&auto=format&fit=crop';
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-[9px] font-mono text-[#D4AF37] block font-bold uppercase tracking-widest">ACTIVE PREVIEW</span>
+                          <span className="text-[8px] font-mono text-gray-500 block truncate">{seoForm.logo_image_url}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

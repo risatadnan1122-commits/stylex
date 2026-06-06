@@ -14,7 +14,7 @@ export default function Hero({
   siteName, 
   banners = [], 
   logoTextTitle = 'STYLE X', 
-  logoTextSubtitle = 'COLLECTIVE' 
+  logoTextSubtitle = 'LUXURY' 
 }: HeroProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -41,27 +41,36 @@ export default function Hero({
         AUREUM VIP SELECTION • ARCHIVE 2026
       </div>
 
-      {/* 1. Cinematic Background image of Nike suede premium sneaker / custom slides */}
+      {/* 1. Cinematic Background image of Nike suede premium sneaker / custom slides with active breathing glow */}
       <div className="absolute inset-0 z-0">
         {slideList.map((bannerUrl, index) => (
           <img
             key={index}
             src={bannerUrl}
             alt={`Premium Curated Carousel Slide ${index + 1}`}
-            className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 ease-in-out ${
+            className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 ease-in-out gold-breathe-animated ${
               index === currentSlide ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
             }`}
+            style={{
+              filter: `drop-shadow(0 0 45px rgba(212, 175, 55, 0.55)) brightness(1.08)`
+            }}
           />
         ))}
+        {/* Layer 1: Extremely Intense Dynamic Glowing Light Spot Flare */}
+        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[70vw] h-[75vh] bg-[#D4AF37]/25 rounded-full blur-[110px] animate-pulse-glowing mix-blend-screen z-10 pointer-events-none" />
+
+        {/* Cinematic Animated Golden Ambient Glow Overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.18),transparent_65%)] aurora-glow-animated pointer-events-none mix-blend-screen z-10 animate-pulse" />
+        
         {/* Ambient Darkened Gradient Vignettes */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-[#050505]/95" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/40 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.04),transparent_70%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/65 to-[#050505]/95 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/45 to-transparent z-10" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)] z-10" />
       </div>
 
       {/* 2. TOP-LEFT BRAND IDENTIFIER */}
       <div className="absolute top-10 left-6 sm:left-12 flex flex-col space-y-1 text-left font-sans z-10">
-        <span className="text-[#D4AF37] font-semibold tracking-[0.35em] text-[10px] uppercase">AUREUM LUXURY COLLECTIVE</span>
+        <span className="text-[#D4AF37] font-semibold tracking-[0.35em] text-[10px] uppercase">AUREUM LUXURY</span>
         <span className="text-gray-400 font-normal tracking-[0.2em] text-[9px] uppercase">SPRING / SUMMER EDITION</span>
       </div>
 

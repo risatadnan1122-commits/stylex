@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingBag, User, Database, Menu, X, Settings, Compass } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, Settings, Compass } from 'lucide-react';
 import { AppUser, SiteSettings } from '../types';
 import { isRealSupabaseConfigured } from '../supabaseClient';
 
@@ -10,7 +10,6 @@ interface NavbarProps {
   onOpenCart: () => void;
   onOpenAuth: () => void;
   onOpenAdmin: () => void;
-  onOpenSetupGuide: () => void;
   onSearch: (query: string) => void;
   onSelectCategory: (category: string) => void;
   onOpenOrderStatus: () => void;
@@ -23,7 +22,6 @@ export default function Navbar({
   onOpenCart,
   onOpenAuth,
   onOpenAdmin,
-  onOpenSetupGuide,
   onSearch,
   onSelectCategory,
   onOpenOrderStatus
@@ -48,57 +46,78 @@ export default function Navbar({
   return (
     <nav className="sticky top-0 z-40 w-full bg-[#050505]/95 backdrop-blur-md border-b border-[#D4AF37]/45 select-none shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-24 gap-4 transition-all duration-500">
+        <div className="flex items-center justify-between h-16 sm:h-24 gap-4 transition-all duration-500">
           
           {/* LEFT: Mini Monogram Card & Brand Name block */}
-          <div className="flex items-center space-x-4 shrink-0 group/brand">
-            {/* Visual Monogram Logo matching Screenshot 1 */}
-            <div 
-              onClick={handleLogoClick}
-              className="flex flex-col items-center justify-center border border-[#D4AF37]/30 bg-black p-2 h-14 w-14 hover:border-[#D4AF37] transition-all duration-300 cursor-pointer shrink-0 select-none rounded group-hover/brand:scale-102 active:scale-95"
-            >
-              <div className="-space-y-1.5 flex items-center justify-center h-4">
-                <span className="font-serif text-base text-[#D4AF37] tracking-tighter font-black">
-                  {settings.logo_text_s || "S"}
-                </span>
-                <span className="font-serif text-base text-white tracking-tighter font-black ml-0.5">
-                  {settings.logo_text_x || "X"}
-                </span>
+          <div className="flex items-center space-x-2 sm:space-x-4 shrink-0 group/brand">
+            {/* Visual Monogram Logo matching Screenshot 1 with active golden kinetic breathing glow */}
+            <div className="relative">
+              {/* Layer 1: Radiant golden blur underlay for extra elegant subtle glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded opacity-25 blur-md pointer-events-none" />
+              {/* Layer 2: Fine golden shimmer ring */}
+              <div className="absolute -inset-[1px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d]/80 to-[#D4AF37] rounded animate-shimmer pointer-events-none" style={{ backgroundSize: '200% 100%' }} />
+              
+              <div 
+                onClick={handleLogoClick}
+                className="relative flex flex-col items-center justify-center border border-[#D4AF37]/80 bg-black p-1 h-11 w-11 sm:h-14 sm:w-14 hover:border-white transition-all duration-300 cursor-pointer shrink-0 select-none rounded group-hover/brand:scale-105 active:scale-95 shadow-[0_4px_15px_rgba(0,0,0,0.7),0_0_12px_rgba(212,175,55,0.25)] overflow-hidden"
+              >
+                {settings.logo_image_url ? (
+                  <img 
+                    src={settings.logo_image_url} 
+                    alt="Brand Logo" 
+                    className="h-full w-full object-contain p-0.5" 
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as any).style.display = 'none';
+                    }}
+                  />
+                ) : (
+                  <>
+                    <div className="-space-y-1.5 flex items-center justify-center h-4 drop-shadow-[0_0_8px_rgba(212,175,55,0.75)]">
+                      <span className="font-serif text-sm sm:text-base text-[#D4AF37] tracking-tighter font-black">
+                        {settings.logo_text_s || "S"}
+                      </span>
+                      <span className="font-serif text-sm sm:text-base text-white tracking-tighter font-black ml-0.5">
+                        {settings.logo_text_x || "X"}
+                      </span>
+                    </div>
+                    <span className="text-[6px] sm:text-[8px] text-white font-mono tracking-widest uppercase mt-1 sm:mt-1.5 font-bold drop-shadow-[0_0_4px_rgba(255,255,255,0.3)]">
+                      {settings.logo_text_title || "STYLE X"}
+                    </span>
+                    <span className="text-[5px] sm:text-[6px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-black drop-shadow-[0_0_3px_rgba(212,175,55,0.4)]">
+                      {settings.logo_text_subtitle || "LUXURY"}
+                    </span>
+                  </>
+                )}
               </div>
-              <span className="text-[8px] text-white font-mono tracking-widest uppercase mt-1.5 font-bold">
-                {settings.logo_text_title || "STYLE X"}
-              </span>
-              <span className="text-[6px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-black">
-                {settings.logo_text_subtitle || "LUXURY"}
-              </span>
             </div>
 
             {/* Typography brand names strip */}
             <div className="flex flex-col text-left justify-center shrink-0">
               <span 
                 onClick={handleLogoClick}
-                className="text-xs sm:text-sm font-mono tracking-[0.35em] text-[#D4AF37] hover:text-white transition-all duration-300 cursor-pointer uppercase font-black"
+                className="text-[10px] sm:text-sm font-mono tracking-[0.2em] sm:tracking-[0.35em] text-[#D4AF37] hover:text-white transition-all duration-300 cursor-pointer uppercase font-black"
               >
-                {settings.site_name || "STYLE X COLLECTIVE"}
+                {(settings.site_name || "STYLE X").replace(/collective|collection/gi, "").trim()}
               </span>
-              <div className="flex items-center space-x-3 mt-2 font-mono text-[9px] uppercase tracking-wider text-[#D4AF37]/50">
+              <div className="hidden sm:flex items-center space-x-1.5 mt-1 sm:mt-2.5 font-mono">
                 <button 
                   onClick={() => document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 font-bold cursor-pointer transition-all duration-300 relative py-1 px-2.5 bg-transparent border border-[#D4AF37]/20 hover:border-[#D4AF37] rounded uppercase tracking-[0.2em] text-[9px] text-[#D4AF37]/80"
+                  className="bg-[#D4AF37]/10 hover:bg-[#D4AF37] border-2 border-[#D4AF37] text-[#D4AF37] hover:text-black font-mono font-black text-[9px] sm:text-[10px] tracking-widest px-3 sm:px-4 py-1.5 sm:py-2.5 rounded transition-all duration-300 shadow-[0_0_15px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.45)] cursor-pointer active:scale-95"
                 >
                   SHOP
                 </button>
-                <span className="text-gray-800 font-light select-none">|</span>
+                <span className="text-gray-800 font-bold select-none px-0.5 sm:px-1">/</span>
                 <button 
                   onClick={onOpenOrderStatus}
-                  className="hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 font-bold cursor-pointer transition-all duration-300 relative py-1 px-2.5 bg-transparent border border-[#D4AF37]/10 hover:border-[#D4AF37]/50 rounded uppercase tracking-[0.2em] text-[9px] text-gray-400"
+                  className="bg-black/60 hover:bg-[#D4AF37] border-2 border-[#D4AF37]/50 text-white hover:text-black hover:border-transparent font-mono font-bold text-[9px] sm:text-[10px] tracking-widest px-3 sm:px-4 py-1.5 sm:py-2.5 rounded transition-all duration-300 shadow-md hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] cursor-pointer active:scale-95"
                 >
                   TRACK ORDER
                 </button>
-                <span className="text-gray-800 font-light select-none">|</span>
+                <span className="text-gray-800 font-bold select-none px-0.5 sm:px-1">/</span>
                 <button 
                   onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' }))}
-                  className="hover:text-[#D4AF37] hover:bg-[#D4AF37]/5 font-bold cursor-pointer transition-all duration-300 relative py-1 px-2.5 bg-transparent border border-[#D4AF37]/10 hover:border-[#D4AF37]/50 rounded uppercase tracking-[0.2em] text-[9px] text-gray-400"
+                  className="bg-black/60 hover:bg-[#D4AF37] border-2 border-[#D4AF37]/50 text-white hover:text-black hover:border-transparent font-mono font-bold text-[9px] sm:text-[10px] tracking-widest px-3 sm:px-4 py-1.5 sm:py-2.5 rounded transition-all duration-300 shadow-md hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] cursor-pointer active:scale-95"
                 >
                   CONTACT
                 </button>
@@ -211,37 +230,31 @@ export default function Navbar({
 
       {/* Mobile menu view overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-[#0A0A0A] border-b border-[#D4AF37]/35 px-4 py-4 space-y-3.5 animate-fade-in text-left">
-          <span className="block text-[9px] font-mono text-[#D4AF37] border-b border-gold-border/20 pb-1.5 tracking-widest uppercase">
-            QUICK NAVIGATION
+        <div className="lg:hidden bg-black/95 backdrop-blur-xl border-b border-[#D4AF37]/20 px-6 py-6 space-y-4 animate-fade-in text-left">
+          <span className="block text-[8px] font-mono text-[#D4AF37] tracking-[0.25em] border-b border-[#D4AF37]/10 pb-2.5 font-bold uppercase select-none">
+            ATELIER DIRECTORIES
           </span>
           <button 
             onClick={() => { document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }}
-            className="block w-full text-left text-xs text-white hover:text-gold-accent font-mono uppercase tracking-widest py-1"
+            className="flex items-center justify-between w-full text-left font-serif text-sm text-gray-300 hover:text-[#D4AF37] tracking-wider py-1.5 transition-colors duration-300"
           >
-            SHOP COLLECTION
+            <span>DISCOVER SHOP</span>
+            <span className="text-[10px] text-[#D4AF37]/50 font-mono">01</span>
           </button>
           <button 
             onClick={() => { onOpenOrderStatus(); setMobileMenuOpen(false); }}
-            className="block w-full text-left text-xs text-[#D4AF37] hover:text-[#ffdf6d] font-mono uppercase tracking-widest py-1 font-bold"
+            className="flex items-center justify-between w-full text-left font-serif text-sm text-[#D4AF37] hover:text-[#ffdf6d] tracking-wider py-1.5 transition-colors duration-300 font-medium"
           >
-            TRACK SYSTEM ORDER (-REALTIME-)
+            <span>TRACK PACKAGE JOURNEY</span>
+            <span className="text-[10px] text-[#D4AF37]/50 font-mono">02</span>
           </button>
           <button 
             onClick={() => { window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' })); setMobileMenuOpen(false); }}
-            className="block w-full text-left text-xs text-white hover:text-gold-accent font-mono uppercase tracking-widest py-1"
+            className="flex items-center justify-between w-full text-left font-serif text-sm text-gray-300 hover:text-[#D4AF37] tracking-wider py-1.5 transition-colors duration-300"
           >
-            CONTACT PRIVATE CONCIERGE
+            <span>ATELIER CONCIERGE</span>
+            <span className="text-[10px] text-[#D4AF37]/50 font-mono">03</span>
           </button>
-          
-          <div className="border-t border-gold-border/20 pt-3 flex flex-col space-y-2">
-            <button
-              onClick={() => { onOpenSetupGuide(); setMobileMenuOpen(false); }}
-              className="flex items-center text-[10px] text-gray-400 hover:text-gold-accent py-1 font-mono uppercase tracking-wider"
-            >
-              <Database className="h-4 w-4 mr-2 text-gold-accent" /> Metadata SQL Schema
-            </button>
-          </div>
         </div>
       )}
     </nav>

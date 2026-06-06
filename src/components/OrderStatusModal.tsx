@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { X, Search, MapPin, Truck, Box, Calendar, User, Compass, HelpCircle, CheckCircle2, ShieldCheck, ClipboardCheck } from 'lucide-react';
+import { X, Search, MapPin, Truck, Box, Calendar, User, Compass, HelpCircle, CheckCircle2, ShieldCheck, ClipboardCheck, ShoppingCart } from 'lucide-react';
 import { Order } from '../types';
 
 interface OrderStatusModalProps {
   isOpen: boolean;
   onClose: () => void;
   orders: Order[];
+  onAddOrderToCart?: (order: Order) => void;
 }
 
-export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatusModalProps) {
+export default function OrderStatusModal({ isOpen, onClose, orders, onAddOrderToCart }: OrderStatusModalProps) {
   const [searchId, setSearchId] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -119,11 +120,11 @@ export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatu
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-4 animate-fade-in overflow-y-auto" data-lenis-prevent="true">
       {/* Backdrop Close Touch */}
       <div className="absolute inset-0" onClick={onClose} />
 
-      <div className="relative bg-gradient-to-b from-[#0d0d0d] via-[#080808] to-[#040404] border border-[#D4AF37]/45 rounded-2xl w-full max-w-3xl overflow-hidden shadow-[0_12px_50px_rgba(0,0,0,0.95)] z-10 flex flex-col max-h-[90vh]">
+      <div className="relative bg-gradient-to-b from-[#0d0d0d] via-[#080808] to-[#040404] border border-[#D4AF37]/45 rounded-2xl w-full max-w-3xl overflow-hidden shadow-[0_12px_50px_rgba(0,0,0,0.95)] z-10 flex flex-col max-h-[90vh]" data-lenis-prevent="true">
         
         {/* Elegant Modal Top Cover Banner */}
         <div className="relative bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.12),transparent)] p-6 pb-4 border-b border-[#D4AF37]/20 flex items-center justify-between shrink-0">
@@ -225,20 +226,45 @@ export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatu
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {orders.map((ord) => (
-                    <div 
-                      key={ord.id}
-                      onClick={() => selectDemoOrder(ord)}
-                      className="bg-[#0b0b0b] hover:bg-[#121212] border border-[#D4AF37]/15 hover:border-[#D4AF37] p-3 rounded-lg cursor-pointer transition-all duration-300 text-left group"
-                    >
-                      <div className="flex justify-between items-start">
-                        <span className="text-[10px] font-mono text-white group-hover:text-[#D4AF37] font-bold block">{ord.order_number || ord.id.slice(0, 16)}</span>
-                        <span className="text-[8px] font-mono bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-0.5 rounded uppercase">{ord.status}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {orders.map((ord) => {
+                    const productNames = ord.order_items?.map(it => it.product_name).filter(Boolean).join(', ') || 'Premium Custom Piece';
+                    return (
+                      <div 
+                        key={ord.id}
+                        onClick={() => selectDemoOrder(ord)}
+                        className="bg-[#0b0b0b] hover:bg-[#101010] border border-[#D4AF37]/15 hover:border-[#D4AF37]/45 p-3.5 rounded-xl cursor-pointer transition-all duration-300 text-left group flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex justify-between items-start">
+                            <span className="text-[10px] font-mono text-white group-hover:text-[#D4AF37] font-bold block">{ord.order_number || ord.id.slice(0, 16)}</span>
+                            <span className="text-[8px] font-mono bg-[#D4AF37]/10 text-[#D4AF37] px-2 py-0.5 rounded uppercase">{ord.status}</span>
+                          </div>
+                          
+                          {/* Ordered product names display */}
+                          <div className="mt-2 text-[10px] font-sans font-medium text-[#f3f3f3] line-clamp-1">
+                            <span className="text-[#D4AF37]/75 font-semibold font-mono text-[9px] uppercase tracking-wider block">Ordered Item(s):</span>
+                            {productNames}
+                          </div>
+                          
+                          <p className="text-[9px] font-sans text-gray-500 mt-1.5 border-t border-[#D4AF37]/10 pt-1.5">Client: {ord.customer_name} • Valued BDT ৳{ord.total.toLocaleString()}</p>
+                        </div>
+                        
+                        {onAddOrderToCart && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onAddOrderToCart(ord);
+                            }}
+                            className="mt-3.5 w-full flex items-center justify-center space-x-1 border border-[#D4AF37]/30 hover:border-[#D4AF37] bg-black text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:shadow-none text-[9px] font-mono py-1.5 rounded transition-all duration-200 cursor-pointer active:scale-95"
+                          >
+                            <ShoppingCart className="h-3 w-3 shrink-0" />
+                            <span>ADD TO CART (REORDER)</span>
+                          </button>
+                        )}
                       </div>
-                      <p className="text-[9px] font-sans text-gray-500 mt-1 line-clamp-1">Client: {ord.customer_name} • Valued BDT ৳{ord.total.toLocaleString()}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -282,7 +308,7 @@ export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatu
                   
                   {/* Dynamic filled line block */}
                   <div 
-                    className="absolute left-10 top-1/2 -translate-y-1/2 h-[1.5px] bg-[#D4AF37] transition-all duration-1000 shadow-[0_0_10px_rgba(212,175,55,0.8)]" 
+                    className="absolute left-10 top-1/2 -translate-y-1/2 h-[1.5px] bg-[#D4AF37] transition-all duration-1000" 
                     style={{ width: `${Math.max(0, Math.min(100, (stepNumber - 1) * 33.3))}%` }}
                   />
 
@@ -324,8 +350,8 @@ export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatu
                     style={{ left: `calc(24px + ${Math.max(0, Math.min(100, (stepNumber - 1) * 31.5))}% - 6px)` }}
                   >
                     <div className="relative flex items-center justify-center">
-                      <div className="absolute h-5 w-5 bg-amber-400 rounded-full animate-ping opacity-60" />
-                      <div className="h-3 w-3 bg-[#D4AF37] rounded-full shadow-[0_0_12px_#ffdf6d]" />
+                      <div className="absolute h-4 w-4 bg-amber-400 rounded-full animate-ping opacity-25" />
+                      <div className="h-2.5 w-2.5 bg-[#D4AF37] rounded-full border border-black" />
                     </div>
                   </div>
 
@@ -353,9 +379,9 @@ export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatu
                         {/* Timeline node icon identifier */}
                         <div className="absolute -left-[35px] top-1.5 flex items-center justify-center">
                           {isPassed ? (
-                            <div className="h-4.5 w-4.5 rounded-full bg-[#D4AF37] border-4 border-black flex items-center justify-center shadow-[0_0_8px_rgba(212,175,55,0.7)]" />
+                            <div className="h-3.5 w-3.5 rounded-full bg-[#D4AF37] border border-black flex items-center justify-center" />
                           ) : (
-                            <div className="h-4.5 w-4.5 rounded-full bg-black border-2 border-gray-800 flex items-center justify-center" />
+                            <div className="h-3.5 w-3.5 rounded-full bg-black border border-gray-800 flex items-center justify-center" />
                           )}
                         </div>
 
@@ -392,7 +418,7 @@ export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatu
 
               {/* Order items inside tracking display */}
               {selectedOrder.order_items && selectedOrder.order_items.length > 0 && (
-                <div className="bg-[#070707] border border-[#D4AF37]/15 p-4 rounded-xl space-y-2.5">
+                <div className="bg-[#070707] border border-[#D4AF37]/15 p-4 rounded-xl space-y-4">
                   <span className="text-[9px] font-mono tracking-widest text-[#B8860B] uppercase block">PACKAGE MANIFEST CONTENT</span>
                   <div className="divide-y divide-[#D4AF37]/10">
                     {selectedOrder.order_items.map((item, keyIdx) => (
@@ -407,6 +433,16 @@ export default function OrderStatusModal({ isOpen, onClose, orders }: OrderStatu
                       </div>
                     ))}
                   </div>
+
+                  {onAddOrderToCart && (
+                    <button
+                      onClick={() => onAddOrderToCart(selectedOrder)}
+                      className="w-full flex items-center justify-center space-x-1.5 py-2.5 bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-mono font-bold text-[10px] tracking-wider rounded uppercase transition-all duration-200 cursor-pointer active:scale-95"
+                    >
+                      <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
+                      <span>ADD ALL ITEMS TO CART</span>
+                    </button>
+                  )}
                 </div>
               )}
 

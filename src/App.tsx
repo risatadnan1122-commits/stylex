@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
+import Helmet from './components/Helmet';
 import { 
   getSimulatedDB, 
   isRealSupabaseConfigured, 
@@ -18,7 +21,7 @@ import SetupDocModal from './components/SetupDocModal';
 import ReviewSection from './components/ReviewSection';
 import AdminLoginModal from './components/AdminLoginModal';
 import OrderStatusModal from './components/OrderStatusModal';
-import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, Eye, X, MessageSquare, Clock, Globe } from 'lucide-react';
+import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, ShoppingCart, Eye, X, MessageSquare, Clock, Globe } from 'lucide-react';
 
 export default function App() {
   const db = getSimulatedDB();
@@ -53,7 +56,17 @@ export default function App() {
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
   const [isSetupDocOpen, setIsSetupDocOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewSelectedSize, setQuickViewSelectedSize] = useState<string>('S');
   const [scrollPercent, setScrollPercent] = useState(0);
+
+  // Sync selected size on quick view opening
+  useEffect(() => {
+    if (quickViewProduct) {
+      const cleanSizes = (quickViewProduct.sizes || []).filter(s => s && s.trim() !== '' && s !== '0' && s.toUpperCase() !== 'NULL' && s.toUpperCase() !== 'UNDEFINED');
+      const firstSize = cleanSizes[0] || 'S';
+      setQuickViewSelectedSize(firstSize);
+    }
+  }, [quickViewProduct]);
   const [isOrderStatusOpen, setIsOrderStatusOpen] = useState(false);
 
   // Auto save cart to cache
@@ -82,6 +95,83 @@ export default function App() {
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const lenisRef = useRef<Lenis | null>(null);
+
+  // Elite Smooth Scrolling Setup (Lenis Momentum scrolling engine)
+  useEffect(() => {
+    // Inside sandboxed iframe environments (like the AI Studio web preview pane),
+    // native browser scroll gestures are highly prioritized for seamless and responsive scroll feel.
+    // In standalone external views, we boot up the premium Lenis momentum smooth scrolling engine.
+    const isIframe = window.self !== window.top;
+    if (isIframe) {
+      document.documentElement.style.scrollBehavior = 'smooth';
+      return;
+    }
+
+    const lenis = new Lenis({
+      duration: 1.1,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      smoothWheel: true,
+      wheelMultiplier: 1.05,
+      touchMultiplier: 1.5,
+    });
+
+    lenisRef.current = lenis;
+
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+
+    rafId = requestAnimationFrame(raf);
+
+    // Sync with global custom dispatchers so any custom overlays can request instant alignment
+    const handleResetScroll = () => {
+      lenis.scrollTo(0, { immediate: true });
+    };
+    window.addEventListener('reset-scroll', handleResetScroll);
+
+    return () => {
+      window.removeEventListener('reset-scroll', handleResetScroll);
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
+      lenisRef.current = null;
+    };
+  }, []);
+
+  const isAnyModalOpen = !!(
+    quickViewProduct || 
+    isCartOpen || 
+    isAuthOpen || 
+    isAdminOpen || 
+    isAdminLoginOpen || 
+    isSetupDocOpen || 
+    isOrderStatusOpen
+  );
+
+  // Sync scroll lock when modal states override page view focus
+  useEffect(() => {
+    if (lenisRef.current) {
+      if (isAnyModalOpen) {
+        lenisRef.current.stop();
+        document.documentElement.classList.add('lenis-stopped');
+      } else {
+        lenisRef.current.start();
+        document.documentElement.classList.remove('lenis-stopped');
+      }
+    } else {
+      // Fallback scroll locking for iframe and mobile environment shells
+      if (isAnyModalOpen) {
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.documentElement.style.overflow = '';
+        document.body.style.overflow = '';
+      }
+    }
+  }, [isAnyModalOpen]);
 
   // Auto save favorites to cache
   useEffect(() => {
@@ -392,6 +482,49 @@ export default function App() {
     }
   };
 
+  const handleAddOrderItemsToCart = (order: Order) => {
+    if (!order.order_items || order.order_items.length === 0) return;
+    
+    let updatedCart = [...cartItems];
+    
+    order.order_items.forEach(oItem => {
+      let matchedProd = products.find(p => p.id === oItem.product_id);
+      
+      if (!matchedProd) {
+        matchedProd = {
+          id: oItem.product_id,
+          name: oItem.product_name || 'Aureum Archivist Garment',
+          slug: 'archival-restock',
+          price: oItem.price,
+          description: 'A masterpiece from your acquisition cabinet',
+          category: 'Masterpiece',
+          sizes: ['S', 'M', 'L', 'XL'],
+          stock: 99,
+          featured: false,
+          image_url: oItem.product_image || 'https://images.unsplash.com/photo-1593032465175-481ac7f401a0?auto=format&fit=crop&q=80&w=600'
+        };
+      }
+      
+      const size = 'S'; // Default standard size choice
+      const existsIndex = updatedCart.findIndex(
+        cItem => cItem.product.id === matchedProd!.id && cItem.selectedSize === size
+      );
+      
+      if (existsIndex !== -1) {
+        updatedCart[existsIndex].quantity += oItem.quantity;
+      } else {
+        updatedCart.push({
+          product: matchedProd,
+          quantity: oItem.quantity,
+          selectedSize: size
+        });
+      }
+    });
+    
+    setCartItems(updatedCart);
+    setIsCartOpen(true);
+  };
+
   const handleRemoveItem = (index: number) => {
     const revised = cartItems.filter((_, i) => i !== index);
     setCartItems(revised);
@@ -438,6 +571,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-luxury-black text-white relative overflow-x-hidden selection:bg-[#D4AF37] selection:text-black">
       
+      {/* Luxury Search Engine Optimization Metadata */}
+      <Helmet 
+        title={`${(settings.site_name || "STYLE X").replace(/collective|collection/gi, "").trim()} | Premium Luxury Collective & Hand-Crafted Apparel`}
+        description={settings.site_description || "Experience the epitome of premium craftsmanship, exquisite fabric compositions, and high-end streetwear. Curated luxury garments designed for the modern fashion connoisseur."}
+        siteName={(settings.site_name || "STYLE X").replace(/collective|collection/gi, "").trim()}
+      />
+
       {/* Absolute Premium Atmospheric Mesh Backplane */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.06),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(212,175,55,0.03),transparent_40%)] pointer-events-none z-0" />
       <div className="absolute inset-0 bg-[linear-gradient(rgba(212,175,55,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(212,175,55,0.015)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none z-0" />
@@ -497,7 +637,6 @@ export default function App() {
         onOpenCart={() => setIsCartOpen(true)}
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenAdmin={() => setIsAdminOpen(true)}
-        onOpenSetupGuide={() => setIsSetupDocOpen(true)}
         onSearch={setSearchQuery}
         onSelectCategory={setSelectedCategory}
         onOpenOrderStatus={() => setIsOrderStatusOpen(true)}
@@ -531,7 +670,7 @@ export default function App() {
             </div>
 
             {/* Featured slide layout row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-12 lg:gap-14">
               {featuredList.slice(0, 3).map((prod) => (
                 <ProductCard
                   key={prod.id}
@@ -554,7 +693,7 @@ export default function App() {
             <div>
               <span className="text-xs font-mono tracking-[0.3em] text-[#B8860B] uppercase">CURRENT COLLATERAL REPOSITORY</span>
               <h3 className="serif-title text-2xl sm:text-3xl font-light tracking-widest text-[#ffffff] mt-1.5 uppercase">
-                {selectedCategory} Collection
+                {selectedCategory}
               </h3>
             </div>
             <span className="text-[10px] font-mono text-gray-500 mt-2 md:mt-0 uppercase tracking-widest">
@@ -576,7 +715,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 sm:gap-12 lg:gap-14">
               {filteredProducts.map((prod) => (
                 <ProductCard
                   key={prod.id}
@@ -614,6 +753,7 @@ export default function App() {
         isOpen={isOrderStatusOpen}
         onClose={() => setIsOrderStatusOpen(false)}
         orders={orders}
+        onAddOrderToCart={handleAddOrderItemsToCart}
       />
 
       {/* 4B. AUTHENTICATION POPUP */}
@@ -644,6 +784,7 @@ export default function App() {
           onDeleteCoupon={handleDeleteCoupon}
           onSaveSettings={(s) => { setSettings(s); db.saveSettings(s); }}
           onAdminReplyChat={handleAdminReplyChat}
+          onOpenSetupGuide={() => setIsSetupDocOpen(true)}
           onClose={() => setIsAdminOpen(false)}
         />
       )}
@@ -665,11 +806,11 @@ export default function App() {
 
       {/* 4E. PRODUCT DETAIL QUICK VIEW POPUP */}
       {quickViewProduct && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fade-in" data-lenis-prevent="true">
           
           <div className="absolute inset-0" onClick={() => setQuickViewProduct(null)} />
           
-          <div className="relative bg-gradient-to-b from-[#0e0e0e] via-[#080808] to-[#030303] border-2 border-[#D4AF37]/45 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-5 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-10 shadow-[0_0_60px_rgba(212,175,55,0.25)]">
+          <div className="relative bg-gradient-to-b from-[#0a0a0a] via-[#060606] to-[#030303] border border-[#D4AF37]/25 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-5 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-10 shadow-[0_20px_50px_rgba(0,0,0,0.95),0_0_12px_rgba(212,175,55,0.03)] pb-8" data-lenis-prevent="true">
             
             {/* Close */}
             <button
@@ -680,14 +821,12 @@ export default function App() {
             </button>
 
             {/* Product Image Stage */}
-            <div className="w-full md:w-1/2 shrink-0 relative p-1.5 bg-black rounded-lg border border-[#D4AF37]/25 shadow-[0_0_25px_rgba(212,175,55,0.15)]">
-              <div className="rounded overflow-hidden relative aspect-[4/5]">
-                {/* Vignette overlay */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.5)_85%,rgba(0,0,0,0.9)_100%)] pointer-events-none z-10" />
+            <div className="w-full md:w-1/2 shrink-0 relative p-1.5 bg-black rounded-lg border border-[#D4AF37]/40 shadow-lg">
+              <div className="rounded overflow-hidden relative aspect-[4/5] bg-zinc-950">
                 <img
                   src={quickViewProduct.image_url}
                   alt={quickViewProduct.name}
-                  className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                  className="w-full h-full object-contain transition-all duration-300 hover:scale-[1.02]"
                 />
               </div>
             </div>
@@ -695,7 +834,20 @@ export default function App() {
             {/* Meta details column */}
             <div className="flex-1 flex flex-col justify-between space-y-4">
               <div>
-                <span className="text-[10px] font-mono tracking-[0.25em] text-[#D4AF37] uppercase">{quickViewProduct.category}</span>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-[10px] font-mono tracking-[0.25em] text-[#D4AF37] uppercase">{quickViewProduct.category}</span>
+                  
+                  {/* Premium 'In Stock - Priority Dispatch' badge with gold-shimmer animation */}
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-black/90 border border-[#D4AF37]/50 shadow-[0_0_15px_rgba(212,175,55,0.25)] select-none">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded bg-[#ffdf6d] opacity-75"></span>
+                      <span className="relative inline-flex rounded h-1.5 w-1.5 bg-[#D4AF37]"></span>
+                    </span>
+                    <span className="text-[8px] font-mono font-black tracking-[0.2em] uppercase bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] bg-clip-text text-transparent bg-[size:200%_auto] animate-shimmer">
+                      In Stock - Priority Dispatch
+                    </span>
+                  </div>
+                </div>
                 <h4 className="serif-title text-2xl font-light text-white uppercase tracking-wider mt-1.5">{quickViewProduct.name}</h4>
                 
                 {/* Brand-new luxurious price presentation block */}
@@ -720,17 +872,28 @@ export default function App() {
                   {quickViewProduct.description}
                 </p>
 
-                {/* Sizes Row */}
-                <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-2">Available Sizing</span>
-                <div className="flex flex-wrap gap-1.5 pb-4">
+                {/* Sizing Selection Options */}
+                <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-1.5">Select Sizing / Option</span>
+                <div className="flex flex-wrap gap-2 pb-4">
                   {(() => {
                     const cleanSizes = (quickViewProduct.sizes || []).filter(s => s && s.trim() !== '' && s !== '0' && s.toUpperCase() !== 'NULL' && s.toUpperCase() !== 'UNDEFINED');
                     const displaySizes = cleanSizes.length > 0 ? cleanSizes : ['S', 'M', 'L'];
-                    return displaySizes.map(s => (
-                      <span key={s} className="text-[10px] font-mono px-3 py-1 bg-black/85 border border-[#D4AF37]/30 text-[#D4AF37] rounded uppercase shadow-[0_0_10px_rgba(212,175,55,0.1)]">
-                        {s}
-                      </span>
-                    ));
+                    return displaySizes.map(s => {
+                      const isSelected = quickViewSelectedSize === s;
+                      return (
+                        <button
+                          key={s}
+                          onClick={() => setQuickViewSelectedSize(s)}
+                          className={`min-w-9 h-8 px-3 rounded flex items-center justify-center font-mono text-[10px] uppercase transition-all duration-200 border cursor-pointer select-none ${
+                            isSelected
+                              ? 'bg-[#D4AF37] border-[#D4AF37] text-black font-extrabold shadow-[0_0_12px_rgba(212,175,55,0.35)] scale-105'
+                              : 'bg-black/85 border-[#D4AF37]/20 text-gray-400 hover:border-[#D4AF37] hover:text-white'
+                          }`}
+                        >
+                          {s}
+                        </button>
+                      );
+                    });
                   })()}
                 </div>
               </div>
@@ -740,10 +903,8 @@ export default function App() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => { 
-                       const cleanSizes = (quickViewProduct.sizes || []).filter(s => s && s.trim() !== '' && s !== '0');
-                       const fallbackSize = cleanSizes[0] || 'S';
-                       handleAddToCart(quickViewProduct, fallbackSize); 
-                       alert('Added to Cart!'); 
+                       handleAddToCart(quickViewProduct, quickViewSelectedSize); 
+                       setIsCartOpen(true);
                     }}
                     className="flex justify-center items-center py-4 rounded border-2 border-[#D4AF37]/50 bg-black text-[#D4AF37] hover:bg-white hover:text-black hover:border-white text-[11px] font-mono font-black tracking-widest uppercase transition-all duration-300 cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(212,175,55,0.08)] hover:shadow-[0_0_25px_rgba(212,175,55,0.4)]"
                   >
@@ -751,14 +912,12 @@ export default function App() {
                   </button>
                   <button
                     onClick={() => { 
-                       const cleanSizes = (quickViewProduct.sizes || []).filter(s => s && s.trim() !== '' && s !== '0');
-                       const fallbackSize = cleanSizes[0] || 'S';
-                       handleOrderNow(quickViewProduct, fallbackSize); 
+                       handleOrderNow(quickViewProduct, quickViewSelectedSize); 
                        setQuickViewProduct(null); 
                     }}
-                    className="flex justify-center items-center py-4 bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-mono font-black rounded text-[11px] tracking-[0.15em] uppercase transition-all duration-300 cursor-pointer active:scale-95 shadow-[0_0_25px_rgba(212,175,55,0.35)]"
+                    className="flex justify-center items-center gap-2 py-4 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black font-mono font-black rounded text-[11px] tracking-[0.2em] uppercase transition-all duration-300 cursor-pointer active:scale-95 shadow-[0_0_25px_rgba(212,175,55,0.35)]"
                   >
-                    BUY NOW
+                    QUICK BUY
                   </button>
                 </div>
 
@@ -784,6 +943,8 @@ export default function App() {
         onSendMessage={handleSendMessage}
         isAdminModeActive={isAdminOpen}
         settings={settings}
+        onOpenCart={() => setIsCartOpen(true)}
+        cartCount={cartItems.reduce((acc, it) => acc + it.quantity, 0)}
       />
 
       {/* 6. MAJESTIC FOOTER SCREEN */}

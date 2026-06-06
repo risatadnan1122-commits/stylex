@@ -146,8 +146,8 @@ alter publication supabase_realtime add table public.chats;
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="relative bg-luxury-black border border-gold-border text-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4" data-lenis-prevent="true">
+      <div className="relative bg-luxury-black border border-gold-border text-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl" data-lenis-prevent="true">
         
         {/* Header */}
         <div className="px-6 py-4 border-b border-gold-border/30 flex items-center justify-between bg-black/60">

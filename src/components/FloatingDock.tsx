@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Award, Bell, MessageSquare, Shield, X, Send, Crown, CheckCheck, Loader2, User, Gift, Sparkles, Coins, MessageCircle } from 'lucide-react';
+import { Award, Bell, MessageSquare, Shield, X, Send, Crown, CheckCheck, Loader2, User, Gift, Sparkles, Coins, MessageCircle, ShoppingBag } from 'lucide-react';
 import { AppUser, ChatMessage, Order, SiteSettings } from '../types';
 
 interface FloatingDockProps {
@@ -9,6 +9,8 @@ interface FloatingDockProps {
   onSendMessage: (msg: string) => void;
   isAdminModeActive: boolean; // Enables immediate mock reply
   settings?: SiteSettings;
+  onOpenCart?: () => void;
+  cartCount?: number;
 }
 
 export default function FloatingDock({
@@ -17,7 +19,9 @@ export default function FloatingDock({
   orders,
   onSendMessage,
   isAdminModeActive,
-  settings
+  settings,
+  onOpenCart = () => {},
+  cartCount = 0
 }: FloatingDockProps) {
   const [activeTab, setActiveTab] = useState<'chat' | 'rewards' | 'notifications' | null>(null);
   const [chatInput, setChatInput] = useState('');
@@ -405,8 +409,12 @@ export default function FloatingDock({
         </div>
       )}
 
-      {/* Circle Interaction Icons dock buttons stack */}
-      <div className="flex space-x-3 bg-black/90 backdrop-blur-md p-2 rounded-full border border-[#D4AF37]/30 shadow-[0_12px_35px_rgba(0,0,0,0.85)] select-none">
+      {/* Circle Interaction Icons dock buttons stack with active golden breathing glow */}
+      <div className="relative group/dock">
+        {/* Layer 1: Underlay glow shadow effect on entire dock */}
+        <div className="absolute -inset-1.5 bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded-full opacity-80 blur-lg animate-pulse-glowing pointer-events-none" />
+        
+        <div className="relative flex space-x-3 bg-black/95 backdrop-blur-md p-2 rounded-full border-2 border-[#D4AF37] shadow-[0_0_35px_rgba(212,175,55,0.85)] select-none transition-all duration-300">
         
         {/* TAB 1: USER ACCOUNT */}
         <button
@@ -417,17 +425,18 @@ export default function FloatingDock({
           <User className="h-4.5 w-4.5" />
         </button>
 
-        {/* TAB 2: VIP REWARDS */}
+        {/* TAB 2: SHOPPING CART */}
         <button
-          onClick={() => setActiveTab(activeTab === 'rewards' ? null : 'rewards')}
-          className={`p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
-            activeTab === 'rewards'
-              ? 'bg-[#D4AF37] text-black border-transparent shadow-md'
-              : 'text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37]'
-          }`}
-          title="VIP Aureum Rewards"
+          onClick={onOpenCart}
+          className="p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37] hover:text-white"
+          title="Shopping Cart"
         >
-          <Gift className="h-4.5 w-4.5" />
+          <ShoppingBag className="h-4.5 w-4.5" />
+          {cartCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-[#D4AF37] text-black text-[9px] font-bold h-4.5 w-4.5 rounded-full flex items-center justify-center border border-black animate-pulse">
+              {cartCount}
+            </span>
+          )}
         </button>
 
         {/* TAB 3: SPARKLES ACTIVITIES */}
@@ -473,6 +482,7 @@ export default function FloatingDock({
           <MessageCircle className="h-4.5 w-4.5" />
         </a>
 
+      </div>
       </div>
 
     </div>
