@@ -108,7 +108,7 @@ export default function ProductCard({
       <div className="p-2 sm:p-2.5 flex-1 flex flex-col justify-between">
         <div>
           {/* Subtitle label badge row ● TRENDING & Price Trend */}
-          <div className="flex items-center justify-between mb-1 gap-1.5">
+          <div className="hidden sm:flex items-center justify-between mb-1 gap-1.5">
             <span className="bg-[#0b0b0b] border border-[#D4AF37]/20 text-[#D4AF37] px-2 py-0.5 rounded font-mono text-[7.5px] tracking-[0.12em] uppercase flex items-center gap-1 font-bold shadow-sm">
               <span className="h-1 w-1 bg-[#D4AF37] rounded-full animate-pulse shrink-0" />
               TRENDING
@@ -133,10 +133,10 @@ export default function ProductCard({
           </div>
 
           {/* Unified Name & Price Side-by-side row */}
-          <div className="flex justify-between items-center gap-2 mb-0.5">
+          <div className="flex justify-between items-center gap-2 mb-0.5 sm:mb-1">
             <h3 
                onClick={() => onOpenQuickView(product)}
-              className="serif-title text-white font-serif font-semibold text-xs sm:text-sm group-hover:text-[#D4AF37] transition-colors tracking-wide line-clamp-1 cursor-pointer uppercase text-left"
+              className="serif-title text-white font-serif font-semibold text-[11px] sm:text-xs md:text-sm group-hover:text-[#D4AF37] transition-colors tracking-wide line-clamp-1 cursor-pointer uppercase text-left"
             >
               {product.name}
             </h3>
@@ -144,13 +144,13 @@ export default function ProductCard({
             {/* Extremely Premium luxury priced tag with gold foil border and inset metallic backing */}
             <div className="flex flex-col items-end shrink-0 select-none text-right">
               {product.old_price && (
-                <span className="text-[#D4AF37]/45 line-through text-[8px] font-mono tracking-widest mb-0.5">
+                <span className="text-[#D4AF37]/45 line-through text-[7px] sm:text-[8px] font-mono tracking-widest mb-0.5">
                   ৳{product.old_price.toLocaleString()}
                 </span>
               )}
-              <div className="bg-gradient-to-b from-[#161616] via-[#0d0d0d] to-[#050505] border border-[#D4AF37]/35 group-hover:border-[#D4AF37] rounded px-2 py-0.5 flex items-center gap-0.5 shadow-[0_2px_10px_rgba(0,0,0,0.9)] group-hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-500">
-                <span className="text-[#D4AF37]/60 font-mono text-[6.5px] tracking-widest font-bold">BDT</span>
-                <span className="text-white group-hover:text-[#ffdf6d] font-sans text-xs font-black tracking-tight drop-shadow-[0_0_6px_rgba(212,175,55,0.45)] transition-colors duration-500">
+              <div className="bg-gradient-to-b from-[#161616] via-[#0d0d0d] to-[#050505] border border-[#D4AF37]/35 group-hover:border-[#D4AF37] rounded px-1.5 sm:px-2 py-0.5 flex items-center gap-0.5 shadow-[0_2px_10px_rgba(0,0,0,0.9)] group-hover:shadow-[0_0_15px_rgba(212,175,55,0.2)] transition-all duration-500">
+                <span className="text-[#D4AF37]/60 font-mono text-[5.5px] sm:text-[6.5px] tracking-widest font-bold">BDT</span>
+                <span className="text-white group-hover:text-[#ffdf6d] font-sans text-[10.5px] sm:text-xs font-black tracking-tight drop-shadow-[0_0_6px_rgba(212,175,55,0.45)] transition-colors duration-500">
                   ৳{product.price.toLocaleString()}
                 </span>
               </div>
@@ -158,32 +158,31 @@ export default function ProductCard({
           </div>
 
           {/* Subtitle tag description */}
-          <span className="text-[7.5px] font-mono tracking-[0.25em] text-gray-500 uppercase block mb-1 text-left">
+          <span className="hidden sm:block text-[7.5px] font-mono tracking-[0.25em] text-gray-500 uppercase mb-1 text-left">
             CURATED PIECE
           </span>
 
           {product.coupon_code && (
-            <div className="mb-1.5 bg-amber-950/20 border border-[#D4AF37]/15 p-1.5 rounded flex justify-between items-center text-left font-mono">
-              <div>
-                <span className="text-[6.5px] text-gray-400 uppercase block mb-0.5 font-bold">Item Specific Promo</span>
-                <span className="text-[8px] text-white font-black tracking-wider uppercase bg-black px-1 py-0.5 rounded border border-[#D4AF37]/25">{product.coupon_code}</span>
+            <div className="mb-1 bg-[#0d0a02] border border-[#D4AF37]/15 px-1 py-0.5 sm:p-1.5 rounded flex justify-between items-center text-left font-mono">
+              <div className="flex items-center gap-1 sm:block">
+                <span className="text-[5.5px] sm:text-[6.5px] text-gray-400 uppercase block sm:mb-0.5 font-bold">Promo</span>
+                <span className="text-[7.5px] sm:text-[8px] text-white font-black tracking-wider uppercase bg-black px-1 py-0.2 rounded border border-[#D4AF37]/25">{product.coupon_code}</span>
               </div>
               <div className="text-right">
                 <span className="text-[7.5px] text-emerald-400 font-bold block">-{product.coupon_discount || 10}%</span>
-                <span className="text-[6.5px] text-gray-500 block">Deduction</span>
               </div>
             </div>
           )}
 
           {/* Sizing Indicator section */}
-          <div className="mb-1 text-left">
-            <span className="text-[7.5px] font-mono tracking-[0.2em] text-gray-500 uppercase block mb-0.5">DIMENSIONS / SIZE</span>
+          <div className="mb-1.5 text-left">
+            <span className="hidden sm:block text-[7.5px] font-mono tracking-[0.2em] text-gray-500 uppercase mb-0.5">DIMENSIONS / SIZE</span>
             <div className="flex gap-1 text-center">
               {computedSizes.map((sz) => (
                 <button
                   key={sz}
                   onClick={() => setSelectedSize(sz)}
-                  className={`w-7 h-5.5 rounded flex items-center justify-center font-mono text-[8.5px] uppercase transition-all duration-200 border cursor-pointer select-none ${
+                  className={`w-5.5 h-4 sm:w-7 sm:h-5.5 rounded flex items-center justify-center font-mono text-[7.5px] sm:text-[8.5px] uppercase transition-all duration-200 border cursor-pointer select-none ${
                     selectedSize === sz
                       ? 'bg-[#D4AF37] border-[#D4AF37] text-black font-bold'
                       : 'bg-[#0a0a0a] border-[#D4AF37]/20 text-gray-400 hover:border-[#D4AF37] hover:text-white'
@@ -197,49 +196,52 @@ export default function ProductCard({
         </div>
 
         {/* Bottom Interactive tools row */}
-        <div className="space-y-1.5">
+        <div className="space-y-1 sm:space-y-1.5">
           {/* Double column buy selectors - Premium QUICK BUY & CART option */}
-          <div className="grid grid-cols-2 gap-1.5">
+          <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
             <button
               onClick={() => { onAddToCart(product, selectedSize); }}
-              className="flex items-center justify-center space-x-1 border border-[#D4AF37]/40 bg-black text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-transparent text-[9px] font-mono font-black py-2 px-0.5 rounded tracking-wider uppercase transition-all duration-200 cursor-pointer active:scale-95"
+              className="flex items-center justify-center space-x-1 border border-[#D4AF37]/40 bg-black text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black hover:border-transparent text-[8.5px] sm:text-[9px] font-mono font-black py-1.5 sm:py-2 px-0.5 rounded tracking-wider uppercase transition-all duration-200 cursor-pointer active:scale-95"
             >
-              <ShoppingCart className="h-3 w-3 shrink-0" />
-              <span>ADD TO CART</span>
+              <ShoppingCart className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0" />
+              <span className="hidden sm:inline">ADD TO CART</span>
+              <span className="inline sm:hidden">ADD</span>
             </button>
             
             <button
               onClick={() => onOrderNow(product, selectedSize)}
-              className="flex items-center justify-center bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black text-[9px] font-mono font-bold py-2 px-0.5 rounded tracking-wider uppercase transition-all duration-200 cursor-pointer active:scale-95 shadow-[0_2px_8px_rgba(212,175,55,0.12)] hover:shadow-[0_0_15px_rgba(212,175,55,0.35)]"
+              className="flex items-center justify-center bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black text-[8.5px] sm:text-[9px] font-mono font-bold py-1.5 sm:py-2 px-0.5 rounded tracking-wider uppercase transition-all duration-200 cursor-pointer active:scale-95 shadow-[0_2px_8px_rgba(212,175,55,0.12)] hover:shadow-[0_0_15px_rgba(212,175,55,0.35)]"
             >
-              <span>QUICK BUY</span>
+              <span className="hidden sm:inline">QUICK BUY</span>
+              <span className="inline sm:hidden">BUY NOW</span>
             </button>
           </div>
 
           {/* Whatsapp instant checkout option with speech bubble icon */}
           <button
             onClick={() => onWhatsAppOrder(product, selectedSize)}
-            className="w-full flex items-center justify-center space-x-1 border border-green-500/20 bg-[#070707] text-green-400 hover:bg-green-500 hover:text-black hover:border-transparent text-[9px] font-mono font-bold py-1 px-2 rounded tracking-widest uppercase transition-all duration-200 cursor-pointer active:scale-95"
+            className="w-full flex items-center justify-center space-x-1 border border-green-500/20 bg-[#070707] text-green-400 hover:bg-green-500 hover:text-black hover:border-transparent text-[8px] sm:text-[9px] font-mono font-bold py-1 px-2 rounded tracking-widest uppercase transition-all duration-200 cursor-pointer active:scale-95"
           >
-            <MessageCircle className="h-3 w-3 shrink-0 text-green-400" />
-            <span>ORDER VIA WHATSAPP</span>
+            <MessageCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3 shrink-0 text-green-400" />
+            <span className="hidden sm:inline">ORDER VIA WHATSAPP</span>
+            <span className="inline sm:hidden">ORDER WHATSAPP</span>
           </button>
 
           {/* Expandable Bengali accordion dropdown list matching Screenshot 2 */}
-          <div className="mt-1.5 pt-1.5 border-t border-[#D4AF37]/15 leading-none">
+          <div className="mt-1 pt-1 sm:mt-1.5 sm:pt-1.5 border-t border-[#D4AF37]/15 leading-none">
             <button
               onClick={() => setShowBengaliDetails(!showBengaliDetails)}
-              className="w-full text-left text-[9.5px] font-mono font-semibold text-[#D4AF37] hover:text-white transition-colors flex items-center justify-between cursor-pointer py-0.5"
+              className="w-full text-left text-[8.5px] sm:text-[9.5px] font-mono font-semibold text-[#D4AF37] hover:text-white transition-colors flex items-center justify-between cursor-pointer py-0.5"
             >
               <span className="flex items-center gap-1">
                 <span>✨</span>
-                <span>আপনি কেন কিনবেন?</span>
+                <span>কেন কিনবেন?</span>
               </span>
-              <span className="text-[8px] font-bold text-gray-500">{showBengaliDetails ? '▲' : '▼'}</span>
+              <span className="text-[7px] sm:text-[8px] font-bold text-gray-500">{showBengaliDetails ? '▲' : '▼'}</span>
             </button>
             
             {showBengaliDetails && (
-              <div className="mt-2.5 text-[10px] text-gray-400 font-sans leading-relaxed text-left space-y-2 animate-fade-in bg-black/60 p-3 rounded-lg border border-[#D4AF37]/10">
+              <div className="mt-1.5 sm:mt-2.5 text-[10px] text-gray-400 font-sans leading-relaxed text-left space-y-2 animate-fade-in bg-black/60 p-2 sm:p-3 rounded-lg border border-[#D4AF37]/10">
                 <div className="flex items-start space-x-1.5">
                   <span className="text-[#D4AF37] font-bold">●</span>
                   <p>এটি একটি ১০০% প্রিমিয়াম ও গ্যারান্টিযুক্ত কিউরেটেড প্রোডাক্ট।</p>

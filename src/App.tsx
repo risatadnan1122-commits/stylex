@@ -695,7 +695,7 @@ export default function App() {
             </div>
 
             {/* Featured slide layout row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-12 lg:gap-14">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-12 lg:gap-14">
               {featuredList.slice(0, 3).map((prod) => (
                 <ProductCard
                   key={prod.id}
@@ -740,7 +740,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 sm:gap-12 lg:gap-14">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-12 lg:gap-14">
               {filteredProducts.map((prod) => (
                 <ProductCard
                   key={prod.id}

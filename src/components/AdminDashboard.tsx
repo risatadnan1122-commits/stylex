@@ -169,9 +169,9 @@ export default function AdminDashboard({
   const categoriesChoices = ['Timepieces', 'Leatherware', 'Apparel', 'Fragrances', 'Footwear'];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md overflow-y-auto flex items-center justify-center p-4" data-lenis-prevent="true">
+    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md overflow-y-auto flex items-center justify-center p-2 sm:p-4" data-lenis-prevent="true">
       
-      <div id="admin-cabinet" className="relative bg-luxury-black border border-gold-accent w-full max-w-6xl h-[90vh] overflow-hidden rounded-xl shadow-2xl flex flex-col" data-lenis-prevent="true">
+      <div id="admin-cabinet" className="relative bg-luxury-black border border-gold-accent w-full max-w-6xl h-[80vh] sm:h-[86vh] md:h-[90vh] overflow-hidden rounded-xl shadow-2xl flex flex-col" data-lenis-prevent="true">
         
         {/* Top Control bar */}
         <div className="px-6 py-4 border-b border-gold-border/30 bg-black/60 flex items-center justify-between">
@@ -271,7 +271,7 @@ export default function AdminDashboard({
           </div>
 
           {/* Core dynamic body panel */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-6 bg-black/10 touch-pan-y overscroll-contain" data-lenis-prevent="true">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-3.5 sm:p-5 md:p-6 bg-black/10 touch-pan-y overscroll-contain" data-lenis-prevent="true">
             
             {/* Mobile dynamic navigation indicators button selectors */}
             <div className="md:hidden flex space-x-2 overflow-x-auto pb-4 mb-2 border-b border-gold-border/20 scrollbar-none">
@@ -1675,8 +1675,37 @@ export default function AdminDashboard({
 
             {activeTab === 'lottery' && (
               <div className="p-4 sm:p-5 bg-black/60 border border-[#D4AF37]/25 rounded-lg space-y-5">
-                <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">CLIENT SWEEPSTAKES & LOTTERY REWARDS CONFIG</span>
-                <p className="text-xs text-gray-400">Determine how many premium mock coins are granted to clients on lottery victory, and configure promotional campaigns.</p>
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#D4AF37]/15 pb-4">
+                  <div>
+                    <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">CLIENT SWEEPSTAKES & LOTTERY REWARDS CONFIG</span>
+                    <p className="text-xs text-gray-400">Determine how many premium mock coins are granted to clients on lottery victory, and configure promotional campaigns.</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2.5 shrink-0">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        onSaveSettings(seoForm);
+                        alert('Lottery coordinates successfully saved. Rewards are now live!');
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:scale-[1.01] active:scale-95 text-white font-semibold text-[10px] uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      <span>Save Tiers ✦</span>
+                    </button>
+
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        onSaveSettings(seoForm);
+                        setIsLiveSweepstakeOpen(true);
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-600 hover:scale-[1.01] text-white font-semibold text-[10px] tracking-wider rounded uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Coins className="h-3.5 w-3.5" />
+                      <span>Launch Live Draw</span>
+                    </button>
+                  </div>
+                </div>
                 
                 {/* SET COIN REWARDS BOX */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0a0a0a] border border-[#D4AF37]/15 p-4 rounded-lg">
@@ -1739,7 +1768,7 @@ export default function AdminDashboard({
                     </button>
                   </div>
 
-                  <div className="max-h-[220px] sm:max-h-[350px] md:max-h-[440px] overflow-y-auto custom-scrollbar pr-2 border border-[#D4AF37]/15 rounded-lg p-3 bg-[#020202]/50 touch-pan-y overscroll-contain" data-lenis-prevent="true">
+                  <div className="max-h-[170px] sm:max-h-[350px] md:max-h-[440px] overflow-y-auto custom-scrollbar pr-2 border border-[#D4AF37]/15 rounded-lg p-3 bg-[#020202]/50 touch-pan-y overscroll-contain" data-lenis-prevent="true">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {(seoForm.lottery_prizes || []).map((prize, idx) => (
                         <div key={prize.id || idx} className="p-4 bg-[#070707] border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 rounded-lg space-y-3 relative transition-all">
