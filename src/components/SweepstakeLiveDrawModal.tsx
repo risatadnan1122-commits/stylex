@@ -10,6 +10,7 @@ interface SweepstakeLiveDrawModalProps {
   onClose: () => void;
   onAddCoupon: (coupon: Omit<Coupon, 'id'>) => void;
   lotteryRewardAmount: number;
+  lotteryPrizes?: { id: string; title: string; discount: number; minOrder: number; type: string }[];
 }
 
 const MOCK_PARTICIPANTS = [
@@ -24,25 +25,33 @@ const MOCK_PARTICIPANTS = [
 ];
 
 const PREMIUM_PRIZES = [
-  { title: "Weekly Gold Chrono Master Custom", type: "watch", minOrder: 0, discount: 50 },
-  { title: "Diamond Signature Aureum Cufflinks", type: "jewelry", minOrder: 0, discount: 40 },
-  { title: "$1000 Imperial Fashion Voucher Pack", type: "voucher", minOrder: 15000, discount: 30 },
-  { title: "White-Glove Private Courier Pass", type: "service", minOrder: 0, discount: 100 }
+  { id: 'lp1', title: "Weekly Gold Chrono Master Custom", type: "watch", minOrder: 0, discount: 50 },
+  { id: 'lp2', title: "Diamond Signature Aureum Cufflinks", type: "jewelry", minOrder: 0, discount: 40 },
+  { id: 'lp3', title: "$1000 Imperial Fashion Voucher Pack", type: "voucher", minOrder: 15000, discount: 30 },
+  { id: 'lp4', title: "White-Glove Private Courier Pass", type: "service", minOrder: 0, discount: 100 }
 ];
 
 export default function SweepstakeLiveDrawModal({
   isOpen,
   onClose,
   onAddCoupon,
-  lotteryRewardAmount
+  lotteryRewardAmount,
+  lotteryPrizes
 }: SweepstakeLiveDrawModalProps) {
+  const activePrizes = lotteryPrizes && lotteryPrizes.length > 0 ? lotteryPrizes : PREMIUM_PRIZES;
   const [drawingState, setDrawingState] = useState<'idle' | 'countdown' | 'shuffling' | 'winner'>('idle');
   const [countdown, setCountdown] = useState(3);
   const [shuffleIndex, setShuffleIndex] = useState(0);
-  const [selectedPrize, setSelectedPrize] = useState(PREMIUM_PRIZES[0]);
+  const [selectedPrize, setSelectedPrize] = useState(activePrizes[0]);
   const [winner, setWinner] = useState<typeof MOCK_PARTICIPANTS[0] | null>(null);
   const [generatedCouponCode, setGeneratedCouponCode] = useState('');
   const [particles, setParticles] = useState<{ id: number; left: number; top: number; delay: number; scale: number }[]>([]);
+
+  useEffect(() => {
+    if (activePrizes.length > 0) {
+      setSelectedPrize(activePrizes[0]);
+    }
+  }, [lotteryPrizes]);
 
   useEffect(() => {
     if (isOpen) {
@@ -183,7 +192,7 @@ export default function SweepstakeLiveDrawModal({
               </div>
 
               <div className="space-y-2">
-                {PREMIUM_PRIZES.map((prize, idx) => {
+                {activePrizes.map((prize, idx) => {
                   const isSelected = selectedPrize.title === prize.title;
                   return (
                     <button

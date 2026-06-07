@@ -36,7 +36,7 @@ export default function Hero({
     <div className="relative h-[95vh] w-full flex items-center justify-between overflow-hidden bg-[#050505] select-none border-b border-gold-border">
       
       {/* Floating VIP Seasonal Badge */}
-      <div className="absolute top-10 left-1/2 -translate-x-1/2 z-20 bg-[#050505] px-4 py-2.5 rounded border border-[#D4AF37]/35 text-[#D4AF37] text-[9px] tracking-[0.35em] font-mono select-none uppercase flex items-center gap-2">
+      <div className="absolute top-6 sm:top-10 left-1/2 -translate-x-1/2 z-20 bg-[#050505]/95 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2.5 rounded border border-[#D4AF37]/35 text-[#D4AF37] text-[8px] sm:text-[9px] tracking-[0.2em] sm:tracking-[0.35em] font-mono select-none uppercase flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
         <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
         AUREUM VIP SELECTION • ARCHIVE 2026
       </div>
@@ -63,9 +63,9 @@ export default function Hero({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.18),transparent_65%)] aurora-glow-animated pointer-events-none mix-blend-screen z-10 animate-pulse" />
         
         {/* Ambient Darkened Gradient Vignettes */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/65 to-[#050505]/95 z-10" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#050505] via-[#050505]/45 to-transparent z-10" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)] z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/35 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-transparent to-transparent z-10" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.05),transparent_70%)] z-10" />
       </div>
 
       {/* 2. TOP-LEFT BRAND IDENTIFIER */}
@@ -76,17 +76,17 @@ export default function Hero({
 
       {/* 3. CENTER-LEFT PRIMARY OVERLAYS */}
       <div className="relative z-10 max-w-2xl px-6 sm:px-12 text-left flex flex-col space-y-6 mt-12">
-        <div className="space-y-2">
-          <h1 className="font-serif leading-none tracking-[0.25em] text-white text-4xl sm:text-6xl md:text-7xl font-extralight uppercase select-none">
+        <div className="space-y-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.95)]">
+          <h1 className="font-serif leading-none tracking-[0.2em] sm:tracking-[0.25em] text-white text-3xl sm:text-6xl md:text-7xl font-extralight uppercase select-none">
             {logoTextTitle}
           </h1>
-          <h1 className="font-serif leading-none tracking-[0.25em] text-white text-2xl sm:text-3xl md:text-4xl font-extralight uppercase select-none mt-2">
+          <h1 className="font-serif leading-none tracking-[0.2em] sm:tracking-[0.25em] text-white text-xl sm:text-3xl md:text-4xl font-extralight uppercase select-none mt-2">
             {logoTextSubtitle}
           </h1>
         </div>
         
         {/* Dynamic promotional summary description in Garamond/Playfair Display italic */}
-        <p className="font-serif italic text-sm sm:text-base md:text-lg text-gray-300 max-w-md leading-relaxed tracking-wide">
+        <p className="font-serif italic text-sm sm:text-base md:text-lg text-gray-300 max-w-md leading-relaxed tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)]">
           "A meticulous exploration of minimalist form and avant-garde structure. Curated exclusively by Risat Adnan for the modern visionary."
         </p>
 

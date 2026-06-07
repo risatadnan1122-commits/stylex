@@ -119,7 +119,7 @@ export default function FloatingDock({
       
       {/* Expanded Active Interactive View Card */}
       {activeTab && (
-        <div className="w-[340px] sm:w-[380px] h-[480px] bg-luxury-card border border-gold-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in backdrop-blur-lg">
+        <div className="w-[calc(100vw-32px)] xs:w-[380px] sm:w-[440px] md:w-[480px] h-[460px] sm:h-[480px] bg-luxury-card border border-gold-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in backdrop-blur-lg">
           
           {/* Header Panel */}
           <div className="p-4 border-b border-gold-border/30 flex items-center justify-between bg-black/40">
@@ -144,7 +144,7 @@ export default function FloatingDock({
           </div>
 
           {/* Body Content Switcher */}
-          <div className="flex-1 overflow-y-auto p-4 bg-black/20">
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 bg-black/20">
             
             {/* 1. CHAT PANEL SCREEN */}
             {activeTab === 'chat' && (
@@ -414,12 +414,12 @@ export default function FloatingDock({
         {/* Layer 1: Underlay glow shadow effect on entire dock */}
         <div className="absolute -inset-1.5 bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded-full opacity-80 blur-lg animate-pulse-glowing pointer-events-none" />
         
-        <div className="relative flex space-x-3 bg-black/95 backdrop-blur-md p-2 rounded-full border-2 border-[#D4AF37] shadow-[0_0_35px_rgba(212,175,55,0.85)] select-none transition-all duration-300">
+        <div className="relative flex space-x-1.5 xs:space-x-3 bg-black/95 backdrop-blur-md p-1.5 xs:p-2 rounded-full border-2 border-[#D4AF37] shadow-[0_0_35px_rgba(212,175,55,0.85)] select-none transition-all duration-300">
         
         {/* TAB 1: USER ACCOUNT */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('open-auth-popup'))}
-          className="p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 bg-black text-[#D4AF37] hover:border-[#D4AF37] hover:text-white border border-[#D4AF37]/35"
+          className="p-2.5 xs:p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 bg-black text-[#D4AF37] hover:border-[#D4AF37] hover:text-white border border-[#D4AF37]/35"
           title="Profile Gateway"
         >
           <User className="h-4.5 w-4.5" />
@@ -428,7 +428,7 @@ export default function FloatingDock({
         {/* TAB 2: SHOPPING CART */}
         <button
           onClick={onOpenCart}
-          className="p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37] hover:text-white"
+          className="p-2.5 xs:p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37] hover:text-white"
           title="Shopping Cart"
         >
           <ShoppingBag className="h-4.5 w-4.5" />
@@ -442,7 +442,7 @@ export default function FloatingDock({
         {/* TAB 3: SPARKLES ACTIVITIES */}
         <button
           onClick={() => setActiveTab(activeTab === 'notifications' ? null : 'notifications')}
-          className={`p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
+          className={`p-2.5 xs:p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
             activeTab === 'notifications'
               ? 'bg-[#D4AF37] text-black border-transparent shadow-md'
               : 'text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37]'
@@ -456,7 +456,7 @@ export default function FloatingDock({
         {/* TAB 4: CONCIERGE LIVE CHAT */}
         <button
           onClick={() => setActiveTab(activeTab === 'chat' ? null : 'chat')}
-          className={`p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
+          className={`p-2.5 xs:p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
             activeTab === 'chat'
               ? 'bg-[#D4AF37] text-black border-transparent shadow-md'
               : 'text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37]'
@@ -476,7 +476,7 @@ export default function FloatingDock({
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 bg-black hover:bg-emerald-950/40 text-[#25D366] hover:text-emerald-400 border border-emerald-500/35 hover:border-emerald-400 shadow-md flex items-center justify-center text-decoration-none"
+          className="p-2.5 xs:p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 bg-black hover:bg-emerald-950/40 text-[#25D366] hover:text-emerald-400 border border-emerald-500/35 hover:border-emerald-400 shadow-md flex items-center justify-center text-decoration-none"
           title="Direct WhatsApp Live Support"
         >
           <MessageCircle className="h-4.5 w-4.5" />

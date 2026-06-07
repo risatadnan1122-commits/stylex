@@ -99,7 +99,16 @@ const DEFAULT_SETTINGS: SiteSettings = {
     "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop"
   ],
   lottery_coin_reward: 500,
-  campaign_coin_reward: 1000
+  campaign_coin_reward: 1000,
+  gift_discount_percent: 25,
+  gift_discount_type: 'percentage',
+  gift_discount_value: 25,
+  lottery_prizes: [
+    { id: 'lp1', title: '1st Prize - Custom Executive Timepiece (5% coupon code)', type: 'watch', minOrder: 0, discount: 5 },
+    { id: 'lp2', title: '2nd Prize - Signature Aureum Cufflinks (3% coupon code)', type: 'jewelry', minOrder: 0, discount: 3 },
+    { id: 'lp3', title: '3rd Prize - Elite Luxury Voucher (20% coupon code)', type: 'voucher', minOrder: 15000, discount: 20 },
+    { id: 'lp4', title: 'Consolation Prize - White-Glove VIP Delivery Pass (50% coupon code)', type: 'service', minOrder: 0, discount: 50 }
+  ]
 };
 
 const DEFAULT_COUPONS: Coupon[] = [
@@ -150,6 +159,18 @@ export const getSimulatedDB = () => {
   }
   if (settings.campaign_coin_reward === undefined) {
     settings.campaign_coin_reward = DEFAULT_SETTINGS.campaign_coin_reward;
+  }
+  if (settings.gift_discount_percent === undefined) {
+    settings.gift_discount_percent = DEFAULT_SETTINGS.gift_discount_percent ?? 25;
+  }
+  if (settings.gift_discount_type === undefined) {
+    settings.gift_discount_type = 'percentage';
+  }
+  if (settings.gift_discount_value === undefined) {
+    settings.gift_discount_value = settings.gift_discount_percent ?? 25;
+  }
+  if (!settings.lottery_prizes || settings.lottery_prizes.length === 0) {
+    settings.lottery_prizes = DEFAULT_SETTINGS.lottery_prizes;
   }
   const coupons = getStored<Coupon[]>('stylex_coupons', DEFAULT_COUPONS);
   const reviews = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);

@@ -93,6 +93,10 @@ export interface SiteSettings {
   banners?: string[];
   lottery_coin_reward?: number;
   campaign_coin_reward?: number;
+  gift_discount_percent?: number;
+  gift_discount_type?: 'percentage' | 'fixed';
+  gift_discount_value?: number;
+  lottery_prizes?: { id: string; title: string; discount: number; minOrder: number; type: string }[];
 }
 
 export interface Coupon {

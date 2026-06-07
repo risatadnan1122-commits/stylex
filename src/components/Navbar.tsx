@@ -13,6 +13,8 @@ interface NavbarProps {
   onSearch: (query: string) => void;
   onSelectCategory: (category: string) => void;
   onOpenOrderStatus: () => void;
+  onOpenGift?: () => void;
+  onOpenSearch?: () => void;
 }
 
 export default function Navbar({
@@ -24,7 +26,9 @@ export default function Navbar({
   onOpenAdmin,
   onSearch,
   onSelectCategory,
-  onOpenOrderStatus
+  onOpenOrderStatus,
+  onOpenGift,
+  onOpenSearch
 }: NavbarProps) {
   const [searchVal, setSearchVal] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,28 +48,30 @@ export default function Navbar({
   const categories = ['All', 'MEN'];
 
   return (
-    <nav className="sticky top-0 z-40 w-full bg-[#050505]/95 backdrop-blur-md border-b border-[#D4AF37]/45 select-none shadow-[0_4px_30px_rgba(0,0,0,0.8)]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-24 gap-4 transition-all duration-500">
+    <nav className="sticky top-0 z-40 w-full bg-gradient-to-b from-[#0a0a0a] via-[#050505]/98 to-[#020202] border-b border-[#D4AF37]/30 select-none shadow-[0_6px_40px_rgba(0,0,0,0.98)]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        {/* Subtle royal thin gold layout line at the very top */}
+        <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent" />
+        
+        <div className="flex items-center justify-between h-20 sm:h-24 gap-4 transition-all duration-500">
           
-          {/* LEFT: Mini Monogram Card & Brand Name block */}
-          <div className="flex items-center space-x-2 sm:space-x-4 shrink-0 group/brand">
-            {/* Visual Monogram Logo matching Screenshot 1 with active golden kinetic breathing glow */}
+          {/* LEFT COL: Exquisite Brand Monogram & Luxury Identity */}
+          <div className="flex items-center space-x-2 sm:space-x-3.5 shrink-0 group/brand">
             <div className="relative">
-              {/* Layer 1: Radiant golden blur underlay for extra elegant subtle glow */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded opacity-25 blur-md pointer-events-none" />
-              {/* Layer 2: Fine golden shimmer ring */}
-              <div className="absolute -inset-[1px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d]/80 to-[#D4AF37] rounded animate-shimmer pointer-events-none" style={{ backgroundSize: '200% 100%' }} />
+              {/* Luxury radiant underlay */}
+              <div className="absolute -inset-1 sm:-inset-1.5 bg-gradient-to-r from-[#D4AF37]/40 via-[#ffdf6d]/60 to-[#D4AF37]/40 rounded opacity-35 blur-md pointer-events-none group-hover/brand:opacity-60 transition-opacity duration-500 animate-pulse" />
+              {/* Fine gold border ring */}
+              <div className="absolute -inset-[1px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d]/70 to-[#D4AF37] rounded animate-shimmer pointer-events-none" style={{ backgroundSize: '200% 100%' }} />
               
               <div 
                 onClick={handleLogoClick}
-                className="relative flex flex-col items-center justify-center border border-[#D4AF37]/80 bg-black p-1 h-11 w-11 sm:h-14 sm:w-14 hover:border-white transition-all duration-300 cursor-pointer shrink-0 select-none rounded group-hover/brand:scale-105 active:scale-95 shadow-[0_4px_15px_rgba(0,0,0,0.7),0_0_12px_rgba(212,175,55,0.25)] overflow-hidden"
+                className="relative flex flex-col items-center justify-center border border-[#D4AF37] bg-black p-0.5 sm:p-1 h-10 w-10 sm:h-14 sm:w-14 hover:border-white transition-all duration-300 cursor-pointer shrink-0 select-none rounded group-hover/brand:scale-105 active:scale-95 shadow-[0_4px_20px_rgba(0,0,0,0.85),0_0_15px_rgba(212,175,55,0.3)] overflow-hidden"
               >
                 {settings.logo_image_url ? (
                   <img 
                     src={settings.logo_image_url} 
                     alt="Brand Logo" 
-                    className="h-full w-full object-contain p-0.5" 
+                    className="h-full w-full object-contain p-0.5 drop-shadow-[0_0_12px_rgba(212,175,55,0.95)] filter brightness-110 saturate-110" 
                     referrerPolicy="no-referrer"
                     onError={(e) => {
                       (e.target as any).style.display = 'none';
@@ -74,125 +80,128 @@ export default function Navbar({
                 ) : (
                   <>
                     <div className="-space-y-1.5 flex items-center justify-center h-4 drop-shadow-[0_0_8px_rgba(212,175,55,0.75)]">
-                      <span className="font-serif text-sm sm:text-base text-[#D4AF37] tracking-tighter font-black">
+                      <span className="font-serif text-xs sm:text-base text-[#D4AF37] tracking-tighter font-black">
                         {settings.logo_text_s || "S"}
                       </span>
-                      <span className="font-serif text-sm sm:text-base text-white tracking-tighter font-black ml-0.5">
+                      <span className="font-serif text-xs sm:text-base text-white tracking-tighter font-black ml-0.5">
                         {settings.logo_text_x || "X"}
                       </span>
                     </div>
-                    <span className="text-[6px] sm:text-[8px] text-white font-mono tracking-widest uppercase mt-1 sm:mt-1.5 font-bold drop-shadow-[0_0_4px_rgba(255,255,255,0.3)]">
+                    <span className="text-[5px] sm:text-[8px] text-white font-mono tracking-widest uppercase mt-0.5 sm:mt-1.5 font-bold drop-shadow-[0_0_4px_rgba(255,255,255,0.3)]">
                       {settings.logo_text_title || "STYLE X"}
                     </span>
-                    <span className="text-[5px] sm:text-[6px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-black drop-shadow-[0_0_3px_rgba(212,175,55,0.4)]">
+                    <span className="text-[4px] sm:text-[6px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-black drop-shadow-[0_0_3px_rgba(212,175,55,0.4)]">
                       {settings.logo_text_subtitle || "LUXURY"}
                     </span>
                   </>
                 )}
               </div>
             </div>
-
-            {/* Typography brand names strip */}
-            <div className="flex flex-col text-left justify-center shrink-0">
-              <span 
-                onClick={handleLogoClick}
-                className="text-[10px] sm:text-sm font-mono tracking-[0.2em] sm:tracking-[0.35em] text-[#D4AF37] hover:text-white transition-all duration-300 cursor-pointer uppercase font-black"
-              >
+ 
+            {/* Typography brand name & refined subtitle block */}
+            <div className="flex flex-col text-left justify-center shrink-0 cursor-pointer" onClick={handleLogoClick}>
+              <span className="text-xs xs:text-sm sm:text-xl font-serif tracking-[0.12em] xs:tracking-[0.25em] text-[#D4AF37] hover:text-white transition-all duration-300 uppercase font-black drop-shadow-[0_2px_10px_rgba(212,175,55,0.15)]">
                 {(settings.site_name || "STYLE X").replace(/collective|collection/gi, "").trim()}
               </span>
-              <div className="hidden sm:flex items-center space-x-1.5 mt-1 sm:mt-2.5 font-mono">
-                <button 
-                  onClick={() => document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' })} 
-                  className="bg-[#D4AF37]/10 hover:bg-[#D4AF37] border-2 border-[#D4AF37] text-[#D4AF37] hover:text-black font-mono font-black text-[9px] sm:text-[10px] tracking-widest px-3 sm:px-4 py-1.5 sm:py-2.5 rounded transition-all duration-300 shadow-[0_0_15px_rgba(212,175,55,0.15)] hover:shadow-[0_0_25px_rgba(212,175,55,0.45)] cursor-pointer active:scale-95"
-                >
-                  SHOP
-                </button>
-                <span className="text-gray-800 font-bold select-none px-0.5 sm:px-1">/</span>
-                <button 
-                  onClick={onOpenOrderStatus}
-                  className="bg-black/60 hover:bg-[#D4AF37] border-2 border-[#D4AF37]/50 text-white hover:text-black hover:border-transparent font-mono font-bold text-[9px] sm:text-[10px] tracking-widest px-3 sm:px-4 py-1.5 sm:py-2.5 rounded transition-all duration-300 shadow-md hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] cursor-pointer active:scale-95"
-                >
-                  TRACK ORDER
-                </button>
-                <span className="text-gray-800 font-bold select-none px-0.5 sm:px-1">/</span>
-                <button 
-                  onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' }))}
-                  className="bg-black/60 hover:bg-[#D4AF37] border-2 border-[#D4AF37]/50 text-white hover:text-black hover:border-transparent font-mono font-bold text-[9px] sm:text-[10px] tracking-widest px-3 sm:px-4 py-1.5 sm:py-2.5 rounded transition-all duration-300 shadow-md hover:shadow-[0_0_25px_rgba(212,175,55,0.4)] cursor-pointer active:scale-95"
-                >
-                  CONTACT
-                </button>
-              </div>
+              <span className="hidden xs:block text-[7px] sm:text-[9.5px] font-mono tracking-[0.45em] text-gray-400 font-bold uppercase mt-0.5">
+                HAUTE COUTURE ATELIER
+              </span>
             </div>
           </div>
-
-          {/* CENTER: SEARCH PRODUCTS bar & VIP Present icon */}
-          <div className="hidden lg:flex flex-1 max-w-md mx-4 items-center space-x-2 justify-center">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="SEARCH PRODUCTS..."
-                value={searchVal}
-                onChange={handleSearchChange}
-                className="w-full bg-[#0b0b0b] text-white placeholder-gray-600 pl-4 pr-12 py-2.5 rounded border border-[#D4AF37]/20 text-[10px] tracking-widest focus:outline-none focus:border-[#D4AF37]/60 transition-all font-mono uppercase"
-              />
-              <button className="absolute right-1 top-[3px] bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/30 text-[#D4AF37] rounded h-7 w-7 flex items-center justify-center transition-colors">
-                <Search className="h-3 w-3" />
-              </button>
-            </div>
-            
-            {/* VIP Lounge quick access Present icon 🎁 */}
+ 
+          {/* CENTER COL: Elite Navigation Links (Centered, spacious, premium hierarchy) */}
+          <div className="hidden lg:flex items-center space-x-12 justify-center flex-1 max-w-xl mx-8 font-mono">
             <button 
-              onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
-              className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] hover:border-[#D4AF37] hover:text-white rounded bg-[#0E0E0E] transition-all shrink-0 flex items-center justify-center h-9 w-9 cursor-pointer"
-              title="Aureum VIP Lounge"
+              onClick={() => document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' })} 
+              className="relative text-[10.5px] tracking-[0.3em] text-gray-300 hover:text-white uppercase font-bold transition-all duration-300 py-2.5 group cursor-pointer"
             >
-              <span className="text-sm select-none">🎁</span>
+              <span>DISCOVER SHOP</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute bottom-0 right-0 w-0 h-[1.5px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full" />
+            </button>
+            
+            <button 
+              onClick={onOpenOrderStatus}
+              className="relative text-[10.5px] tracking-[0.3em] text-[#D4AF37] hover:text-[#ffdf6d] uppercase font-bold transition-all duration-300 py-2.5 group cursor-pointer"
+            >
+              <span className="flex items-center gap-1.5">
+                <Compass className="h-3.5 w-3.5 animate-pulse text-[#D4AF37]" />
+                TRACK ENTOURAGE
+              </span>
+              <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute bottom-0 right-0 w-0 h-[1.5px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full" />
+            </button>
+ 
+            <button 
+              onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' }))}
+              className="relative text-[10.5px] tracking-[0.3em] text-gray-300 hover:text-white uppercase font-bold transition-all duration-300 py-2.5 group cursor-pointer"
+            >
+              <span>CONCIERGE MESSAGES</span>
+              <span className="absolute bottom-0 left-0 w-0 h-[1.5px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute bottom-0 right-0 w-0 h-[1.5px] bg-[#D4AF37] transition-all duration-300 group-hover:w-full" />
             </button>
           </div>
-
-          {/* RIGHT: Supabase status indicator, Access Portal pill & Cart Capsule */}
+ 
+          {/* RIGHT COL: Search bar & User Portals & Cart Capsule */}
           <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
-            {/* ACCESS PORTAL user login pill */}
+            {/* Slim premium search trigger button - now visible on md screens with great glowing style */}
+            <button 
+              onClick={onOpenSearch}
+              className="hidden md:flex relative w-48 lg:w-56 items-center text-left group/search focus:outline-none"
+            >
+              {/* Elegant magical gold pulse ring under search button */}
+              <div className="absolute -inset-[1.5px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded-full blur-[4px] opacity-20 group-hover/search:opacity-100 group-hover/search:blur-[6px] transition-all duration-500 animate-pulse" />
+              <div className="absolute -inset-[0.5px] bg-gradient-to-r from-[#D4AF37]/50 via-[#ffdf6d]/70 to-[#D4AF37]/50 rounded-full opacity-60 group-hover/search:opacity-100 transition-opacity" />
+              
+              <div className="w-full relative bg-black hover:bg-zinc-950 text-gray-400 hover:text-white pl-4 pr-10 py-2.5 rounded-full border border-[#D4AF37]/35 text-[9.5px] tracking-[0.15em] transition-all font-mono uppercase flex items-center justify-between cursor-pointer">
+                <span className="group-hover/search:translate-x-0.5 transition-transform">SEARCH ATELIER...</span>
+                <Search className="h-3.5 w-3.5 text-[#D4AF37] group-hover/search:scale-120 group-hover/search:rotate-6 transition-all duration-300" />
+              </div>
+            </button>
+ 
+            {/* VIP Present indicator 🎁 */}
+            <button 
+              onClick={() => onOpenGift ? onOpenGift() : window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
+              className="hidden md:flex relative p-1 px-2.5 border border-[#D4AF37]/35 text-[#D4AF37] hover:border-[#D4AF37] hover:text-white rounded bg-black/60 hover:bg-black transition-all shrink-0 items-center justify-center h-10 w-10 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/gift"
+              title="Aureum Privilege Chest"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover/gift:opacity-100 transition-opacity" />
+              <div className="absolute -inset-[1px] bg-gradient-to-r from-[#D4AF37]/0 via-[#D4AF37]/30 to-transparent opacity-0 group-hover/gift:opacity-100 transition-opacity rounded" />
+              <span className="text-base select-none transform group-hover/gift:scale-120 group-hover/gift:rotate-12 transition-all duration-300">🎁</span>
+            </button>
+ 
+            {/* ACCESS PORTAL login block */}
             <button 
               onClick={onOpenAuth}
-              className="hidden md:flex border border-[#D4AF37]/25 hover:border-[#D4AF37] bg-[#0A0A0A] rounded px-4 py-1.5 items-center space-x-3.5 transition-all text-left group shrink-0"
+              className="hidden md:flex border border-[#D4AF37]/35 hover:border-[#D4AF37] hover:shadow-[0_0_15px_rgba(212,175,55,0.15)] bg-black/85 hover:bg-black rounded-full px-5 py-1.5 items-center space-x-3.5 transition-all text-left group shrink-0 h-10"
             >
               <div className="flex flex-col">
-                <span className="text-[7px] text-gray-400 font-mono tracking-widest uppercase font-medium">ACCESS PORTAL</span>
-                <span className="text-[9px] text-white italic font-mono uppercase tracking-wider group-hover:text-gold-accent transition-colors">
-                  {user ? user.full_name : 'SIGN IN / UP'}
+                <span className="text-[6.5px] text-gray-500 font-mono tracking-widest uppercase font-bold">MEMBER PORTAL</span>
+                <span className="text-[8.5px] text-white italic font-mono uppercase tracking-wider group-hover:text-[#D4AF37] transition-colors line-clamp-1 max-w-[85px]">
+                  {user ? user.full_name : 'SIGN IN'}
                 </span>
-              </div>
-              <div className="h-6 w-6 rounded border border-gold-border flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors overflow-hidden shrink-0">
+               </div>
+              <div className="h-6 w-6 rounded-full border border-[#D4AF37]/35 flex items-center justify-center text-gray-400 group-hover:text-[#D4AF37] transition-colors overflow-hidden shrink-0 bg-[#0c0c0c]">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={user.full_name} className="h-full w-full object-cover" />
                 ) : (
-                  <User className="h-3 w-3.5" />
+                  <User className="h-2.5 w-3" />
                 )}
               </div>
             </button>
-
-            {/* Persistent elegant ORDER STATUS navigation button */}
-            <button 
-              onClick={onOpenOrderStatus}
-              className="hidden lg:flex border border-[#D4AF37]/40 hover:border-[#ffdf6d] text-[#D4AF37] hover:text-black font-mono text-[10px] font-bold tracking-[0.18em] px-4.5 py-2.5 rounded bg-[#0E0E0E] hover:bg-[#D4AF37] transition-all duration-300 cursor-pointer shrink-0 items-center space-x-1.5 h-9"
-              title="Track Package Journey"
-            >
-              <Compass className="h-4 w-4 shrink-0" />
-              <span>ORDER STATUS</span>
-            </button>
-
-            {/* CART Capsule Button */}
+ 
+            {/* Luxury CART Capsule */}
             <button 
               onClick={onOpenCart}
-              className="bg-[#D4AF37] hover:bg-[#ffdf6d] active:scale-[0.98] text-black px-4 sm:px-5 py-2 rounded font-sans text-xs font-black tracking-widest flex items-center gap-2.5 transition-all duration-300 cursor-pointer shrink-0 select-none h-9 border border-[#D4AF37]"
+              className="bg-[#D4AF37] hover:bg-[#ffdf6d] active:scale-[0.98] text-black px-3.5 sm:px-6 py-2 sm:py-2.5 rounded-full font-mono text-[10px] sm:text-[10.5px] font-black tracking-[0.15em] sm:tracking-[0.25em] flex items-center gap-2 sm:gap-3 transition-all duration-300 cursor-pointer shrink-0 select-none h-10 shadow-[0_5px_22px_rgba(212,175,55,0.3)] border border-[#ffdf6d]/35"
             >
-              <span className="uppercase font-mono font-extrabold tracking-widest text-[9.5px]">CART</span>
-              <div className="bg-black text-[#D4AF37] h-4.5 w-4.5 rounded-full flex items-center justify-center font-mono text-[9px] font-bold shrink-0">
+              <ShoppingBag className="h-4 w-4 block sm:hidden text-black shrink-0" />
+              <span className="hidden sm:inline">CART</span>
+              <div className="bg-black text-[#D4AF37] h-5 w-5 rounded-full flex items-center justify-center font-mono text-[9px] sm:text-[10px] font-black shrink-0 shadow-inner">
                 {cartCount}
               </div>
             </button>
-
+ 
             {/* Mobile Menu Toggle button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -206,23 +215,20 @@ export default function Navbar({
 
       {/* Mobile search bar block */}
       <div className="lg:hidden px-4 pb-4 select-none flex items-center space-x-2">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="SEARCH PRODUCTS..."
-            value={searchVal}
-            onChange={handleSearchChange}
-            className="w-full bg-[#0b0b0b] text-white placeholder-gray-500 pl-4 pr-10 py-2 border border-[#D4AF37]/15 rounded text-xs font-mono tracking-widest focus:outline-none focus:border-gold-accent"
-          />
-          <button className="absolute right-3 top-2.5 text-gold-accent">
-            <Search className="h-4 w-4" />
-          </button>
-        </div>
+        <button 
+          onClick={onOpenSearch} 
+          className="relative flex-1 text-left focus:outline-none"
+        >
+          <div className="w-full bg-[#0b0b0b] text-gray-500 pl-4 pr-10 py-2.5 border border-[#D4AF37]/35 rounded text-xs font-mono tracking-widest flex items-center justify-between cursor-pointer">
+            <span>SEARCH THE ATELIER...</span>
+            <Search className="h-4 w-4 text-[#D4AF37]" />
+          </div>
+        </button>
         
         {/* VIP Present */}
         <button 
-          onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
-          className="p-1 px-2.5 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0"
+          onClick={() => onOpenGift ? onOpenGift() : window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
+          className="p-1 px-3 py-2 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0"
         >
           🎁
         </button>
@@ -230,31 +236,90 @@ export default function Navbar({
 
       {/* Mobile menu view overlay */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-black/95 backdrop-blur-xl border-b border-[#D4AF37]/20 px-6 py-6 space-y-4 animate-fade-in text-left">
-          <span className="block text-[8px] font-mono text-[#D4AF37] tracking-[0.25em] border-b border-[#D4AF37]/10 pb-2.5 font-bold uppercase select-none">
-            ATELIER DIRECTORIES
-          </span>
-          <button 
-            onClick={() => { document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }}
-            className="flex items-center justify-between w-full text-left font-serif text-sm text-gray-300 hover:text-[#D4AF37] tracking-wider py-1.5 transition-colors duration-300"
-          >
-            <span>DISCOVER SHOP</span>
-            <span className="text-[10px] text-[#D4AF37]/50 font-mono">01</span>
-          </button>
-          <button 
-            onClick={() => { onOpenOrderStatus(); setMobileMenuOpen(false); }}
-            className="flex items-center justify-between w-full text-left font-serif text-sm text-[#D4AF37] hover:text-[#ffdf6d] tracking-wider py-1.5 transition-colors duration-300 font-medium"
-          >
-            <span>TRACK PACKAGE JOURNEY</span>
-            <span className="text-[10px] text-[#D4AF37]/50 font-mono">02</span>
-          </button>
-          <button 
-            onClick={() => { window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' })); setMobileMenuOpen(false); }}
-            className="flex items-center justify-between w-full text-left font-serif text-sm text-gray-300 hover:text-[#D4AF37] tracking-wider py-1.5 transition-colors duration-300"
-          >
-            <span>ATELIER CONCIERGE</span>
-            <span className="text-[10px] text-[#D4AF37]/50 font-mono">03</span>
-          </button>
+        <div className="lg:hidden relative bg-black/98 backdrop-blur-2xl border-b-2 border-[#D4AF37] px-6 py-8 space-y-5 animate-fade-in text-left overflow-hidden shadow-[0_20px_50px_rgba(214,175,55,0.15)]">
+          {/* Internal ambient glowing decoration */}
+          <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[#D4AF37]/10 blur-xl pointer-events-none animate-pulse" />
+          <div className="absolute bottom-0 left-12 w-44 h-12 bg-[#D4AF37]/5 blur-lg pointer-events-none" />
+
+          <div className="relative flex justify-between items-center border-b border-[#D4AF37]/20 pb-3 select-none">
+            <span className="text-[9px] font-mono text-[#D4AF37] tracking-[0.3em] font-black uppercase">
+              ATELIER DIRECTORIES
+            </span>
+            <div className="flex items-center space-x-1.5">
+              <span className="h-2 w-2 rounded-full bg-[#D4AF37] animate-ping" />
+              <span className="text-[8px] font-mono tracking-widest text-[#D4AF37] uppercase font-bold">AUREUM SECURE PROTOCOLS</span>
+            </div>
+          </div>
+
+          <div className="space-y-3 relative z-10">
+            {/* DISCOVER SHOP Row */}
+            <button 
+              onClick={() => { document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }}
+              className="flex items-center justify-between w-full text-left bg-zinc-950/60 hover:bg-zinc-900 border border-[#D4AF37]/15 hover:border-[#D4AF37]/50 p-3.5 rounded-lg transition-all duration-300 group/item active:scale-98 shadow-[0_4px_15px_rgba(0,0,0,0.6)]"
+            >
+              <div className="flex items-center space-x-3">
+                <ShoppingBag className="h-4 w-4 text-[#D4AF37] group-hover/item:scale-110 transition-transform" />
+                <span className="font-serif text-sm text-gray-200 tracking-wider font-bold">DISCOVER SHOP</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-[8px] font-mono text-[#D4AF37] border border-[#D4AF37]/30 px-1.5 py-0.5 rounded tracking-widest uppercase">VIP COLLECTION</span>
+                <span className="text-[10px] text-gray-500 font-mono">01</span>
+              </div>
+            </button>
+
+            {/* TRACK PACKAGE Row */}
+            <button 
+              onClick={() => { onOpenOrderStatus(); setMobileMenuOpen(false); }}
+              className="flex items-center justify-between w-full text-left bg-zinc-950/60 hover:bg-zinc-900 border border-[#D4AF37]/15 hover:border-[#D4AF37]/50 p-3.5 rounded-lg transition-all duration-300 group/item active:scale-98 shadow-[0_4px_15px_rgba(0,0,0,0.6)]"
+            >
+              <div className="flex items-center space-x-3">
+                <Compass className="h-4 w-4 text-[#D4AF37] animate-spin" style={{ animationDuration: '6s' }} />
+                <span className="font-serif text-sm text-[#D4AF37] tracking-wider font-extrabold uppercase">TRACK PACKAGE JOURNEY</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-[8px] font-mono text-[#D4AF37] border border-[#D4AF37]/30 px-1.5 py-0.5 rounded tracking-widest uppercase">LIVE GATEWAY</span>
+                <span className="text-[10px] text-gray-400 font-mono">02</span>
+              </div>
+            </button>
+
+            {/* ATELIER CONCIERGE Row */}
+            <button 
+              onClick={() => { window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'chat' })); setMobileMenuOpen(false); }}
+              className="flex items-center justify-between w-full text-left bg-zinc-950/60 hover:bg-zinc-900 border border-[#D4AF37]/15 hover:border-[#D4AF37]/50 p-3.5 rounded-lg transition-all duration-300 group/item active:scale-98 shadow-[0_4px_15px_rgba(0,0,0,0.6)]"
+            >
+              <div className="flex items-center space-x-3">
+                <Menu className="h-4 w-4 text-[#D4AF37] group-hover/item:scale-110 transition-transform" />
+                <span className="font-serif text-sm text-gray-200 tracking-wider font-bold">ATELIER CONCIERGE</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-[8px] font-mono text-[#D4AF37] border border-[#D4AF37]/30 px-1.5 py-0.5 rounded tracking-widest uppercase">ON-DEMAND</span>
+                <span className="text-[10px] text-gray-500 font-mono">03</span>
+              </div>
+            </button>
+            
+            {/* MEMBER PORTAL SIGN IN Row */}
+            <button 
+              onClick={() => { onOpenAuth(); setMobileMenuOpen(false); }}
+              className="flex items-center justify-between w-full text-left bg-gradient-to-r from-zinc-950 to-zinc-900 hover:from-zinc-900 hover:to-zinc-800 border-2 border-[#D4AF37]/45 hover:border-[#D4AF37] p-4 rounded-lg transition-all duration-300 group/item active:scale-98 shadow-[0_4px_15px_rgba(212,175,55,0.1)]"
+            >
+              <div className="flex items-center space-x-3">
+                <User className="h-4.5 w-4.5 text-[#D4AF37] group-hover/item:rotate-12 transition-transform duration-300" />
+                <span className="font-serif text-sm text-[#ffdf6d] tracking-wider font-black uppercase">
+                  {user ? `LEDGER: ${user.full_name}` : 'MEMBER PORTAL SIGN IN'}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] text-[#ffdf6d] font-mono font-black">04</span>
+              </div>
+            </button>
+          </div>
+
+          <div className="border-t border-[#D4AF37]/10 pt-4 flex flex-col space-y-2 select-none">
+            <div className="flex justify-between items-center text-[7.5px] font-mono tracking-[0.2em] text-gray-500 uppercase">
+              <span>ESTABLISHED 2026</span>
+              <span>AUREUM GLOBAL CORE v3.11</span>
+            </div>
+          </div>
         </div>
       )}
     </nav>

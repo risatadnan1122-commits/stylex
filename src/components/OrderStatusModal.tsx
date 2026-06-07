@@ -148,7 +148,7 @@ export default function OrderStatusModal({ isOpen, onClose, orders, onAddOrderTo
         </div>
 
         {/* Scrollable Container Space */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6" data-lenis-prevent="true">
           
           {/* Tracking Search Input Segment */}
           <form onSubmit={handleTrackSubmit} className="space-y-3 bg-[#070707] border border-[#D4AF37]/15 p-4 rounded-xl">

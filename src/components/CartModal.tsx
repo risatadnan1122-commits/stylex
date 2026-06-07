@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Trash2, ShieldCheck, ShoppingBag, Send, CreditCard, MessageSquare, Check, Sparkles, User, Phone, MapPin, Gift, Crown, Info } from 'lucide-react';
 import { CartItem, SiteSettings, Coupon } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
@@ -17,6 +17,7 @@ interface CartModalProps {
     address: string;
     couponapplied: string;
   }, totalSum: number) => void;
+  prefilledCouponCode?: string;
 }
 
 export default function CartModal({
@@ -27,7 +28,8 @@ export default function CartModal({
   coupons,
   onUpdateQuantity,
   onRemoveItem,
-  onCheckout
+  onCheckout,
+  prefilledCouponCode = ''
 }: CartModalProps) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -37,6 +39,22 @@ export default function CartModal({
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [appliedProductCoupon, setAppliedProductCoupon] = useState<{ product_id: string; product_name: string; code: string; discount_percent: number } | null>(null);
   const [couponMessage, setCouponMessage] = useState('');
+
+  // Automatically apply prefilled/earned gift coupon code when cart is launched
+  useEffect(() => {
+    if (isOpen && prefilledCouponCode) {
+      setCouponCode(prefilledCouponCode);
+      const subtotalVal = cartItems.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+      const match = coupons.find(c => c.code.toUpperCase() === prefilledCouponCode.toUpperCase() && c.active);
+      if (match) {
+        if (!match.min_order_amount || subtotalVal >= match.min_order_amount) {
+          setAppliedCoupon(match);
+          setAppliedProductCoupon(null);
+          setCouponMessage(`Pre-applied elite gift discount "${match.code}"!`);
+        }
+      }
+    }
+  }, [isOpen, prefilledCouponCode, coupons]);
 
   if (!isOpen) return null;
 
@@ -165,7 +183,7 @@ export default function CartModal({
           </div>
 
           {/* Large dynamic dual columns inside the modal */}
-          <div className="flex-1 overflow-y-auto p-5 sm:p-8 flex flex-col md:flex-row gap-8">
+          <div className="flex-1 overflow-y-auto p-5 sm:p-8 flex flex-col md:flex-row gap-8" data-lenis-prevent="true">
             
             {/* COLUMN 1: SELECTED GARMENTS */}
             <div className="w-full md:w-1/2 flex flex-col justify-between space-y-6">
@@ -198,7 +216,7 @@ export default function CartModal({
                       <p className="text-[10px] font-mono tracking-[0.2em] text-[#B8860B] uppercase font-bold">COLLECTED WORKS ({cartItems.length})</p>
                     </div>
                     
-                    <div className="max-h-[350px] overflow-y-auto space-y-4 pr-2 divide-y divide-[#D4AF37]/10">
+                    <div className="max-h-[350px] overflow-y-auto space-y-4 pr-2 divide-y divide-[#D4AF37]/10" data-lenis-prevent="true">
                       {cartItems.map((item, idx) => (
                         <div key={`${item.product.id}-${item.selectedSize}`} className="flex items-center space-x-4 pt-4 first:pt-0 group">
                           <div className="relative h-20 w-16 rounded overflow-hidden border border-[#D4AF37]/45 bg-zinc-950 shrink-0 shadow-md group-hover:shadow-[0_0_12px_rgba(212,175,55,0.22)] transition-all duration-300">

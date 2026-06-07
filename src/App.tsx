@@ -12,6 +12,7 @@ import {
 } from './types';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import SearchOverlay from './components/SearchOverlay';
 import ProductCard from './components/ProductCard';
 import CartModal from './components/CartModal';
 import FloatingDock from './components/FloatingDock';
@@ -21,6 +22,7 @@ import SetupDocModal from './components/SetupDocModal';
 import ReviewSection from './components/ReviewSection';
 import AdminLoginModal from './components/AdminLoginModal';
 import OrderStatusModal from './components/OrderStatusModal';
+import GiftModal from './components/GiftModal';
 import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, ShoppingCart, Eye, X, MessageSquare, Clock, Globe } from 'lucide-react';
 
 export default function App() {
@@ -68,6 +70,26 @@ export default function App() {
     }
   }, [quickViewProduct]);
   const [isOrderStatusOpen, setIsOrderStatusOpen] = useState(false);
+  const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [giftCouponCode, setGiftCouponCode] = useState('');
+
+  const handleApplyGiftCoupon = (code: string) => {
+    // Register the coupon in client DB state
+    const giftType = settings.gift_discount_type || 'percentage';
+    const giftValue = settings.gift_discount_value ?? settings.gift_discount_percent ?? 25;
+    if (!coupons.some(c => c.code.toUpperCase() === code.toUpperCase())) {
+      handleAddCoupon({
+        code,
+        discount_type: giftType,
+        discount_value: giftValue,
+        min_order_amount: 0,
+        active: true
+      });
+    }
+    setGiftCouponCode(code);
+    setIsCartOpen(true);
+  };
 
   // Auto save cart to cache
   useEffect(() => {
@@ -148,7 +170,8 @@ export default function App() {
     isAdminOpen || 
     isAdminLoginOpen || 
     isSetupDocOpen || 
-    isOrderStatusOpen
+    isOrderStatusOpen ||
+    isGiftModalOpen
   );
 
   // Sync scroll lock when modal states override page view focus
@@ -640,6 +663,8 @@ export default function App() {
         onSearch={setSearchQuery}
         onSelectCategory={setSelectedCategory}
         onOpenOrderStatus={() => setIsOrderStatusOpen(true)}
+        onOpenGift={() => setIsGiftModalOpen(true)}
+        onOpenSearch={() => setIsSearchOpen(true)}
       />
 
       {/* 3. CINEMATIC HERO PRESENTATION STAGE */}
@@ -746,6 +771,15 @@ export default function App() {
         onUpdateQuantity={handleUpdateQuantity}
         onRemoveItem={handleRemoveItem}
         onCheckout={handleCheckoutSubmit}
+        prefilledCouponCode={giftCouponCode}
+      />
+
+      {/* GIFT ACCENTS DOCK POPUP */}
+      <GiftModal
+        isOpen={isGiftModalOpen}
+        onClose={() => setIsGiftModalOpen(false)}
+        settings={settings}
+        onApplyGiftCoupon={handleApplyGiftCoupon}
       />
 
       {/* 4A_2. DYNAMIC REAL-TIME PACKAGE RADAR AND TRACKER OVERLAY */}
@@ -934,6 +968,15 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* LUXURY PORTAL SEARCH EXPERIENCE OVERLAY */}
+      <SearchOverlay
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        products={products}
+        onAddToCart={handleAddToCart}
+        onOpenQuickView={setQuickViewProduct}
+      />
 
       {/* 5. FLOATING COMPONENT ACTION DOCK */}
       <FloatingDock

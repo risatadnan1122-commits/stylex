@@ -47,7 +47,7 @@ export default function ProductCard({
       {/* Product Image Stage */}
       <div 
         onClick={() => onOpenQuickView(product)}
-        className="relative w-full aspect-square bg-[#0c0c0c] flex items-center justify-center overflow-hidden cursor-pointer group/img border-b border-[#D4AF37]/10"
+        className="relative w-full aspect-[4/3] xs:aspect-[1.12/1] bg-[#0c0c0c] flex items-center justify-center overflow-hidden cursor-pointer group/img border-b border-[#D4AF37]/10"
       >
         {/* Soft luxury glow overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.05),transparent_70%)] opacity-100 transition-opacity duration-300 pointer-events-none" />
@@ -74,7 +74,7 @@ export default function ProductCard({
             src={product.image_url}
             alt={product.name}
             loading="lazy"
-            className="w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover/img:scale-105 z-10"
+            className="w-full h-full object-contain p-2.5 sm:p-3 transition-transform duration-500 ease-out group-hover/img:scale-105 z-10"
           />
         </div>
 
@@ -105,10 +105,10 @@ export default function ProductCard({
       </div>
 
       {/* Meta Content Area */}
-      <div className="p-2.5 flex-1 flex flex-col justify-between">
+      <div className="p-2 sm:p-2.5 flex-1 flex flex-col justify-between">
         <div>
           {/* Subtitle label badge row ● TRENDING & Price Trend */}
-          <div className="flex items-center justify-between mb-1.5 gap-1.5">
+          <div className="flex items-center justify-between mb-1 gap-1.5">
             <span className="bg-[#0b0b0b] border border-[#D4AF37]/20 text-[#D4AF37] px-2 py-0.5 rounded font-mono text-[7.5px] tracking-[0.12em] uppercase flex items-center gap-1 font-bold shadow-sm">
               <span className="h-1 w-1 bg-[#D4AF37] rounded-full animate-pulse shrink-0" />
               TRENDING
@@ -133,7 +133,7 @@ export default function ProductCard({
           </div>
 
           {/* Unified Name & Price Side-by-side row */}
-          <div className="flex justify-between items-center gap-2 mb-1">
+          <div className="flex justify-between items-center gap-2 mb-0.5">
             <h3 
                onClick={() => onOpenQuickView(product)}
               className="serif-title text-white font-serif font-semibold text-xs sm:text-sm group-hover:text-[#D4AF37] transition-colors tracking-wide line-clamp-1 cursor-pointer uppercase text-left"
@@ -158,7 +158,7 @@ export default function ProductCard({
           </div>
 
           {/* Subtitle tag description */}
-          <span className="text-[7.5px] font-mono tracking-[0.25em] text-gray-500 uppercase block mb-1.5 text-left">
+          <span className="text-[7.5px] font-mono tracking-[0.25em] text-gray-500 uppercase block mb-1 text-left">
             CURATED PIECE
           </span>
 
@@ -176,14 +176,14 @@ export default function ProductCard({
           )}
 
           {/* Sizing Indicator section */}
-          <div className="mb-2 text-left">
+          <div className="mb-1 text-left">
             <span className="text-[7.5px] font-mono tracking-[0.2em] text-gray-500 uppercase block mb-0.5">DIMENSIONS / SIZE</span>
             <div className="flex gap-1 text-center">
               {computedSizes.map((sz) => (
                 <button
                   key={sz}
                   onClick={() => setSelectedSize(sz)}
-                  className={`w-7 h-6 rounded flex items-center justify-center font-mono text-[8.5px] uppercase transition-all duration-200 border cursor-pointer select-none ${
+                  className={`w-7 h-5.5 rounded flex items-center justify-center font-mono text-[8.5px] uppercase transition-all duration-200 border cursor-pointer select-none ${
                     selectedSize === sz
                       ? 'bg-[#D4AF37] border-[#D4AF37] text-black font-bold'
                       : 'bg-[#0a0a0a] border-[#D4AF37]/20 text-gray-400 hover:border-[#D4AF37] hover:text-white'
@@ -219,17 +219,17 @@ export default function ProductCard({
           {/* Whatsapp instant checkout option with speech bubble icon */}
           <button
             onClick={() => onWhatsAppOrder(product, selectedSize)}
-            className="w-full flex items-center justify-center space-x-1 border border-green-500/20 bg-[#070707] text-green-400 hover:bg-green-500 hover:text-black hover:border-transparent text-[9px] font-mono font-bold py-1.5 px-2 rounded tracking-widest uppercase transition-all duration-200 cursor-pointer active:scale-95"
+            className="w-full flex items-center justify-center space-x-1 border border-green-500/20 bg-[#070707] text-green-400 hover:bg-green-500 hover:text-black hover:border-transparent text-[9px] font-mono font-bold py-1 px-2 rounded tracking-widest uppercase transition-all duration-200 cursor-pointer active:scale-95"
           >
             <MessageCircle className="h-3 w-3 shrink-0 text-green-400" />
             <span>ORDER VIA WHATSAPP</span>
           </button>
 
           {/* Expandable Bengali accordion dropdown list matching Screenshot 2 */}
-          <div className="mt-2.5 pt-2 border-t border-[#D4AF37]/15 leading-none">
+          <div className="mt-1.5 pt-1.5 border-t border-[#D4AF37]/15 leading-none">
             <button
               onClick={() => setShowBengaliDetails(!showBengaliDetails)}
-              className="w-full text-left text-[10px] font-mono font-semibold text-[#D4AF37] hover:text-white transition-colors flex items-center justify-between cursor-pointer py-0.5"
+              className="w-full text-left text-[9.5px] font-mono font-semibold text-[#D4AF37] hover:text-white transition-colors flex items-center justify-between cursor-pointer py-0.5"
             >
               <span className="flex items-center gap-1">
                 <span>✨</span>

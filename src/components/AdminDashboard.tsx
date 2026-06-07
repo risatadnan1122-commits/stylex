@@ -271,19 +271,29 @@ export default function AdminDashboard({
           </div>
 
           {/* Core dynamic body panel */}
-          <div className="flex-1 overflow-y-auto p-5 md:p-6 bg-black/10">
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-5 md:p-6 bg-black/10 touch-pan-y overscroll-contain" data-lenis-prevent="true">
             
             {/* Mobile dynamic navigation indicators button selectors */}
             <div className="md:hidden flex space-x-2 overflow-x-auto pb-4 mb-2 border-b border-gold-border/20 scrollbar-none">
-              {['analytics', 'products', 'orders', 'reviews', 'coupons', 'chat', 'seo'].map((tab) => (
+              {[
+                { id: 'analytics', label: 'Dashboard' },
+                { id: 'products', label: 'Inventory' },
+                { id: 'orders', label: 'Orders' },
+                { id: 'banners', label: 'Banners' },
+                { id: 'reviews', label: 'Reviews' },
+                { id: 'coupons', label: 'Coupons' },
+                { id: 'chat', label: 'Campaigns' },
+                { id: 'lottery', label: 'Lottery' },
+                { id: 'seo', label: 'SEO' }
+              ].map((tab) => (
                 <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab as any)}
-                  className={`text-[9px] font-mono uppercase shrink-0 px-2.5 py-1.5 rounded ${
-                    activeTab === tab ? 'bg-gold-accent text-black font-semibold' : 'bg-black/60 border border-gold-border/20 text-gray-400'
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`text-[9px] font-mono uppercase shrink-0 px-2.5 py-1.5 rounded transition-colors ${
+                    activeTab === tab.id ? 'bg-gold-accent text-black font-semibold' : 'bg-black/60 border border-gold-border/20 text-gray-400'
                   }`}
                 >
-                  {tab}
+                  {tab.label}
                 </button>
               ))}
             </div>
@@ -1207,7 +1217,7 @@ export default function AdminDashboard({
                         className="w-full bg-black text-xs text-gold-accent border border-gold-border/30 p-2 rounded"
                       >
                         <option value="percentage">Percentage (%)</option>
-                        <option value="fixed">Fixed Val ($)</option>
+                        <option value="fixed">Fixed Val (৳ / Tk)</option>
                       </select>
                     </div>
 
@@ -1223,7 +1233,7 @@ export default function AdminDashboard({
                     </div>
 
                     <div>
-                      <label className="text-[10px] font-mono text-gray-500 block mb-1">Min Subtotal ($)</label>
+                      <label className="text-[10px] font-mono text-gray-500 block mb-1">Min Subtotal (৳ / Tk)</label>
                       <input
                         type="number"
                         value={newCoupon.min_order_amount || 0}
@@ -1250,7 +1260,7 @@ export default function AdminDashboard({
                       <div className="space-y-0.5">
                         <span className="font-mono font-bold text-white tracking-widest text-[#D4AF37]">{coupon.code}</span>
                         <p className="text-[10px] text-gray-400">
-                          Discount: {coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `$${coupon.discount_value}`} - Min Outlay: ${coupon.min_order_amount || 0}
+                          Discount: {coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `৳${coupon.discount_value}`} - Min Outlay: ৳{coupon.min_order_amount || 0}
                         </p>
                       </div>
 
@@ -1315,7 +1325,7 @@ export default function AdminDashboard({
               <form onSubmit={handleSaveSeo} className="p-4 sm:p-5 bg-black/60 border border-gold-border/25 rounded-lg space-y-4">
                 <span className="text-[10px] font-mono text-gold-accent uppercase tracking-widest block">ADMINISTRATIVE COORDINATES & SEO CARDS</span>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
                     <label className="text-[10px] font-mono text-gray-500 block mb-1">Luxury Platform Name</label>
                     <input
@@ -1347,6 +1357,40 @@ export default function AdminDashboard({
                       value={seoForm.delivery_charge}
                       onChange={(e) => setSeoForm({ ...seoForm, delivery_charge: Number(e.target.value) })}
                       className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono text-[#D4AF37] block mb-1 font-bold">Gift Discount Type</label>
+                    <select
+                      value={seoForm.gift_discount_type || 'percentage'}
+                      onChange={(e) => setSeoForm({ 
+                        ...seoForm, 
+                        gift_discount_type: e.target.value as 'percentage' | 'fixed'
+                      })}
+                      className="w-full bg-black text-xs text-[#D4AF37] border border-[#D4AF37]/50 p-2.5 rounded font-mono"
+                    >
+                      <option value="percentage">Percentage (%)</option>
+                      <option value="fixed">Fixed Taka (৳ / Tk)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono text-[#D4AF37] block mb-1 font-bold">Gift Value ({seoForm.gift_discount_type === 'fixed' ? '৳ / Tk' : '%'})</label>
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      value={seoForm.gift_discount_value ?? seoForm.gift_discount_percent ?? 25}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        setSeoForm({ 
+                          ...seoForm, 
+                          gift_discount_value: val,
+                          gift_discount_percent: seoForm.gift_discount_type === 'percentage' ? val : (seoForm.gift_discount_percent ?? 25)
+                        });
+                      }}
+                      className="w-full bg-black text-xs text-white border border-[#D4AF37]/50 p-2.5 rounded font-mono"
                     />
                   </div>
                 </div>
@@ -1630,7 +1674,7 @@ export default function AdminDashboard({
             )}
 
             {activeTab === 'lottery' && (
-              <div className="p-4 sm:p-5 bg-black/60 border border-[#D4AF37]/25 rounded-lg space-y-4">
+              <div className="p-4 sm:p-5 bg-black/60 border border-[#D4AF37]/25 rounded-lg space-y-5">
                 <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">CLIENT SWEEPSTAKES & LOTTERY REWARDS CONFIG</span>
                 <p className="text-xs text-gray-400">Determine how many premium mock coins are granted to clients on lottery victory, and configure promotional campaigns.</p>
                 
@@ -1663,17 +1707,164 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-1">
+                {/* PRIZE SLOTS MANAGER (1st prize 5%, 2nd prize 3%, etc) */}
+                <div className="space-y-4 pt-1">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-[#D4AF37]/20 pb-3 gap-2">
+                    <div>
+                      <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">EXCLUSIVE PRIZE TIERS & REWARDS CONFIGURATION</span>
+                      <p className="text-[10px] text-gray-400">Define reward tiers, titles, and generated coupon discount rates (e.g. 1st prize 5%, 2nd prize 3% etc.)</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentPrizes = [...(seoForm.lottery_prizes || [])];
+                        const nextNum = currentPrizes.length + 1;
+                        let defaultTitle = `${nextNum}nd Prize`;
+                        if (nextNum === 1) defaultTitle = "1st Prize";
+                        else if (nextNum === 3) defaultTitle = "3rd Prize";
+                        else if (nextNum > 3) defaultTitle = `${nextNum}th Prize`;
+                        
+                        const newPrize = {
+                          id: 'lp_' + Date.now(),
+                          title: `${defaultTitle} - Custom Luxury Voucher`,
+                          type: 'voucher',
+                          minOrder: 0,
+                          discount: 5
+                        };
+                        setSeoForm({ ...seoForm, lottery_prizes: [...currentPrizes, newPrize] });
+                      }}
+                      className="px-3.5 py-2 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/25 text-[#D4AF37] border border-[#D4AF37]/40 rounded hover:scale-[1.01] transition-all text-[9px] uppercase font-mono font-semibold cursor-pointer shrink-0 self-start sm:self-center"
+                    >
+                      + Add New Prize Slot
+                    </button>
+                  </div>
+
+                  <div className="max-h-[220px] sm:max-h-[350px] md:max-h-[440px] overflow-y-auto custom-scrollbar pr-2 border border-[#D4AF37]/15 rounded-lg p-3 bg-[#020202]/50 touch-pan-y overscroll-contain" data-lenis-prevent="true">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {(seoForm.lottery_prizes || []).map((prize, idx) => (
+                        <div key={prize.id || idx} className="p-4 bg-[#070707] border border-[#D4AF37]/10 hover:border-[#D4AF37]/30 rounded-lg space-y-3 relative transition-all">
+                          {/* Title & Delete inline controls */}
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-[9px] font-mono text-[#D4AF37]">PRIZE SLOT #{idx + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentPrizes = [...(seoForm.lottery_prizes || [])];
+                                currentPrizes.splice(idx, 1);
+                                setSeoForm({ ...seoForm, lottery_prizes: currentPrizes });
+                              }}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-950/25 px-2 py-1 rounded transition-all text-[9px] font-mono uppercase cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          </div>
+
+                          {/* Title input */}
+                          <div>
+                            <label className="text-[9px] font-mono text-gray-500 uppercase block mb-0.5">Prize Designation Name</label>
+                            <input
+                              type="text"
+                              required
+                              placeholder="e.g. 1st Prize - Executive Watch"
+                              value={prize.title || ''}
+                              onChange={(e) => {
+                                const currentPrizes = [...(seoForm.lottery_prizes || [])];
+                                currentPrizes[idx] = { ...currentPrizes[idx], title: e.target.value };
+                                setSeoForm({ ...seoForm, lottery_prizes: currentPrizes });
+                              }}
+                              className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded focus:outline-none focus:border-[#D4AF37]/60 font-sans"
+                            />
+                          </div>
+
+                          {/* Config grid */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-500 uppercase block mb-0.5">Discount %</label>
+                              <input
+                                type="number"
+                                required
+                                min="0"
+                                max="100"
+                                value={prize.discount ?? 5}
+                                onChange={(e) => {
+                                  const currentPrizes = [...(seoForm.lottery_prizes || [])];
+                                  currentPrizes[idx] = { ...currentPrizes[idx], discount: Number(e.target.value) };
+                                  setSeoForm({ ...seoForm, lottery_prizes: currentPrizes });
+                                }}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-500 uppercase block mb-0.5">Min Order ($)</label>
+                              <input
+                                type="number"
+                                required
+                                min="0"
+                                value={prize.minOrder ?? 0}
+                                onChange={(e) => {
+                                  const currentPrizes = [...(seoForm.lottery_prizes || [])];
+                                  currentPrizes[idx] = { ...currentPrizes[idx], minOrder: Number(e.target.value) };
+                                  setSeoForm({ ...seoForm, lottery_prizes: currentPrizes });
+                                }}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded font-mono"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-500 uppercase block mb-0.5">Type</label>
+                              <select
+                                value={prize.type || 'voucher'}
+                                onChange={(e) => {
+                                  const currentPrizes = [...(seoForm.lottery_prizes || [])];
+                                  currentPrizes[idx] = { ...currentPrizes[idx], type: e.target.value };
+                                  setSeoForm({ ...seoForm, lottery_prizes: currentPrizes });
+                                }}
+                                className="w-full bg-black text-[10px] text-[#D4AF37] border border-[#D4AF37]/20 p-2 rounded cursor-pointer"
+                              >
+                                <option value="watch">Watch</option>
+                                <option value="jewelry">Jewelry</option>
+                                <option value="voucher">Voucher</option>
+                                <option value="service">Service</option>
+                              </select>
+                            </div>
+                          </div>
+
+                        </div>
+                      ))}
+
+                      {(seoForm.lottery_prizes || []).length === 0 && (
+                        <div className="col-span-1 md:col-span-2 text-center p-6 border border-dashed border-gray-800 rounded bg-[#020202]">
+                          <span className="text-[10px] font-mono text-gray-400">NO CUSTOM PRIZE TIERS DEFINED. PRESS "+ ADD NEW PRIZE SLOT" TO CREATE.</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center pt-3 border-t border-[#D4AF37]/15 gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      onSaveSettings(seoForm);
+                      alert('Lottery coordinates successfully saved. Rewards are now live!');
+                    }}
+                    className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-700 hover:scale-[1.01] active:scale-95 text-white font-semibold text-[10.5px] uppercase tracking-wider rounded transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Save className="h-3.5 w-3.5" />
+                    <span>Save Tiers & Rewards (Persist Settings) ✦</span>
+                  </button>
+
                   <button 
                     type="button"
                     onClick={() => {
                       onSaveSettings(seoForm);
                       setIsLiveSweepstakeOpen(true);
                     }}
-                    className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:scale-[1.01] text-white font-semibold text-[10px] tracking-wider rounded uppercase transition-all cursor-pointer flex items-center gap-1.5"
+                    className="px-5 py-2.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:scale-[1.01] text-white font-semibold text-[10.5px] tracking-wider rounded uppercase transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Save className="h-3.5 w-3.5" />
-                    <span>Sync Reward Coordinates & Launch Live Draw Center ✦</span>
+                    <Coins className="h-3.5 w-3.5" />
+                    <span>Sync Coordinates & Launch Live Draw Center</span>
                   </button>
                 </div>
 
@@ -1713,6 +1904,7 @@ export default function AdminDashboard({
         onClose={() => setIsLiveSweepstakeOpen(false)}
         onAddCoupon={onAddCoupon}
         lotteryRewardAmount={settings.lottery_coin_reward || 500}
+        lotteryPrizes={settings.lottery_prizes}
       />
     </div>
   );
