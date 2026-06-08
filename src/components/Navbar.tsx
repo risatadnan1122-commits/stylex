@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingBag, User, Menu, X, Settings, Compass } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, X, Settings, Compass, Bell, Crown, Gift, Sparkles } from 'lucide-react';
 import { AppUser, SiteSettings } from '../types';
 import { isRealSupabaseConfigured } from '../supabaseClient';
 
@@ -78,22 +78,16 @@ export default function Navbar({
                     }}
                   />
                 ) : (
-                  <>
-                    <div className="-space-y-1.5 flex items-center justify-center h-4 drop-shadow-[0_0_8px_rgba(212,175,55,0.75)]">
-                      <span className="font-serif text-xs sm:text-base text-[#D4AF37] tracking-tighter font-black">
-                        {settings.logo_text_s || "S"}
-                      </span>
-                      <span className="font-serif text-xs sm:text-base text-white tracking-tighter font-black ml-0.5">
-                        {settings.logo_text_x || "X"}
-                      </span>
+                  <div className="relative flex flex-col items-center justify-center group/logocrown p-0.5 select-none">
+                    {/* Crown Icon logo with animated glowing effect */}
+                    <Crown className="h-4.5 w-4.5 sm:h-5.5 sm:w-5.5 text-[#D4AF37] drop-shadow-[0_0_8px_rgba(212,175,55,0.85)] group-hover/logocrown:scale-115 group-hover/logocrown:rotate-3 transition-transform duration-300" />
+                    
+                    {/* Tiny initials emblem underneath */}
+                    <div className="flex items-center -mt-0.5 font-serif text-[8.5px] sm:text-[10.5px]">
+                      <span className="text-[#D4AF37] font-black tracking-tight">{settings.logo_text_s || "S"}</span>
+                      <span className="text-white font-black tracking-tight ml-0.5">{settings.logo_text_x || "X"}</span>
                     </div>
-                    <span className="text-[5px] sm:text-[8px] text-white font-mono tracking-widest uppercase mt-0.5 sm:mt-1.5 font-bold drop-shadow-[0_0_4px_rgba(255,255,255,0.3)]">
-                      {settings.logo_text_title || "STYLE X"}
-                    </span>
-                    <span className="text-[4px] sm:text-[6px] text-[#D4AF37] tracking-[0.2em] font-sans uppercase font-black drop-shadow-[0_0_3px_rgba(212,175,55,0.4)]">
-                      {settings.logo_text_subtitle || "LUXURY"}
-                    </span>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -147,28 +141,70 @@ export default function Navbar({
             {/* Slim premium search trigger button - now visible on md screens with great glowing style */}
             <button 
               onClick={onOpenSearch}
-              className="hidden md:flex relative w-48 lg:w-56 items-center text-left group/search focus:outline-none"
+              className="hidden md:flex relative w-48 lg:w-56 items-center text-left group/search focus:outline-none hover:scale-[1.015] active:scale-[0.985] transition-all duration-300"
             >
               {/* Elegant magical gold pulse ring under search button */}
-              <div className="absolute -inset-[1.5px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded-full blur-[4px] opacity-20 group-hover/search:opacity-100 group-hover/search:blur-[6px] transition-all duration-500 animate-pulse" />
+              <div className="absolute -inset-[1.5px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded-full blur-[4px] opacity-20 group-hover/search:opacity-100 group-hover/search:blur-[8px] transition-all duration-500 animate-pulse" />
               <div className="absolute -inset-[0.5px] bg-gradient-to-r from-[#D4AF37]/50 via-[#ffdf6d]/70 to-[#D4AF37]/50 rounded-full opacity-60 group-hover/search:opacity-100 transition-opacity" />
               
-              <div className="w-full relative bg-black hover:bg-zinc-950 text-gray-400 hover:text-white pl-4 pr-10 py-2.5 rounded-full border border-[#D4AF37]/35 text-[9.5px] tracking-[0.15em] transition-all font-mono uppercase flex items-center justify-between cursor-pointer">
-                <span className="group-hover/search:translate-x-0.5 transition-transform">SEARCH ATELIER...</span>
-                <Search className="h-3.5 w-3.5 text-[#D4AF37] group-hover/search:scale-120 group-hover/search:rotate-6 transition-all duration-300" />
+              <div className="w-full relative bg-black hover:bg-zinc-950 text-gray-400 hover:text-white pl-4 pr-10 py-2.5 rounded-full border border-[#D4AF37]/35 text-[9.5px] tracking-[0.18em] transition-all font-mono uppercase flex items-center justify-between cursor-pointer overflow-hidden">
+                {/* Premium sliding shimmer highlight */}
+                <span className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffdf6d]/30 to-transparent opacity-0 group-hover/search:opacity-100 transition-opacity" />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/search:animate-[shimmer_2s_infinite] pointer-events-none" />
+                
+                <span className="group-hover/search:translate-x-1.5 transition-transform duration-300 font-extrabold text-[9px]">SEARCH ATELIER...</span>
+                <Search className="h-3.5 w-3.5 text-[#D4AF37] group-hover/search:scale-120 group-hover/search:rotate-12 transition-all duration-300 drop-shadow-[0_0_4px_rgba(212,175,55,0.4)]" />
               </div>
             </button>
  
-            {/* VIP Present indicator 🎁 */}
+            {/* Gilded VIP Notification Bell */}
             <button 
-              onClick={() => onOpenGift ? onOpenGift() : window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
-              className="hidden md:flex relative p-1 px-2.5 border border-[#D4AF37]/35 text-[#D4AF37] hover:border-[#D4AF37] hover:text-white rounded bg-black/60 hover:bg-black transition-all shrink-0 items-center justify-center h-10 w-10 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/gift"
-              title="Aureum Privilege Chest"
+              onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' }))}
+              className="hidden md:flex relative border border-[#D4AF37]/35 hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:scale-105 active:scale-95 duration-300 rounded bg-black/60 hover:bg-black transition-all shrink-0 items-center justify-center h-10 w-10 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/bell"
+              title="System Notifications"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/10 to-transparent opacity-0 group-hover/gift:opacity-100 transition-opacity" />
-              <div className="absolute -inset-[1px] bg-gradient-to-r from-[#D4AF37]/0 via-[#D4AF37]/30 to-transparent opacity-0 group-hover/gift:opacity-100 transition-opacity rounded" />
-              <span className="text-base select-none transform group-hover/gift:scale-120 group-hover/gift:rotate-12 transition-all duration-300">🎁</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/15 to-transparent opacity-0 group-hover/bell:opacity-100 transition-opacity" />
+              {/* Pulsing notification point badge - Premium breathing radial halo */}
+              <span className="absolute top-2 right-2 flex h-2.5 w-2.5 z-10">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-80"></span>
+                <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-55 scale-125"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_8px_rgba(239,68,68,0.95)] border border-red-400/35"></span>
+              </span>
+              <img 
+                src="/src/assets/images/new_notification_logo_1780913672166.png" 
+                alt="System Notifications" 
+                className="h-6 w-6 object-contain rounded p-0.5 filter brightness-110 drop-shadow-[0_0_8px_rgba(212,175,55,0.7)] group-hover/bell:scale-115 group-hover/bell:rotate-12 transition-all duration-300" 
+                referrerPolicy="no-referrer"
+              />
             </button>
+
+            {/* VIP Present indicator 🎁 */}
+            {settings?.lottery_enabled !== false && (
+              <button 
+                onClick={() => onOpenGift ? onOpenGift() : window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
+                className="hidden md:flex relative p-1 px-2 border border-[#D4AF37]/35 text-[#D4AF37] hover:border-[#D4AF37] hover:shadow-[0_0_25px_rgba(212,175,55,0.45)] hover:scale-105 active:scale-95 rounded bg-black/60 hover:bg-black transition-all duration-300 shrink-0 items-center justify-center h-10 w-10 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/gift"
+                title="Aureum Privilege Chest"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/15 to-transparent opacity-0 group-hover/gift:opacity-100 transition-opacity" />
+                <div className="absolute -inset-[1px] bg-gradient-to-r from-[#D4AF37]/0 via-[#D4AF37]/30 to-transparent opacity-0 group-hover/gift:opacity-100 transition-opacity rounded" />
+                
+                {/* Slow rotating custom glow ray background on hover for elite premium depth */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#D4AF37]/20 via-transparent to-transparent opacity-0 group-hover/gift:opacity-80 transition-opacity duration-300 animate-spin-slow pointer-events-none" />
+                
+                {/* Floating sparkle overlays for the luxury chest */}
+                <Sparkles className="absolute top-1 left-1.5 text-[#ffdf6d] h-2.5 w-2.5 opacity-50 group-hover/gift:opacity-100 group-hover/gift:animate-pulse transition-opacity pointer-events-none" />
+                
+                {/* Gilded VIP Premium Privilege Badge and Active Notification Marker */}
+                <span className="absolute top-1.5 right-1.5 flex h-3.5 w-3.5 z-20">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4AF37] opacity-65"></span>
+                  <span className="relative inline-flex items-center justify-center rounded-full h-3.5 w-3.5 bg-gradient-to-r from-red-600 to-[#D4AF37] text-white font-mono text-[7px] font-black border border-[#ffdf6d]/40 shadow-[0_0_8px_rgba(212,175,55,0.7)]">
+                    1
+                  </span>
+                </span>
+
+                <Gift className="h-4.5 w-4.5 text-[#D4AF37] group-hover/gift:scale-115 group-hover/gift:rotate-12 transition-all duration-300 drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]" />
+              </button>
+            )}
  
             {/* ACCESS PORTAL login block */}
             <button 
@@ -225,13 +261,41 @@ export default function Navbar({
           </div>
         </button>
         
-        {/* VIP Present */}
+        {/* Mobile Notification Bell */}
         <button 
-          onClick={() => onOpenGift ? onOpenGift() : window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
-          className="p-1 px-3 py-2 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0"
+          onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' }))}
+          className="relative p-2.5 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0 flex items-center justify-center active:scale-90 transition-all duration-300"
+          title="System Notifications"
         >
-          🎁
+          <span className="absolute top-1.5 right-1.5 flex h-1.5 w-1.5 z-10">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+          </span>
+          <img 
+            src="/src/assets/images/new_notification_logo_1780913672166.png" 
+            alt="System Notifications" 
+            className="h-5 w-5 object-contain rounded p-0.5 filter brightness-125 drop-shadow-[0_0_10px_rgba(212,175,55,0.85)] animate-pulse" 
+            referrerPolicy="no-referrer"
+          />
         </button>
+
+        {/* VIP Present */}
+        {settings?.lottery_enabled !== false && (
+          <button 
+            onClick={() => onOpenGift ? onOpenGift() : window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'rewards' }))}
+            className="relative p-1 px-2 border border-[#D4AF37]/35 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0 flex items-center justify-center h-10 w-10 active:scale-95 transition-transform group/gift"
+            title="Aureum Privilege Chest"
+          >
+            {/* Gilded VIP Premium Privilege Badge on Mobile */}
+            <span className="absolute top-1 right-1 flex h-3 w-3 z-20">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-80"></span>
+              <span className="relative inline-flex items-center justify-center rounded-full h-3 w-3 bg-gradient-to-r from-red-600 to-[#D4AF37] text-white font-mono text-[6px] font-black border border-[#ffdf6d]/20 shadow-[0_0_6px_rgba(220,38,38,0.7)]">
+                1
+              </span>
+            </span>
+            <Gift className="h-4.5 w-4.5 text-[#D4AF37] group-hover/gift:scale-115 transition-transform" />
+          </button>
+        )}
       </div>
 
       {/* Mobile menu view overlay */}

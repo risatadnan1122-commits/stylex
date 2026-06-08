@@ -23,6 +23,7 @@ import ReviewSection from './components/ReviewSection';
 import AdminLoginModal from './components/AdminLoginModal';
 import OrderStatusModal from './components/OrderStatusModal';
 import GiftModal from './components/GiftModal';
+import AnnouncementPopup from './components/AnnouncementPopup';
 import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, ShoppingCart, Eye, X, MessageSquare, Clock, Globe } from 'lucide-react';
 
 export default function App() {
@@ -39,13 +40,29 @@ export default function App() {
 
   // Cart Local Storage
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem('stylex_shopping_cart');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('stylex_shopping_cart');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error("Cart retrieval fallback:", e);
+    }
+    return [];
   });
 
   const [favorites, setFavorites] = useState<string[]>(() => {
-    const saved = localStorage.getItem('stylex_favorites');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('stylex_favorites');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.error("Favorites retrieval fallback:", e);
+    }
+    return [];
   });
 
   // Presentation / Modal controls
@@ -59,14 +76,20 @@ export default function App() {
   const [isSetupDocOpen, setIsSetupDocOpen] = useState(false);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [quickViewSelectedSize, setQuickViewSelectedSize] = useState<string>('S');
+  const [quickViewActiveImage, setQuickViewActiveImage] = useState<string | null>(null);
+  const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
+  const [isLensVisible, setIsLensVisible] = useState(false);
   const [scrollPercent, setScrollPercent] = useState(0);
 
-  // Sync selected size on quick view opening
+  // Sync selected size and image on quick view opening
   useEffect(() => {
     if (quickViewProduct) {
       const cleanSizes = (quickViewProduct.sizes || []).filter(s => s && s.trim() !== '' && s !== '0' && s.toUpperCase() !== 'NULL' && s.toUpperCase() !== 'UNDEFINED');
       const firstSize = cleanSizes[0] || 'S';
       setQuickViewSelectedSize(firstSize);
+      setQuickViewActiveImage(quickViewProduct.image_url);
+    } else {
+      setQuickViewActiveImage(null);
     }
   }, [quickViewProduct]);
   const [isOrderStatusOpen, setIsOrderStatusOpen] = useState(false);
@@ -131,9 +154,15 @@ export default function App() {
       return;
     }
 
-    const lenis = new Lenis({
+    const ScrollConstructor = (Lenis as any).default || Lenis;
+    if (typeof ScrollConstructor !== 'function') {
+      console.warn('Lenis ScrollConstructor is not recognized as a valid constructor structure.');
+      return;
+    }
+
+    const lenis = new ScrollConstructor({
       duration: 1.1,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
       smoothWheel: true,
       wheelMultiplier: 1.05,
       touchMultiplier: 1.5,
@@ -269,6 +298,9 @@ export default function App() {
       selected_size: item.selectedSize
     }));
 
+    const hasFreeDelivery = cartItems.some(item => item.product.free_delivery);
+    const finalDeliveryCharge = hasFreeDelivery ? 0 : settings.delivery_charge;
+
     const orderNumber = 'STLX-' + Math.floor(100000 + Math.random() * 900000);
     const freshOrder: Order = {
       id: 'o_' + Math.random().toString(36).substr(2, 9),
@@ -276,7 +308,7 @@ export default function App() {
       user_id: currentUser ? currentUser.id : null,
       status: 'Pending',
       subtotal: cartItems.reduce((acc, it) => acc + (it.product.price * it.quantity), 0),
-      delivery_charge: settings.delivery_charge,
+      delivery_charge: finalDeliveryCharge,
       total: totalSum,
       customer_name: customerInfo.name,
       customer_phone: customerInfo.phone,
@@ -663,7 +695,11 @@ export default function App() {
         onSearch={setSearchQuery}
         onSelectCategory={setSelectedCategory}
         onOpenOrderStatus={() => setIsOrderStatusOpen(true)}
-        onOpenGift={() => setIsGiftModalOpen(true)}
+        onOpenGift={() => {
+          if (settings?.lottery_enabled !== false) {
+            setIsGiftModalOpen(true);
+          }
+        }}
         onOpenSearch={() => setIsSearchOpen(true)}
       />
 
@@ -726,6 +762,35 @@ export default function App() {
             </span>
           </div>
 
+          {/* Dynamic Luxury Category Selector Pills */}
+          <div className="flex items-center space-x-2.5 overflow-x-auto pb-4 pt-1.5 no-scrollbar scroll-smooth">
+            {['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))].map((cat) => {
+              const count = cat === 'All' 
+                ? products.length 
+                : products.filter(p => p.category === cat).length;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`text-[9.5px] font-mono tracking-[0.25em] uppercase px-5 py-2.5 rounded-full border transition-all duration-300 flex items-center space-x-2 shrink-0 select-none cursor-pointer group/pill ${
+                    selectedCategory === cat
+                      ? 'bg-[#D4AF37] border-[#D4AF37] text-black font-black shadow-[0_4px_18px_rgba(212,175,55,0.22)] scale-102'
+                      : 'bg-[#060606] border-[#D4AF37]/15 text-zinc-400 hover:text-white hover:border-[#D4AF37]/50 hover:bg-[#0c0c0c]'
+                  }`}
+                >
+                  <span className="relative z-10">{cat}</span>
+                  <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full transition-colors duration-300 ${
+                    selectedCategory === cat 
+                      ? 'bg-black text-[#D4AF37]' 
+                      : 'bg-zinc-950 border border-zinc-800 text-zinc-500'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           {filteredProducts.length === 0 ? (
             <div className="text-center py-20 border border-gold-border/10 rounded bg-[#0b0b0b]/60 space-y-4">
               <div className="h-12 w-12 rounded-full border border-gold-border/30 flex items-center justify-center text-gold-accent mx-auto">
@@ -774,6 +839,9 @@ export default function App() {
         prefilledCouponCode={giftCouponCode}
       />
 
+      {/* ADVERTISEMENT / ANNOUNCEMENT SYSTEM POPUP */}
+      <AnnouncementPopup settings={settings} />
+
       {/* GIFT ACCENTS DOCK POPUP */}
       <GiftModal
         isOpen={isGiftModalOpen}
@@ -797,6 +865,8 @@ export default function App() {
         onClose={() => setIsAuthOpen(false)}
         onLogin={handleLogin}
         onLogout={handleLogout}
+        orders={orders}
+        onAddOrderToCart={handleAddOrderItemsToCart}
       />
 
       {/* 4C. ADMIN CONTROL CENTER CABINET */}
@@ -854,15 +924,91 @@ export default function App() {
               <X className="h-4 w-4" />
             </button>
 
-            {/* Product Image Stage */}
-            <div className="w-full md:w-1/2 shrink-0 relative p-1.5 bg-black rounded-lg border border-[#D4AF37]/40 shadow-lg">
-              <div className="rounded overflow-hidden relative aspect-[4/5] bg-zinc-950">
+            {/* Product Image Stage with Texture Lens Magnifier */}
+            <div className="w-full md:w-1/2 shrink-0 flex flex-col space-y-3 p-1.5 bg-black rounded-lg border border-[#D4AF37]/40 shadow-lg">
+              <div 
+                className="rounded overflow-hidden relative aspect-[4/5] bg-zinc-950 cursor-crosshair group/magnify select-none"
+                onMouseMove={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const x = ((e.clientX - rect.left) / rect.width) * 100;
+                  const y = ((e.clientY - rect.top) / rect.height) * 100;
+                  setLensPosition({ x, y });
+                }}
+                onMouseEnter={() => setIsLensVisible(true)}
+                onMouseLeave={() => setIsLensVisible(false)}
+              >
                 <img
-                  src={quickViewProduct.image_url}
+                  src={quickViewActiveImage || quickViewProduct.image_url}
                   alt={quickViewProduct.name}
-                  className="w-full h-full object-contain transition-all duration-300 hover:scale-[1.02]"
+                  className="w-full h-full object-contain transition-all duration-350"
+                  referrerPolicy="no-referrer"
                 />
+
+                {/* Texture Magnifying Lens reticle overlay */}
+                {isLensVisible && (
+                  <div 
+                    className="absolute pointer-events-none w-44 h-44 rounded-full border-2 border-[#D4AF37] shadow-[0_15px_40px_rgba(0,0,0,0.85),inset_0_0_15px_rgba(0,0,0,0.7),0_0_0_6px_rgba(212,175,55,0.15)] bg-no-repeat z-30"
+                    style={{
+                      left: `${lensPosition.x}%`,
+                      top: `${lensPosition.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                      backgroundImage: `url(${quickViewActiveImage || quickViewProduct.image_url})`,
+                      backgroundPosition: `${lensPosition.x}% ${lensPosition.y}%`,
+                      backgroundSize: '300%', // Elegant high zoom power to inspect premium thread textures
+                    }}
+                  >
+                    {/* Laser reticle dot to point at exact thread/seams */}
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-[#D4AF37] rounded-full shadow-[0_0_8px_#D4AF37]" />
+                  </div>
+                )}
+
+                {/* Soft instruction backdrop guide */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/85 backdrop-blur-md border border-[#D4AF37]/25 px-3 py-1 rounded text-[7.5px] font-mono tracking-[0.25em] text-[#D4AF37] whitespace-nowrap pointer-events-none z-10 transition-opacity duration-300 group-hover/magnify:opacity-0 uppercase font-bold">
+                  ✦ HOVER TO INSPECT TEXTURES
+                </div>
               </div>
+
+              {/* High-End Interactive Gallery Row picker */}
+              {quickViewProduct.additional_images && quickViewProduct.additional_images.length > 0 && (
+                <div className="flex items-center justify-center gap-2 pt-1 pb-1">
+                  {/* Primary main cover preview */}
+                  <button
+                    onClick={() => setQuickViewActiveImage(quickViewProduct.image_url)}
+                    className={`relative w-12 h-15 rounded border overflow-hidden bg-[#050505] transition-all duration-300 cursor-pointer ${
+                      (quickViewActiveImage === quickViewProduct.image_url || !quickViewActiveImage)
+                        ? 'border-[#D4AF37] scale-105 ring-1 ring-[#D4AF37]/30 shadow-[0_0_10px_rgba(212,175,55,0.35)]'
+                        : 'border-zinc-800 opacity-60 hover:opacity-100 hover:border-zinc-600'
+                    }`}
+                  >
+                    <img 
+                      src={quickViewProduct.image_url} 
+                      alt="Cover image master" 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </button>
+
+                  {/* Other alternate images */}
+                  {quickViewProduct.additional_images.map((altImg, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setQuickViewActiveImage(altImg)}
+                      className={`relative w-12 h-15 rounded border overflow-hidden bg-[#050505] transition-all duration-300 cursor-pointer ${
+                        quickViewActiveImage === altImg
+                          ? 'border-[#D4AF37] scale-105 ring-1 ring-[#D4AF37]/30 shadow-[0_0_10px_rgba(212,175,55,0.35)]'
+                          : 'border-zinc-800 opacity-60 hover:opacity-100 hover:border-zinc-600'
+                      }`}
+                    >
+                      <img 
+                        src={altImg} 
+                        alt={`Alternate gallery view ${idx + 1}`} 
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Meta details column */}
@@ -995,7 +1141,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 space-y-6">
           <p className="serif-title text-lg tracking-[0.3em] text-white">STYLE<span className="text-gold-accent">X</span> COLLECTIVE</p>
           <div className="w-12 h-[1px] bg-gold-accent/30 mx-auto" />
-          <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-8 font-mono text-[10px] uppercase text-gray-400">
+          <div className="flex flex-col sm:flex-row justify-center items-center space-y-3 sm:space-y-0 sm:space-x-8 font-mono text-[10px] uppercase text-gray-400 font-bold select-none">
             <span className="hover:text-gold-accent transition-colors cursor-pointer">PRIVACY PROTOCOL</span>
             <span className="hover:text-gold-accent transition-colors cursor-pointer">WHITE-GLOVE TERM</span>
             <span className="hover:text-gold-accent transition-colors cursor-pointer">COURIER CHANNELS</span>
@@ -1008,14 +1154,13 @@ export default function App() {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               24/7 WHATSAPP CONCIERGE
             </a>
-            <span onClick={() => setIsSetupDocOpen(true)} className="hover:text-gold-accent text-gold-accent transition-colors cursor-pointer font-bold">SUPABASE METADATA SQL SCHEMA</span>
           </div>
-          <p className="text-[10px] font-mono tracking-widest text-[#B8860B] uppercase flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
+          <p className="text-[10px] font-mono tracking-widest text-[#B8860B] uppercase flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 select-none">
             <span>ESTABLISHED 2026 // ALL REFINEMENT PRESERVED</span>
             <span className="hidden sm:inline text-[#B8860B]/40">•</span>
             <span 
               onClick={() => setIsAdminLoginOpen(true)} 
-              className="text-gold-accent hover:text-white transition-colors cursor-pointer font-bold underline decoration-[#D4AF37]/35 underline-offset-4 tracking-[0.2em]"
+              className="text-gold-accent hover:text-white transition-opacity duration-300 cursor-pointer font-bold underline decoration-[#D4AF37]/35 underline-offset-4 tracking-[0.2em] opacity-0 hover:opacity-100"
             >
               ADMIN PANEL
             </span>

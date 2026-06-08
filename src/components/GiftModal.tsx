@@ -21,6 +21,7 @@ export default function GiftModal({
   const [isOpeningAnim, setIsOpeningAnim] = useState(false);
 
   if (!isOpen) return null;
+  if (settings?.lottery_enabled === false) return null;
 
   const giftType = settings.gift_discount_type || 'percentage';
   const giftValue = settings.gift_discount_value ?? settings.gift_discount_percent ?? 25;

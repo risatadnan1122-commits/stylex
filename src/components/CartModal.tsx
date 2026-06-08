@@ -75,7 +75,8 @@ export default function CartModal({
     }
   }
 
-  const deliveryCharge = subtotal > 0 ? settings.delivery_charge : 0;
+  const hasFreeDelivery = cartItems.some(item => item.product.free_delivery);
+  const deliveryCharge = (subtotal > 0 && !hasFreeDelivery) ? settings.delivery_charge : 0;
   const total = Math.max(0, subtotal + deliveryCharge - discountAmount);
 
   const handleApplyCoupon = () => {
@@ -312,18 +313,18 @@ export default function CartModal({
             {/* COLUMN 2: PREMIUM SECURE DISPATCH FORM */}
             <div className="w-full md:w-1/2 flex flex-col justify-between border-t md:border-t-0 md:border-l border-[#D4AF37]/15 pt-6 md:pt-0 md:pl-8">
               {cartItems.length > 0 ? (
-                <form onSubmit={handleSubmitCheckout} className="space-y-4 h-full flex flex-col justify-between">
+                <form onSubmit={handleSubmitCheckout} className="space-y-6 flex-1 flex flex-col justify-between">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <Crown className="h-4.5 w-4.5 text-[#D4AF37]" />
-                      <span className="text-[10px] font-mono tracking-[0.25em] text-[#B8860B] uppercase block font-black">
+                      <Crown className="h-4 w-4 text-[#D4AF37]" />
+                      <span className="text-[9.5px] font-mono tracking-[0.3em] text-[#B8860B] uppercase block font-black">
                         DELIVERY CREDENTIALS
                       </span>
                     </div>
 
-                    <div className="space-y-3.5">
-                      <div className="space-y-1">
-                        <label className="text-[10px] sm:text-[11px] font-mono text-zinc-100 uppercase tracking-wider block font-extrabold">FULL RECIPIENT IDENTITY</label>
+                    <div className="space-y-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-mono text-zinc-400 tracking-[0.2em] block uppercase font-bold">FULL RECIPIENT IDENTITY</label>
                         <div className="relative">
                           <input
                             type="text"
@@ -331,16 +332,16 @@ export default function CartModal({
                             placeholder="E.G. EDWARD LANCASTER"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-[#141414] text-xs sm:text-sm text-white placeholder-zinc-500 border-2 border-[#D4AF37]/50 pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:border-[#ffdf6d] focus:ring-2 focus:ring-[#D4AF37]/25 transition-all font-mono uppercase tracking-wider font-bold"
+                            className="w-full h-11 bg-zinc-950/65 text-xs text-white placeholder-zinc-600 border border-[#D4AF37]/25 hover:border-[#D4AF37]/45 focus:border-[#D4AF37] pl-10 pr-4 rounded-md focus:outline-none transition-all duration-300 font-sans tracking-wide uppercase font-semibold selection:bg-[#D4AF37] selection:text-black shadow-inner"
                           />
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#D4AF37]">
-                            <User className="h-4 w-4" />
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#D4AF37]/60">
+                            <User className="h-3.5 w-3.5" />
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[10px] sm:text-[11px] font-mono text-zinc-100 uppercase tracking-wider block font-extrabold">CONTACT PHONE LINE</label>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-mono text-zinc-400 tracking-[0.2em] block uppercase font-bold">CONTACT PHONE LINE</label>
                         <div className="relative">
                           <input
                             type="tel"
@@ -348,16 +349,16 @@ export default function CartModal({
                             placeholder="E.G. +8801722334455"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
-                            className="w-full bg-[#141414] text-xs sm:text-sm text-white placeholder-zinc-500 border-2 border-[#D4AF37]/50 pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:border-[#ffdf6d] focus:ring-2 focus:ring-[#D4AF37]/25 transition-all font-mono uppercase tracking-wider font-bold"
+                            className="w-full h-11 bg-zinc-950/65 text-xs text-white placeholder-zinc-600 border border-[#D4AF37]/25 hover:border-[#D4AF37]/45 focus:border-[#D4AF37] pl-10 pr-4 rounded-md focus:outline-none transition-all duration-300 font-sans tracking-wide uppercase font-semibold selection:bg-[#D4AF37] selection:text-black shadow-inner"
                           />
-                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#D4AF37]">
-                            <Phone className="h-4 w-4" />
+                          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#D4AF37]/60">
+                            <Phone className="h-3.5 w-3.5" />
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-[10px] sm:text-[11px] font-mono text-zinc-100 uppercase tracking-wider block font-extrabold">DISPATCH SANCTUARY (ADDRESS)</label>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-mono text-zinc-400 tracking-[0.2em] block uppercase font-bold">DISPATCH SANCTUARY (ADDRESS)</label>
                         <div className="relative">
                           <textarea
                             required
@@ -365,19 +366,19 @@ export default function CartModal({
                             placeholder="E.G. SUITE 42, GILDED TOWERS, BANANI, DHAKA"
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
-                            className="w-full bg-[#141414] text-xs sm:text-sm text-white placeholder-zinc-500 border-2 border-[#D4AF37]/50 pl-10 pr-4 py-2.5 rounded-lg focus:outline-none focus:border-[#ffdf6d] focus:ring-2 focus:ring-[#D4AF37]/25 transition-all font-mono uppercase tracking-wide font-bold resize-none"
+                            className="w-full bg-zinc-950/65 text-xs text-white placeholder-zinc-600 border border-[#D4AF37]/25 hover:border-[#D4AF37]/45 focus:border-[#D4AF37] pl-10 pr-4 py-3 rounded-md focus:outline-none transition-all duration-300 font-sans tracking-wide uppercase font-semibold resize-none selection:bg-[#D4AF37] selection:text-black shadow-inner"
                           />
-                          <div className="absolute top-3 left-3.5 pointer-events-none text-[#D4AF37]">
-                            <MapPin className="h-4 w-4" />
+                          <div className="absolute top-3.5 left-3.5 pointer-events-none text-[#D4AF37]/60">
+                            <MapPin className="h-3.5 w-3.5" />
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Premium Cash on Delivery verified warning box */}
-                    <div className="bg-[#0b0b0b] border border-[#D4AF37]/20 p-3 rounded-lg text-[10px] text-gray-400 space-y-1.5 shadow-inner">
-                      <div className="flex items-center space-x-2 text-[#ffdf6d] font-bold uppercase tracking-wider">
-                        <ShieldCheck className="h-4 w-4 shrink-0 animate-pulse text-[#D4AF37]" />
+                    <div className="bg-gradient-to-r from-zinc-950 to-[#0e0e0e] border border-[#D4AF37]/15 p-3 rounded-md text-[9.5px] text-zinc-400 space-y-1 shadow-inner">
+                      <div className="flex items-center space-x-2 text-[#ffdf6d] font-bold uppercase tracking-widest text-[9px]">
+                        <ShieldCheck className="h-4 w-4 shrink-0 text-[#D4AF37] animate-pulse" />
                         <span>PREMIUM CASH ON DELIVERY VERIFIED</span>
                       </div>
                       <p className="leading-relaxed font-sans font-light">Verify authenticity & details in absolute safety. You will submit details over vault routes. Handover & payment at dispatch.</p>
@@ -386,9 +387,9 @@ export default function CartModal({
 
                   {/* Billing Pricing Summary */}
                   <div className="space-y-3.5 pt-4 border-t border-[#D4AF37]/15">
-                    <div className="space-y-1.5 font-mono text-[11px] text-gray-400">
+                    <div className="space-y-2 font-mono text-[10.5px] text-gray-400">
                       <div className="flex justify-between items-center">
-                        <span>SUBTOTAL VALUE:</span>
+                        <span className="tracking-wider">SUBTOTAL VALUE:</span>
                         <span className="text-white font-extrabold">৳{subtotal.toLocaleString()}</span>
                       </div>
                       {appliedCoupon && (
@@ -407,12 +408,16 @@ export default function CartModal({
                         </div>
                       )}
                       <div className="flex justify-between items-center">
-                        <span>CONCIERGE ROUTING CHARGE:</span>
-                        <span className="text-white font-extrabold">৳{deliveryCharge.toLocaleString()}</span>
+                        <span className="tracking-wider">CONCIERGE ROUTING CHARGE:</span>
+                        {hasFreeDelivery ? (
+                          <span className="text-emerald-400 font-extrabold font-mono text-[9px] tracking-widest bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/20 uppercase">FREE DELIVERY 📦</span>
+                        ) : (
+                          <span className="text-white font-extrabold">৳{deliveryCharge.toLocaleString()}</span>
+                        )}
                       </div>
                       
-                      <div className="flex justify-between items-center text-white font-black text-xs sm:text-sm pt-2.5 border-t border-dashed border-[#D4AF37]/20">
-                        <span className="font-serif tracking-widest text-[#D4AF37]">TOTAL OUTLAY:</span>
+                      <div className="flex justify-between items-center text-white font-black text-xs sm:text-sm pt-3 border-t border-dashed border-[#D4AF37]/20">
+                        <span className="font-serif tracking-[0.2em] text-[#D4AF37] text-[11px]">TOTAL OUTLAY:</span>
                         <span className="text-[#ffdf6d] font-black tracking-tight text-base drop-shadow-[0_0_12px_rgba(212,175,55,0.7)]">
                           ৳{total.toLocaleString()}
                         </span>
@@ -423,12 +428,12 @@ export default function CartModal({
                     <div className="pt-2">
                       <motion.button
                         whileHover={{ 
-                          scale: 1.02,
-                          boxShadow: "0 0 35px rgba(212, 175, 55, 0.75)"
+                          scale: 1.015,
+                          boxShadow: "0 0 35px rgba(212, 175, 55, 0.55)"
                         }}
-                        whileTap={{ scale: 0.98 }}
+                        whileTap={{ scale: 0.985 }}
                         type="submit"
-                        className="w-full py-4 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black font-extrabold text-[10px] tracking-[0.35em] uppercase rounded-lg transition-all duration-300 cursor-pointer shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group/submit"
+                        className="w-full py-4 bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black font-extrabold text-[10px] tracking-[0.3em] uppercase rounded-md transition-all duration-300 cursor-pointer shadow-xl flex items-center justify-center gap-2 relative overflow-hidden group/submit"
                       >
                         <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover/submit:animate-[shimmer_1.8s_infinite] pointer-events-none" />
                         <ShieldCheck className="h-4.5 w-4.5 shrink-0" />

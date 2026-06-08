@@ -1,17 +1,39 @@
 import { createClient } from '@supabase/supabase-js';
 import { Product, Order, ChatMessage, Review, SiteSettings, Coupon, AppUser } from './types';
 
-// Read dynamic environment variables
-const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || '';
-const supabaseKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || (import.meta as any).env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+// Read dynamic environment variables safely
+const getEnvVar = (key: string): string => {
+  try {
+    return (import.meta as any)?.env?.[key] || '';
+  } catch {
+    return '';
+  }
+};
 
-// Let's check if the real keys exist
-export const isRealSupabaseConfigured = supabaseUrl && supabaseUrl !== 'undefined' && supabaseKey && supabaseKey !== 'undefined';
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
+const supabaseKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || getEnvVar('VITE_SUPABASE_PUBLISHABLE_KEY');
 
-// Real Supabase client (only initialized if keys are configured)
-export const realSupabase = isRealSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseKey) 
-  : null;
+// Let's check if the real keys exist and are formatted reasonably
+const checkSupabaseConfig = (): boolean => {
+  if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseKey || supabaseKey === 'undefined') {
+    return false;
+  }
+  // Basic URL regex check to prevent createClient crashes due to malformed URLs
+  return supabaseUrl.startsWith('http://') || supabaseUrl.startsWith('https://');
+};
+
+export const isRealSupabaseConfigured = checkSupabaseConfig();
+
+// Real Supabase client (only initialized safely under try-catch if keys are configured)
+export const realSupabase = (() => {
+  if (!isRealSupabaseConfigured) return null;
+  try {
+    return createClient(supabaseUrl, supabaseKey);
+  } catch (err) {
+    console.error('Supabase client failed to initialize securely:', err);
+    return null;
+  }
+})();
 
 // HIGH-END LUXURY SEED DATA FOR SIMULATION MODE
 const DEFAULT_PRODUCTS: Product[] = [
@@ -96,7 +118,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
   logo_text_subtitle: 'LUXURY',
   banners: [
     "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop"
+    "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop",
+    "/src/assets/images/new_notification_logo_1780913672166.png"
   ],
   lottery_coin_reward: 500,
   campaign_coin_reward: 1000,
@@ -108,7 +131,13 @@ const DEFAULT_SETTINGS: SiteSettings = {
     { id: 'lp2', title: '2nd Prize - Signature Aureum Cufflinks (3% coupon code)', type: 'jewelry', minOrder: 0, discount: 3 },
     { id: 'lp3', title: '3rd Prize - Elite Luxury Voucher (20% coupon code)', type: 'voucher', minOrder: 15000, discount: 20 },
     { id: 'lp4', title: 'Consolation Prize - White-Glove VIP Delivery Pass (50% coupon code)', type: 'service', minOrder: 0, discount: 50 }
-  ]
+  ],
+  lottery_enabled: true,
+  popup_enabled: true,
+  popup_title: '✦ GILDED BIENVENUE ✦',
+  popup_message: 'Welcome to STYLE X COLLECTIVE. Experience the pinnacle of curated luxury. Enter promo code "AUREUM100" at checkout to get 100 Tk dynamic discount on elite products.',
+  popup_coupon_code: 'AUREUM100',
+  popup_image_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&auto=format&fit=crop'
 };
 
 const DEFAULT_COUPONS: Coupon[] = [
@@ -151,6 +180,20 @@ export const getSimulatedDB = () => {
   }
 
   const settings = getStored<SiteSettings>('stylex_settings', DEFAULT_SETTINGS);
+  
+  // Replace old path with the new ultra-premium gilded notification logo
+  if (settings.banners) {
+    settings.banners = settings.banners.map(b => b === '/src/assets/images/notification_logo_1780910611360.png' ? '/src/assets/images/new_notification_logo_1780913672166.png' : b);
+  }
+
+  if (!settings.banners || settings.banners.length < 3 || !settings.banners.includes('/src/assets/images/new_notification_logo_1780913672166.png')) {
+    settings.banners = [
+      "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1800&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop",
+      "/src/assets/images/new_notification_logo_1780913672166.png"
+    ];
+    setStored('stylex_settings', settings);
+  }
   if (!settings.apps_script_url) {
     settings.apps_script_url = DEFAULT_SETTINGS.apps_script_url;
   }
@@ -171,6 +214,24 @@ export const getSimulatedDB = () => {
   }
   if (!settings.lottery_prizes || settings.lottery_prizes.length === 0) {
     settings.lottery_prizes = DEFAULT_SETTINGS.lottery_prizes;
+  }
+  if (settings.lottery_enabled === undefined) {
+    settings.lottery_enabled = true;
+  }
+  if (settings.popup_enabled === undefined) {
+    settings.popup_enabled = DEFAULT_SETTINGS.popup_enabled;
+  }
+  if (settings.popup_title === undefined) {
+    settings.popup_title = DEFAULT_SETTINGS.popup_title;
+  }
+  if (settings.popup_message === undefined) {
+    settings.popup_message = DEFAULT_SETTINGS.popup_message;
+  }
+  if (settings.popup_coupon_code === undefined) {
+    settings.popup_coupon_code = DEFAULT_SETTINGS.popup_coupon_code;
+  }
+  if (settings.popup_image_url === undefined) {
+    settings.popup_image_url = DEFAULT_SETTINGS.popup_image_url;
   }
   const coupons = getStored<Coupon[]>('stylex_coupons', DEFAULT_COUPONS);
   const reviews = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);

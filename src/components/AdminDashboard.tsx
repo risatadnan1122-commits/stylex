@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, BarChart3, Plus, Edit3, Trash2, MailOpen, Layers, 
-  Settings2, Percent, Check, Trash, CheckSquare, MessageCircle, AlertCircle, Save,
+  Settings2, Percent, Check, Trash, CheckSquare, MessageCircle, AlertCircle, Save, Sparkles,
   LayoutDashboard, Package, ClipboardList, Image as ImageIcon, Megaphone, Coins, Globe, Search, MessageSquare, Database
 } from 'lucide-react';
 import { Product, Order, Review, Coupon, SiteSettings, ChatMessage } from '../types';
@@ -54,8 +54,9 @@ export default function AdminDashboard({
   
   // States for CRUD forms
   const [productForm, setProductForm] = useState<Partial<Product>>({
-    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: ''
+    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], free_delivery: false
   });
+  const [additionalImageInput, setAdditionalImageInput] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -108,8 +109,10 @@ export default function AdminDashboard({
       stock: Number(productForm.stock || 1),
       featured: !!productForm.featured,
       image_url: productForm.image_url,
+      additional_images: productForm.additional_images || [],
       coupon_code: productForm.coupon_code || undefined,
-      coupon_discount: productForm.coupon_discount ? Number(productForm.coupon_discount) : undefined
+      coupon_discount: productForm.coupon_discount ? Number(productForm.coupon_discount) : undefined,
+      free_delivery: !!productForm.free_delivery
     };
 
     if (editingProductId) {
@@ -120,7 +123,8 @@ export default function AdminDashboard({
     }
 
     // Reset Form
-    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
+    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], coupon_code: '', coupon_discount: undefined, free_delivery: false });
+    setAdditionalImageInput('');
     setShowProductForm(false);
   };
 
@@ -137,9 +141,12 @@ export default function AdminDashboard({
       stock: prod.stock,
       featured: prod.featured,
       image_url: prod.image_url,
+      additional_images: prod.additional_images || [],
       coupon_code: prod.coupon_code || '',
-      coupon_discount: prod.coupon_discount
+      coupon_discount: prod.coupon_discount,
+      free_delivery: !!prod.free_delivery
     });
+    setAdditionalImageInput('');
     setShowProductForm(true);
   };
 
@@ -580,9 +587,7 @@ export default function AdminDashboard({
                                 className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono transition-all"
                               />
                             </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                          </div>                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                             <div>
                               <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Category Classification *</label>
                               <select
@@ -607,7 +612,23 @@ export default function AdminDashboard({
                                   className="accent-[#D4AF37] h-4 w-4 cursor-pointer"
                                 />
                                 <label htmlFor="featured_atelier" className="text-[9.5px] font-mono text-gray-300 uppercase ml-2.5 select-none cursor-pointer">
-                                  Feature on Front Carousel
+                                  Front Carousel
+                                </label>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Delivery Setting</label>
+                              <div className="flex items-center h-10 bg-[#0c0a03]/80 px-3 border border-[#D4AF37]/35 rounded hover:border-[#D4AF37] transition-all">
+                                <input
+                                  type="checkbox"
+                                  id="free_delivery_atelier"
+                                  checked={productForm.free_delivery || false}
+                                  onChange={(e) => setProductForm({ ...productForm, free_delivery: e.target.checked })}
+                                  className="accent-[#D4AF37] h-4 w-4 cursor-pointer"
+                                />
+                                <label htmlFor="free_delivery_atelier" className="text-[9.5px] font-mono text-[#D4AF37] uppercase font-bold ml-2.5 select-none cursor-pointer">
+                                  ⚡ Free Delivery
                                 </label>
                               </div>
                             </div>
@@ -712,17 +733,127 @@ export default function AdminDashboard({
                             04 // Material Textures & Visual Delineation
                           </span>
 
-                          <div className="space-y-3.5">
+                          <div className="space-y-4">
                             <div>
-                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Model / Texture Image URL *</label>
-                              <input
-                                type="url"
-                                required
-                                placeholder="https://images.unsplash.com/photo-..."
-                                value={productForm.image_url || ''}
-                                onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
-                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans"
-                              />
+                              <div className="flex justify-between items-center mb-1">
+                                <label className="text-[9px] font-mono text-gray-400 uppercase block">Model / Texture Image URL *</label>
+                                <span className="text-[8px] font-mono text-[#D4AF37] uppercase">Local File / Link Supported</span>
+                              </div>
+                              <div className="flex gap-2">
+                                <input
+                                  type="url"
+                                  required
+                                  placeholder="https://images.unsplash.com/photo-..."
+                                  value={productForm.image_url || ''}
+                                  onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
+                                  className="flex-1 bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans"
+                                />
+                                <label className="shrink-0 flex items-center justify-center bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/35 text-[#D4AF37] px-3.5 rounded text-[9px] font-mono cursor-pointer transition-colors uppercase tracking-widest font-bold">
+                                  Upload
+                                  <input 
+                                    type="file" 
+                                    accept="image/*" 
+                                    className="hidden" 
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                          setProductForm({ ...productForm, image_url: reader.result as string });
+                                        };
+                                        reader.readAsDataURL(file);
+                                      }
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+
+                            {/* Alternate Gallery Images */}
+                            <div className="border-t border-[#D4AF37]/15 pt-3.5 space-y-3">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[9px] font-mono text-gray-300 uppercase font-black tracking-widest block">✦ Alternate Gallery Images</span>
+                                <span className="text-[8px] font-mono text-gray-500 uppercase">Up to 5 images</span>
+                              </div>
+
+                              {/* Gallery Grid Previews */}
+                              {productForm.additional_images && productForm.additional_images.length > 0 ? (
+                                <div className="grid grid-cols-5 gap-2">
+                                  {productForm.additional_images.map((imgUrl, index) => (
+                                    <div key={index} className="relative aspect-[4/5] bg-zinc-950 border border-[#D4AF37]/20 rounded overflow-hidden group/galleryitem">
+                                      <img src={imgUrl} alt={`Gallery Alternate ${index}`} className="w-full h-full object-cover" />
+                                      <button 
+                                        type="button"
+                                        onClick={() => {
+                                          const filtered = productForm.additional_images?.filter((_, i) => i !== index) || [];
+                                          setProductForm({ ...productForm, additional_images: filtered });
+                                        }}
+                                        className="absolute top-1 right-1 h-4.5 w-4.5 bg-black/95 hover:bg-black border border-red-500/40 text-red-500 hover:text-red-300 rounded flex items-center justify-center text-[9px] font-bold transition-all duration-300 cursor-pointer"
+                                        title="Remove Image"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="border border-dashed border-[#D4AF37]/10 rounded bg-[#070707] p-3 text-center">
+                                  <span className="text-[8.5px] font-mono text-zinc-600 block uppercase tracking-wider">No Alternate Gallery Images Configured</span>
+                                </div>
+                              )}
+
+                              {/* Gallery Inputs */}
+                              <div className="space-y-2">
+                                <label className="text-[8.5px] font-mono text-zinc-500 uppercase block">Add Alternate Image Link or Upload</label>
+                                <div className="flex gap-2">
+                                  <input
+                                    type="url"
+                                    placeholder="Paste link, then tap 'Add'..."
+                                    value={additionalImageInput}
+                                    onChange={(e) => setAdditionalImageInput(e.target.value)}
+                                    className="flex-1 bg-black text-xs text-white border border-[#D4AF37]/25 p-2 focus:outline-none focus:border-[#D4AF37] rounded font-mono placeholder:text-zinc-700 placeholder:text-[9px]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (!additionalImageInput) return;
+                                      const current = productForm.additional_images || [];
+                                      if (current.length >= 5) {
+                                        alert('Luxury configuration: maximum 5 alternate gallery images permitted.');
+                                        return;
+                                      }
+                                      setProductForm({ ...productForm, additional_images: [...current, additionalImageInput] });
+                                      setAdditionalImageInput('');
+                                    }}
+                                    className="shrink-0 bg-[#D4AF37] hover:bg-[#ffeb9e] text-black font-extrabold px-3 py-2 rounded text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer"
+                                  >
+                                    Add
+                                  </button>
+                                  <label className="shrink-0 flex items-center justify-center bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/35 text-[#D4AF37] px-3 rounded text-[10px] font-mono cursor-pointer transition-colors uppercase tracking-widest font-bold">
+                                    Upload File
+                                    <input 
+                                      type="file" 
+                                      accept="image/*" 
+                                      className="hidden" 
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          const current = productForm.additional_images || [];
+                                          if (current.length >= 5) {
+                                            alert('Luxury configuration: maximum 5 alternate gallery images permitted.');
+                                            return;
+                                          }
+                                          const reader = new FileReader();
+                                          reader.onloadend = () => {
+                                            setProductForm({ ...productForm, additional_images: [...current, reader.result as string] });
+                                          };
+                                          reader.readAsDataURL(file);
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+                              </div>
                             </div>
 
                             <div>
@@ -1580,6 +1711,80 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
+                {/* GLOBAL POPUP ANNOUNCEMENT CONFIGURATION */}
+                <div className="p-4 bg-black/80 border border-[#D4AF37]/25 rounded-md space-y-4 pt-4">
+                  <div className="flex items-center justify-between border-b border-[#D4AF37]/15 pb-2">
+                    <div>
+                      <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">📢 POPUP MESSAGE ANNOUNCEMENT OVERLAY</span>
+                      <p className="text-[10px] text-gray-400 font-mono">Configure a high-end promotional popup displayed on first load for catalog visitors.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer select-none">
+                      <input 
+                        type="checkbox" 
+                        checked={seoForm.popup_enabled ?? false} 
+                        onChange={(e) => setSeoForm({ ...seoForm, popup_enabled: e.target.checked })} 
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-gray-300 after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#D4AF37] peer-checked:after:bg-black peer-checked:after:border-black"></div>
+                      <span className="ml-2 text-[10px] font-mono text-gray-300 uppercase">{seoForm.popup_enabled ? 'ENABLED' : 'DISABLED'}</span>
+                    </label>
+                  </div>
+
+                  {seoForm.popup_enabled && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in">
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-[10px] font-mono text-gray-500 block mb-1">Popup Banner/Promotion Title</label>
+                          <input
+                            type="text"
+                            required={seoForm.popup_enabled}
+                            placeholder="E.g. ✦ GILDED BIENVENUE ✦"
+                            value={seoForm.popup_title || ''}
+                            onChange={(e) => setSeoForm({ ...seoForm, popup_title: e.target.value })}
+                            className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-mono text-gray-500 block mb-1">Promotion / Coupon Code (Optional)</label>
+                          <input
+                            type="text"
+                            placeholder="E.g. AUREUM100"
+                            value={seoForm.popup_coupon_code || ''}
+                            onChange={(e) => setSeoForm({ ...seoForm, popup_coupon_code: e.target.value })}
+                            className="w-full bg-black text-xs text-[#D4AF37] border border-gold-border/30 p-2.5 rounded font-mono"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-mono text-gray-500 block mb-1">Popup Cover Image URL</label>
+                          <input
+                            type="url"
+                            placeholder="https://images.unsplash.com/..."
+                            value={seoForm.popup_image_url || ''}
+                            onChange={(e) => setSeoForm({ ...seoForm, popup_image_url: e.target.value })}
+                            className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-[10px] font-mono text-gray-500 block mb-1">Popup Content Message</label>
+                          <textarea
+                            rows={5}
+                            required={seoForm.popup_enabled}
+                            placeholder="Enter the luxurious notification message details..."
+                            value={seoForm.popup_message || ''}
+                            onChange={(e) => setSeoForm({ ...seoForm, popup_message: e.target.value })}
+                            className="w-full bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-end pt-2">
                   <button
                     type="submit"
@@ -1706,6 +1911,44 @@ export default function AdminDashboard({
                     </button>
                   </div>
                 </div>
+
+                {/* LOTTERY ACTIVATION CONTROLLER */}
+                <div id="admin-lottery-toggle" className="p-4 bg-gradient-to-r from-black via-[#070707] to-black border border-[#D4AF37]/35 rounded-lg flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+                  <div className="flex items-center space-x-3">
+                    <div className="relative flex items-center justify-center p-2.5 bg-[#D4AF37]/10 border border-[#D4AF37]/20 rounded-lg">
+                      <Sparkles className="h-5 w-5 text-[#D4AF37] animate-pulse" />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-[0.2em] block font-black">✦ Lottery Operation State</span>
+                      <p className="text-[10.5px] text-zinc-400 mt-0.5 font-sans leading-relaxed">Deactivating the sweepstakes immediately suspends interactive spinners, client lucky gifts and slot boards on client devices.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center bg-black/80 border border-[#D4AF37]/25 p-1 rounded-sm">
+                    <button
+                      type="button"
+                      onClick={() => setSeoForm({ ...seoForm, lottery_enabled: true })}
+                      className={`text-[9px] font-mono font-black uppercase tracking-widest px-3.5 py-2 rounded-sm transition-all cursor-pointer duration-250 ${
+                        (seoForm.lottery_enabled !== false) 
+                          ? 'bg-[#D4AF37] text-black shadow-[0_0_10px_rgba(212,175,55,0.4)]' 
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      Active
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSeoForm({ ...seoForm, lottery_enabled: false })}
+                      className={`text-[9px] font-mono font-black uppercase tracking-widest px-3.5 py-2 rounded-sm transition-all cursor-pointer duration-250 ${
+                        (seoForm.lottery_enabled === false) 
+                          ? 'bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.4)]' 
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      Deactivated
+                    </button>
+                  </div>
+                </div>
                 
                 {/* SET COIN REWARDS BOX */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0a0a0a] border border-[#D4AF37]/15 p-4 rounded-lg">
@@ -1733,6 +1976,52 @@ export default function AdminDashboard({
                       className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 rounded font-mono"
                     />
                     <span className="text-[9px] text-gray-500 font-mono mt-1 block">Coins earned during active site campaigns.</span>
+                  </div>
+                </div>
+
+                {/* CUSTOMER GIFT CHEST / LOTTERY REWARD CONFIGURATION */}
+                <div className="p-4 bg-[#0a0a0a] border border-[#D4AF37]/15 rounded-lg space-y-4">
+                  <div className="border-b border-[#D4AF37]/10 pb-2">
+                    <span className="text-[10px] font-mono text-[#D4AF37] uppercase tracking-widest block font-bold">🎯 CLIENT NOVELTY GIFT / LOTTERY CHEST REWARD %</span>
+                    <p className="text-[10px] text-gray-400">Configure how many % discount the customer receives when opening the client-facing Gilded Gift Chest from the header 🎁</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-mono text-gray-400 block mb-1">Gift/Lottery Reward Type</label>
+                      <select
+                        value={seoForm.gift_discount_type || 'percentage'}
+                        onChange={(e) => {
+                          const type = e.target.value as 'percentage' | 'fixed';
+                          setSeoForm({ 
+                            ...seoForm, 
+                            gift_discount_type: type
+                          });
+                        }}
+                        className="w-full bg-black text-xs text-[#D4AF37] border border-[#D4AF37]/30 p-2.5 rounded font-mono cursor-pointer"
+                      >
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed Taka (৳ / Tk)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-mono text-gray-400 block mb-1">Gift/Lottery Reward Value</label>
+                      <input
+                        type="number"
+                        required
+                        min="1"
+                        value={seoForm.gift_discount_value ?? seoForm.gift_discount_percent ?? 25}
+                        onChange={(e) => {
+                          const val = Number(e.target.value);
+                          setSeoForm({ 
+                            ...seoForm, 
+                            gift_discount_value: val,
+                            gift_discount_percent: val
+                          });
+                        }}
+                        className="w-full bg-black text-xs text-white border border-[#D4AF37]/30 p-2.5 rounded font-mono"
+                      />
+                    </div>
                   </div>
                 </div>
 

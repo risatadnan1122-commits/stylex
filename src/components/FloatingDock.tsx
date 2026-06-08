@@ -43,6 +43,7 @@ export default function FloatingDock({
 
   const handleSpinWheel = () => {
     if (isSpinning) return;
+    if (settings?.lottery_enabled === false) return;
     setIsSpinning(true);
     setSpinSuccess(false);
 
@@ -263,82 +264,102 @@ export default function FloatingDock({
                       <Coins className="h-3.5 w-3.5 text-gold-accent" />
                       Aureum Gilded Spin
                     </span>
-                    <span className="text-[8px] font-mono text-[#D4AF37] px-2 py-0.5 bg-black/60 rounded border border-[#D4AF37]/20 uppercase">
-                      Campaign Ready
+                    <span className={`text-[8px] font-mono px-2 py-0.5 rounded border uppercase ${
+                      settings?.lottery_enabled === false 
+                        ? 'text-red-400 bg-red-950/20 border-red-500/20' 
+                        : 'text-[#D4AF37] bg-black/60 border-[#D4AF37]/20 font-bold'
+                    }`}>
+                      {settings?.lottery_enabled === false ? 'Suspended' : 'Campaign Ready'}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 p-2 bg-[#0d0d0d] rounded border border-gold-border/10">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] font-semibold text-white block">Configure Draw Sector</span>
-                      <span className="text-[9px] text-[#D4AF37] font-mono uppercase block">
-                        {spinMode === 'standard' 
-                          ? `Standard (Win: ${settings?.lottery_coin_reward || 500} Coins)` 
-                          : `Campaign (Win: ${settings?.campaign_coin_reward || 1000} Coins)`
-                        }
+                  {settings?.lottery_enabled === false ? (
+                    <div className="flex flex-col items-center justify-center text-center p-5 bg-black/40 border border-red-500/10 rounded my-2">
+                      <div className="h-10 w-10 rounded-full bg-red-950/30 border border-red-500/25 flex items-center justify-center text-red-500 mb-2 font-mono text-base font-black animate-pulse">
+                        ⚠️
+                      </div>
+                      <span className="text-[10px] font-mono text-red-400 uppercase tracking-[0.15em] block font-black">
+                        Spin Rewards Locked
                       </span>
+                      <p className="text-[9.5px] text-zinc-500 mt-1.5 font-sans leading-relaxed max-w-[250px]">
+                        The Gilded Vault Spin systems are temporarily locked by Style House Administration. Rewards are unavailable.
+                      </p>
                     </div>
-                    <div className="flex bg-black p-0.5 border border-[#D4AF37]/20 rounded">
-                      <button 
-                        onClick={() => setSpinMode('standard')}
-                        disabled={isSpinning}
-                        className={`text-[8px] font-sans px-2 py-1 rounded transition-all uppercase cursor-pointer ${spinMode === 'standard' ? 'bg-[#D4AF37] text-black font-bold' : 'text-gray-400 hover:text-white'}`}
-                      >
-                        Standard
-                      </button>
-                      <button 
-                        onClick={() => setSpinMode('campaign')}
-                        disabled={isSpinning}
-                        className={`text-[8px] font-sans px-2 py-1 rounded transition-all uppercase cursor-pointer ${spinMode === 'campaign' ? 'bg-[#D4AF37] text-black font-bold' : 'text-gray-400 hover:text-white'}`}
-                      >
-                        Campaign
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Gorgeous visual spinner display */}
-                  <div className="flex flex-col items-center justify-center py-4 relative bg-black/40 rounded border border-gold-border/10">
-                    <div className="relative h-20 w-20 flex items-center justify-center">
-                      {/* Gilded Spinner core */}
-                      <div 
-                        style={{ 
-                          transform: `rotate(${rotation}deg)`,
-                          transition: isSpinning ? 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)' : 'none'
-                        }}
-                        className="h-20 w-20 rounded-full border-2 border-[#D4AF37] bg-gradient-to-tr from-black via-zinc-900 to-black relative flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]"
-                      >
-                        {/* Elegant Sector dividers */}
-                        <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-0" />
-                        <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-45" />
-                        <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-90" />
-                        <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-135" />
-                        
-                        {/* Glowing coin indicator */}
-                        <div className="h-5 w-5 rounded-full bg-black border border-[#D4AF37] text-[#D4AF37] flex items-center justify-center font-mono text-[8px] font-bold z-10 shadow">
-                          $
+                  ) : (
+                    <>
+                      <div className="flex items-center justify-between gap-3 p-2 bg-[#0d0d0d] rounded border border-gold-border/10">
+                        <div className="space-y-0.5">
+                          <span className="text-[10px] font-semibold text-white block">Configure Draw Sector</span>
+                          <span className="text-[9px] text-[#D4AF37] font-mono uppercase block">
+                            {spinMode === 'standard' 
+                              ? `Standard (Win: ${settings?.lottery_coin_reward || 500} Coins)` 
+                              : `Campaign (Win: ${settings?.campaign_coin_reward || 1000} Coins)`
+                            }
+                          </span>
+                        </div>
+                        <div className="flex bg-black p-0.5 border border-[#D4AF37]/20 rounded">
+                          <button 
+                            onClick={() => setSpinMode('standard')}
+                            disabled={isSpinning}
+                            className={`text-[8px] font-sans px-2 py-1 rounded transition-all uppercase cursor-pointer ${spinMode === 'standard' ? 'bg-[#D4AF37] text-black font-bold' : 'text-gray-400 hover:text-white'}`}
+                          >
+                            Standard
+                          </button>
+                          <button 
+                            onClick={() => setSpinMode('campaign')}
+                            disabled={isSpinning}
+                            className={`text-[8px] font-sans px-2 py-1 rounded transition-all uppercase cursor-pointer ${spinMode === 'campaign' ? 'bg-[#D4AF37] text-black font-bold' : 'text-gray-400 hover:text-white'}`}
+                          >
+                            Campaign
+                          </button>
                         </div>
                       </div>
 
-                      {/* Golden needle point */}
-                      <div className="absolute -top-1 h-3 w-3 bg-red-500 rounded-b-sm border border-white z-20 shadow-md transform rotate-180" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
-                    </div>
+                      {/* Gorgeous visual spinner display */}
+                      <div className="flex flex-col items-center justify-center py-4 relative bg-black/40 rounded border border-gold-border/10">
+                        <div className="relative h-20 w-20 flex items-center justify-center">
+                          {/* Gilded Spinner core */}
+                          <div 
+                            style={{ 
+                              transform: `rotate(${rotation}deg)`,
+                              transition: isSpinning ? 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)' : 'none'
+                            }}
+                            className="h-20 w-20 rounded-full border-2 border-[#D4AF37] bg-gradient-to-tr from-black via-zinc-900 to-black relative flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                          >
+                            {/* Elegant Sector dividers */}
+                            <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-0" />
+                            <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-45" />
+                            <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-90" />
+                            <div className="absolute inset-y-0 w-[1px] bg-[#D4AF37]/30 transform rotate-135" />
+                            
+                            {/* Glowing coin indicator */}
+                            <div className="h-5 w-5 rounded-full bg-black border border-[#D4AF37] text-[#D4AF37] flex items-center justify-center font-mono text-[8px] font-bold z-10 shadow">
+                              $
+                            </div>
+                          </div>
 
-                    {/* Success notification popup */}
-                    {spinSuccess && (
-                      <div className="mt-3 text-center animate-bounce text-emerald-400 text-[10px] font-mono uppercase tracking-wider bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded">
-                        🏆 Dispensed {spinAmt} VIP Coins Successfully!
+                          {/* Golden needle point */}
+                          <div className="absolute -top-1 h-3 w-3 bg-red-500 rounded-b-sm border border-white z-20 shadow-md transform rotate-180" style={{ clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)' }} />
+                        </div>
+
+                        {/* Success notification popup */}
+                        {spinSuccess && (
+                          <div className="mt-3 text-center animate-bounce text-emerald-400 text-[10px] font-mono uppercase tracking-wider bg-emerald-950/40 border border-emerald-500/20 px-3 py-1 rounded">
+                            🏆 Dispensed {spinAmt} VIP Coins Successfully!
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={handleSpinWheel}
+                          disabled={isSpinning}
+                          className="mt-4 px-6 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#ffdf6d] text-black text-[10px] font-mono font-black uppercase tracking-wider rounded border border-[#D4AF37]/40 shadow-[0_3px_15px_rgba(212,175,55,0.25)] hover:shadow-[0_5px_22px_rgba(212,175,55,0.5)] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {isSpinning ? 'DRAWING FROM VAULT...' : 'SPIN FOR AUREUM COINS'}
+                        </button>
                       </div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={handleSpinWheel}
-                      disabled={isSpinning}
-                      className="mt-4 px-6 py-2.5 bg-gradient-to-r from-[#D4AF37] to-[#ffdf6d] text-black text-[10px] font-mono font-black uppercase tracking-wider rounded border border-[#D4AF37]/40 shadow-[0_3px_15px_rgba(212,175,55,0.25)] hover:shadow-[0_5px_22px_rgba(212,175,55,0.5)] active:scale-95 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      {isSpinning ? 'DRAWING FROM VAULT...' : 'SPIN FOR AUREUM COINS'}
-                    </button>
-                  </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="space-y-3 pt-2 text-xs">
@@ -449,7 +470,16 @@ export default function FloatingDock({
           }`}
           title="VIP Perks & Order Updates"
         >
-          <Sparkles className="h-4.5 w-4.5" />
+          <img 
+            src="/src/assets/images/new_notification_logo_1780913672166.png" 
+            alt="VIP Perks & Order Updates" 
+            className={`h-4.5 w-4.5 object-contain transition-all duration-300 ${
+              activeTab === 'notifications' 
+                ? 'brightness-0 contrast-125' 
+                : 'brightness-110 drop-shadow-[0_0_6px_rgba(212,175,55,0.73)]'
+            }`}
+            referrerPolicy="no-referrer"
+          />
           {orders.length > 0 && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 animate-ping" />}
         </button>
 

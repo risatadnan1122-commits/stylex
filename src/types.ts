@@ -20,10 +20,12 @@ export interface Product {
   stock: number;
   featured: boolean;
   image_url: string;
+  additional_images?: string[];
   created_at?: string;
   updated_at?: string;
   coupon_code?: string;
   coupon_discount?: number;
+  free_delivery?: boolean;
 }
 
 export interface Order {
@@ -97,6 +99,12 @@ export interface SiteSettings {
   gift_discount_type?: 'percentage' | 'fixed';
   gift_discount_value?: number;
   lottery_prizes?: { id: string; title: string; discount: number; minOrder: number; type: string }[];
+  lottery_enabled?: boolean;
+  popup_enabled?: boolean;
+  popup_title?: string;
+  popup_message?: string;
+  popup_coupon_code?: string;
+  popup_image_url?: string;
 }
 
 export interface Coupon {

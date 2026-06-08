@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Shield, RefreshCw, Key, Mail, Phone, UserCheck, ShieldAlert, Check, Sparkles, Lock, User } from 'lucide-react';
-import { AppUser } from '../types';
+import { X, Shield, RefreshCw, Key, Mail, Phone, UserCheck, ShieldAlert, Check, Sparkles, Lock, User, ClipboardList, RotateCcw } from 'lucide-react';
+import { AppUser, Order } from '../types';
 import { motion } from 'motion/react';
 
 interface AuthModalProps {
@@ -9,6 +9,8 @@ interface AuthModalProps {
   onClose: () => void;
   onLogin: (email: string, role: 'admin' | 'customer', fullname: string, phone: string, isSignup?: boolean) => void;
   onLogout: () => void;
+  orders?: Order[];
+  onAddOrderToCart?: (order: Order) => void;
 }
 
 export default function AuthModal({
@@ -16,7 +18,9 @@ export default function AuthModal({
   isOpen,
   onClose,
   onLogin,
-  onLogout
+  onLogout,
+  orders = [],
+  onAddOrderToCart
 }: AuthModalProps) {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
@@ -25,6 +29,7 @@ export default function AuthModal({
   const [phone, setPhone] = useState('');
   
   const [notice, setNotice] = useState('');
+  const [reorderFeedback, setReorderFeedback] = useState('');
 
   if (!isOpen) return null;
 
@@ -76,7 +81,7 @@ export default function AuthModal({
           initial={{ opacity: 0, scale: 0.93, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", duration: 0.55, bounce: 0.2 }}
-          className="relative w-full max-w-md bg-black border-2 border-[#D4AF37]/75 rounded-xl p-6 sm:p-8 shadow-[0_15px_35px_rgba(0,0,0,0.95),0_0_15px_rgba(212,175,55,0.12)] overflow-hidden"
+          className="relative w-full max-w-md bg-black border-2 border-[#D4AF37]/75 rounded-xl p-5 sm:p-7 shadow-[0_15px_35px_rgba(0,0,0,0.95),0_0_15px_rgba(212,175,55,0.12)] overflow-hidden max-h-[88vh] overflow-y-auto no-scrollbar"
         >
           {/* Animated decorative sparks */}
           <div className="absolute -top-12 -left-12 w-32 h-32 bg-[#D4AF37]/10 rounded-full blur-3xl pointer-events-none" />
@@ -110,53 +115,171 @@ export default function AuthModal({
 
           {/* LOGGED IN VIEW STATE */}
           {user ? (
-            <div className="space-y-6">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="relative group">
-                  <div className="absolute -inset-1.5 bg-[#D4AF37] rounded-full opacity-75 blur animate-pulse" />
+            <div className="space-y-5">
+              <div className="flex items-center space-x-4 bg-[#0a0a0a] p-3 border border-[#D4AF37]/20 rounded-xl">
+                <div className="relative group shrink-0">
+                  <div className="absolute -inset-1 bg-[#D4AF37] rounded-full opacity-60 blur-sm animate-pulse" />
                   <img
                     src={user.avatar_url || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop"}
                     alt={user.full_name}
-                    className="relative h-20 w-20 rounded-full border-2 border-[#D4AF37] object-cover p-0.5"
+                    className="relative h-12 w-12 rounded-full border border-[#D4AF37] object-cover p-0.5"
                   />
                 </div>
-                <div>
-                  <h5 className="font-serif text-lg text-white font-medium uppercase tracking-wider">{user.full_name}</h5>
-                  <span className="text-[9px] uppercase font-mono tracking-[0.25em] text-black bg-[#D4AF37] px-4 py-1.5 rounded font-black mt-2 inline-block shadow-[0_0_15px_rgba(212,175,55,0.4)]">
-                    {user.role} CLUB MEMBER
+                <div className="text-left truncate">
+                  <h5 className="font-serif text-sm text-white font-medium uppercase tracking-wider truncate">{user.full_name}</h5>
+                  <span className="text-[7.5px] uppercase font-mono tracking-[0.25em] text-black bg-[#D4AF37] px-2.5 py-0.5 rounded font-black mt-1 inline-block shadow-[0_0_8px_rgba(212,175,55,0.3)]">
+                    {user.role} MEMBER
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-3 text-[11px] text-gray-300 border-t border-[#D4AF37]/15 font-mono">
+              <div className="space-y-2 pt-2 text-[10px] text-gray-300 border-t border-[#D4AF37]/15 font-mono">
                 <div className="flex justify-between items-center py-1 border-b border-white/[0.03]">
-                  <span className="text-gray-500 uppercase tracking-wider font-bold">EMAIL REGISTERED</span>
-                  <span>{user.email}</span>
+                  <span className="text-gray-500 uppercase tracking-widest font-bold">EMAIL</span>
+                  <span className="text-zinc-300">{user.email}</span>
                 </div>
                 <div className="flex justify-between items-center py-1 border-b border-white/[0.03]">
-                  <span className="text-gray-500 uppercase tracking-wider font-bold">PHONE REGISTERED</span>
-                  <span>{user.phone || 'None Specified'}</span>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-gray-500 uppercase tracking-wider font-bold">SECURITY KEYWAY</span>
-                  <span className="text-emerald-400 font-semibold uppercase flex items-center gap-1">
-                    <span className="inline-block w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
-                    JWT MATCH ENABLED
-                  </span>
+                  <span className="text-gray-500 uppercase tracking-widest font-bold">PHONE</span>
+                  <span className="text-zinc-300">{user.phone || 'None Specified'}</span>
                 </div>
               </div>
 
-              {/* Warning label */}
-              <div className="bg-[#0c0c0c] p-4 text-center border border-[#D4AF37]/15 rounded flex items-start space-x-3 shadow-inner">
-                <Shield className="h-4.5 w-4.5 text-[#D4AF37] shrink-0 mt-0.5 animate-pulse" />
-                <p className="text-[10px] text-gray-400 text-left leading-relaxed">Your secure private key sessions are vaulted on-device. Advanced AES-256 luxury standard encryption guards your selections.</p>
+              {/* Order History Cabinet (Acoustic Archival Ledger) */}
+              {(() => {
+                const userOrders = orders?.filter(o => {
+                  if (!user) return false;
+                  const matchesUserId = user.id && o.user_id === user.id;
+                  const matchesEmail = user.email && o.customer_name?.toLowerCase() === user.email.split('@')[0]?.toLowerCase();
+                  const matchesName = user.full_name && o.customer_name?.toLowerCase() === user.full_name?.toLowerCase();
+                  const matchesPhone = user.phone && o.customer_phone === user.phone;
+                  return matchesUserId || matchesEmail || matchesName || matchesPhone;
+                }) || [];
+
+                return (
+                  <div className="border-t border-[#D4AF37]/25 pt-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-1.5">
+                        <ClipboardList className="h-4 w-4 text-[#D4AF37] animate-pulse" />
+                        <span className="text-[10px] font-mono font-black text-[#D4AF37] uppercase tracking-[0.2em]">
+                          ✦ PAST ACQUISITIONS
+                        </span>
+                      </div>
+                      <span className="text-[8px] font-mono px-2 py-0.5 rounded-full bg-[#111111] border border-zinc-800 text-zinc-400">
+                        {userOrders.length} {userOrders.length === 1 ? 'Order' : 'Orders'}
+                      </span>
+                    </div>
+
+                    {reorderFeedback && (
+                      <div className="p-2 bg-emerald-950/50 border border-emerald-500/35 text-emerald-300 text-[8.5px] text-center font-mono uppercase tracking-widest rounded animate-fade-in">
+                        {reorderFeedback}
+                      </div>
+                    )}
+
+                    <div className="max-h-[220px] overflow-y-auto pr-1 space-y-2.5 no-scrollbar border-b border-zinc-900 pb-2">
+                      {userOrders.length === 0 ? (
+                        <div className="border border-dashed border-[#D4AF37]/10 rounded-lg p-5 text-center bg-[#070707]">
+                          <span className="text-[8.5px] font-mono text-zinc-600 block uppercase tracking-wider leading-relaxed">
+                            No past transactions. Elevate registration status to track purchases.
+                          </span>
+                        </div>
+                      ) : (
+                        userOrders.map((ord) => (
+                          <div 
+                            key={ord.id} 
+                            className="border border-[#D4AF37]/15 rounded-lg bg-[#070707] p-3 space-y-2 hover:border-[#D4AF37]/40 transition-all duration-300 shadow-[inset_0_1px_15px_rgba(0,0,0,0.8)]"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-[9.5px] font-mono font-black text-white tracking-widest uppercase">
+                                    {ord.order_number || `#${ord.id.slice(0, 8).toUpperCase()}`}
+                                  </span>
+                                  <span className={`text-[7px] font-mono px-1.5 py-0.5 rounded-sm uppercase tracking-widest font-black ${
+                                    ord.status === 'Delivered' ? 'bg-emerald-950/70 text-emerald-400 border border-emerald-500/15' :
+                                    ord.status === 'Cancelled' ? 'bg-red-950/70 text-red-400 border border-red-500/15' :
+                                    'bg-zinc-900 text-zinc-400 border border-[#D4AF37]/15'
+                                  }`}>
+                                    {ord.status}
+                                  </span>
+                                </div>
+                                <span className="text-[7.5px] font-mono text-zinc-500 block mt-0.5">
+                                  {new Date(ord.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </span>
+                              </div>
+                              
+                              <div className="text-right">
+                                <span className="text-[10px] font-mono font-black text-[#D4AF37]">
+                                  ${ord.total.toFixed(2)}
+                                </span>
+                                <span className="text-[7px] font-mono text-zinc-500 block">
+                                  {ord.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0} items
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Collapsed order items display logic */}
+                            {ord.order_items && ord.order_items.length > 0 && (
+                              <div className="border-t border-zinc-800/50 pt-2 flex flex-col space-y-1">
+                                {ord.order_items.map((iDetail, idx) => (
+                                  <div key={idx} className="flex justify-between items-center text-[8.5px] text-zinc-400">
+                                    <div className="flex items-center space-x-1.5 truncate">
+                                      {iDetail.product_image && (
+                                        <img 
+                                          src={iDetail.product_image} 
+                                          alt={iDetail.product_name} 
+                                          className="h-4 w-4 rounded-sm object-cover border border-zinc-800" 
+                                          referrerPolicy="no-referrer"
+                                        />
+                                      )}
+                                      <span className="truncate">{iDetail.product_name || 'Archival Product'}</span>
+                                    </div>
+                                    <span className="font-mono text-zinc-500 shrink-0">
+                                      x{iDetail.quantity}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Reorder Button */}
+                            {onAddOrderToCart && (
+                              <div className="border-t border-zinc-900/60 pt-1.5 flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    onAddOrderToCart(ord);
+                                    setReorderFeedback(`REORDER SUCCESSFUL: Items merged into active bag!`);
+                                    setTimeout(() => setReorderFeedback(''), 4000);
+                                  }}
+                                  className="flex items-center space-x-1 text-[7.5px] font-bold font-mono tracking-widest text-[#D4AF37] hover:text-white uppercase transition-colors shrink-0 bg-[#D4AF37]/5 hover:bg-[#D4AF37]/15 border border-[#D4AF37]/20 hover:border-[#D4AF37]/60 px-2.5 py-1 rounded cursor-pointer"
+                                  title="Duplicate items from this selection to cart"
+                                >
+                                  <RotateCcw className="h-2.5 w-2.5" />
+                                  <span>Reorder</span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Private security shield label */}
+              <div className="bg-[#050505] p-3 text-center border border-[#D4AF37]/15 rounded-lg flex items-start space-x-2.5 shadow-inner">
+                <Shield className="h-3.5 w-3.5 text-[#D4AF37] shrink-0 mt-0.5 animate-pulse" />
+                <p className="text-[8.5px] text-gray-500 text-left leading-relaxed">
+                  Your secure private key sessions are vaulted on-device. Advanced luxury standard encryption guards your selections.
+                </p>
               </div>
 
               <motion.button
-                whileHover={{ scale: 1.02, backgroundColor: "rgba(239, 68, 68, 0.25)" }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.01, backgroundColor: "rgba(239, 68, 68, 0.15)" }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => { onLogout(); onClose(); }}
-                className="w-full py-3.5 bg-red-950/20 border-2 border-red-500/25 text-red-300 hover:border-red-500 hover:text-white rounded font-bold text-[10px] tracking-[0.3em] uppercase transition-all duration-300 cursor-pointer"
+                className="w-full py-2.5 bg-red-950/10 border border-red-500/20 text-red-300 hover:border-red-500 hover:text-white rounded font-bold text-[9px] tracking-[0.25em] uppercase transition-all duration-300 cursor-pointer"
               >
                 LOGOUT SECURE SESSION
               </motion.button>
