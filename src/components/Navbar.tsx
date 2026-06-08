@@ -32,6 +32,8 @@ export default function Navbar({
 }: NavbarProps) {
   const [searchVal, setSearchVal] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [bellHovered, setBellHovered] = useState(false);
+  const [bellHoveredMobile, setBellHoveredMobile] = useState(false);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchVal(e.target.value);
@@ -144,23 +146,25 @@ export default function Navbar({
               className="hidden md:flex relative w-48 lg:w-56 items-center text-left group/search focus:outline-none hover:scale-[1.015] active:scale-[0.985] transition-all duration-300"
             >
               {/* Elegant magical gold pulse ring under search button */}
-              <div className="absolute -inset-[1.5px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded-full blur-[4px] opacity-20 group-hover/search:opacity-100 group-hover/search:blur-[8px] transition-all duration-500 animate-pulse" />
+              <div className="absolute -inset-[1.5px] bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] rounded-full blur-[4px] opacity-40 group-hover/search:opacity-100 group-hover/search:blur-[12px] group-hover/search:scale-105 duration-500 animate-pulse shadow-[0_0_20px_rgba(212,175,55,0.45)]" />
               <div className="absolute -inset-[0.5px] bg-gradient-to-r from-[#D4AF37]/50 via-[#ffdf6d]/70 to-[#D4AF37]/50 rounded-full opacity-60 group-hover/search:opacity-100 transition-opacity" />
               
-              <div className="w-full relative bg-black hover:bg-zinc-950 text-gray-400 hover:text-white pl-4 pr-10 py-2.5 rounded-full border border-[#D4AF37]/35 text-[9.5px] tracking-[0.18em] transition-all font-mono uppercase flex items-center justify-between cursor-pointer overflow-hidden">
+              <div className="w-full relative bg-black hover:bg-zinc-950 text-gray-300 hover:text-white pl-4 pr-10 py-2.5 rounded-full border border-[#D4AF37]/50 text-[9.5px] tracking-[0.18em] transition-all font-mono uppercase flex items-center justify-between cursor-pointer overflow-hidden shadow-[0_0_12px_rgba(212,175,55,0.25)] hover:shadow-[0_0_20px_rgba(212,175,55,0.55)] group-hover/search:border-[#ffdf6d]">
                 {/* Premium sliding shimmer highlight */}
                 <span className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#ffdf6d]/30 to-transparent opacity-0 group-hover/search:opacity-100 transition-opacity" />
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/search:animate-[shimmer_2s_infinite] pointer-events-none" />
                 
                 <span className="group-hover/search:translate-x-1.5 transition-transform duration-300 font-extrabold text-[9px]">SEARCH ATELIER...</span>
-                <Search className="h-3.5 w-3.5 text-[#D4AF37] group-hover/search:scale-120 group-hover/search:rotate-12 transition-all duration-300 drop-shadow-[0_0_4px_rgba(212,175,55,0.4)]" />
+                <Search className="h-3.5 w-3.5 text-[#D4AF37] group-hover/search:scale-120 group-hover/search:rotate-12 transition-all duration-300 drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]" />
               </div>
             </button>
  
             {/* Gilded VIP Notification Bell */}
             <button 
               onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' }))}
-              className="hidden md:flex relative border border-[#D4AF37]/35 hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:scale-105 active:scale-95 duration-300 rounded bg-black/60 hover:bg-black transition-all shrink-0 items-center justify-center h-10 w-10 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/bell"
+              onMouseEnter={() => setBellHovered(true)}
+              onMouseLeave={() => setBellHovered(false)}
+              className="hidden md:flex relative border border-[#D4AF37]/35 hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:scale-105 active:scale-95 duration-300 rounded bg-black/60 hover:bg-black transition-all shrink-0 items-center justify-center h-14 w-14 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/bell"
               title="System Notifications"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/15 to-transparent opacity-0 group-hover/bell:opacity-100 transition-opacity" />
@@ -171,9 +175,9 @@ export default function Navbar({
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_8px_rgba(239,68,68,0.95)] border border-red-400/35"></span>
               </span>
               <img 
-                src="/src/assets/images/new_notification_logo_1780913672166.png" 
+                src={bellHovered ? "/src/assets/images/smart_bell_logo_1780915554092.png" : "/src/assets/images/smart_bell_normal_1780915868471.png"} 
                 alt="System Notifications" 
-                className="h-6 w-6 object-contain rounded p-0.5 filter brightness-110 drop-shadow-[0_0_8px_rgba(212,175,55,0.7)] group-hover/bell:scale-115 group-hover/bell:rotate-12 transition-all duration-300" 
+                className="h-11 w-11 object-contain rounded-full border border-[#D4AF37]/20 p-0.5 filter brightness-110 drop-shadow-[0_0_8px_rgba(212,175,55,0.7)] group-hover/bell:scale-115 group-hover/bell:rotate-12 transition-all duration-300" 
                 referrerPolicy="no-referrer"
               />
             </button>
@@ -253,18 +257,24 @@ export default function Navbar({
       <div className="lg:hidden px-4 pb-4 select-none flex items-center space-x-2">
         <button 
           onClick={onOpenSearch} 
-          className="relative flex-1 text-left focus:outline-none"
+          className="relative flex-1 text-left focus:outline-none group/mobilesearch"
         >
-          <div className="w-full bg-[#0b0b0b] text-gray-500 pl-4 pr-10 py-2.5 border border-[#D4AF37]/35 rounded text-xs font-mono tracking-widest flex items-center justify-between cursor-pointer">
-            <span>SEARCH THE ATELIER...</span>
-            <Search className="h-4 w-4 text-[#D4AF37]" />
+          {/* Pulsing luxurious glow backing underlay */}
+          <div className="absolute -inset-[1px] bg-gradient-to-r from-[#D4AF37] to-[#ffdf6d] rounded opacity-40 blur-[4px] group-hover/mobilesearch:opacity-90 group-hover/mobilesearch:blur-[6px] transition-all duration-300 animate-pulse" />
+          <div className="w-full relative bg-black text-gray-300 pl-4 pr-10 py-2.5 border border-[#D4AF37]/50 rounded text-xs font-mono tracking-widest flex items-center justify-between cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_25px_rgba(212,175,55,0.65)] hover:border-[#ffdf6d] transition-all">
+            <span className="text-gray-400 group-hover/mobilesearch:text-white duration-300">SEARCH THE ATELIER...</span>
+            <Search className="h-4 w-4 text-[#D4AF37] group-hover/mobilesearch:scale-115 transition-transform" />
           </div>
         </button>
         
         {/* Mobile Notification Bell */}
         <button 
           onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' }))}
-          className="relative p-2.5 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0 flex items-center justify-center active:scale-90 transition-all duration-300"
+          onMouseEnter={() => setBellHoveredMobile(true)}
+          onMouseLeave={() => setBellHoveredMobile(false)}
+          onTouchStart={() => setBellHoveredMobile(true)}
+          onTouchEnd={() => setBellHoveredMobile(false)}
+          className="relative h-12 w-12 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0 flex items-center justify-center active:scale-90 transition-all duration-300"
           title="System Notifications"
         >
           <span className="absolute top-1.5 right-1.5 flex h-1.5 w-1.5 z-10">
@@ -272,9 +282,9 @@ export default function Navbar({
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
           </span>
           <img 
-            src="/src/assets/images/new_notification_logo_1780913672166.png" 
+            src={bellHoveredMobile ? "/src/assets/images/smart_bell_logo_1780915554092.png" : "/src/assets/images/smart_bell_normal_1780915868471.png"} 
             alt="System Notifications" 
-            className="h-5 w-5 object-contain rounded p-0.5 filter brightness-125 drop-shadow-[0_0_10px_rgba(212,175,55,0.85)] animate-pulse" 
+            className="h-10 w-10 object-contain rounded-full border border-[#D4AF37]/20 p-0.5 filter brightness-125 drop-shadow-[0_0_10px_rgba(212,175,55,0.85)] animate-pulse" 
             referrerPolicy="no-referrer"
           />
         </button>

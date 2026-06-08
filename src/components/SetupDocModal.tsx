@@ -159,7 +159,7 @@ alter publication supabase_realtime add table public.chats;
           </div>
           <button 
             onClick={onClose}
-            className="p-1 px-2.5 bg-black/45 border border-gold-border/30 rounded text-gold-accent hover:border-gold-accent hover:text-white transition-colors"
+            className="p-1 px-2.5 bg-black/45 border border-[#D4AF37]/50 rounded text-[#D4AF37] hover:border-[#D4AF37] hover:text-white shadow-[0_0_8px_rgba(212,175,55,0.25)] hover:shadow-[0_0_18px_rgba(212,175,55,0.7)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
           >
             <X className="h-5 w-5" />
           </button>
@@ -226,7 +226,7 @@ alter publication supabase_realtime add table public.chats;
         <div className="px-6 py-4 border-t border-gold-border/30 bg-black/40 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-semibold text-xs tracking-wider uppercase rounded transition-all cursor-pointer shadow"
+            className="px-6 py-2 bg-[#D4AF37] hover:bg-[#ffdf6d] text-black font-semibold text-xs tracking-wider uppercase rounded cursor-pointer shadow-[0_0_15px_rgba(212,175,55,0.35)] hover:shadow-[0_0_25px_rgba(212,175,55,0.55)] hover:scale-[1.02] active:scale-98 transition-all duration-300"
           >
             Acknowledge & Proceed
           </button>

@@ -107,7 +107,7 @@ export default function AuthModal({
               whileHover={{ scale: 1.1, rotate: 90 }}
               whileTap={{ scale: 0.9 }}
               onClick={onClose}
-              className="p-1 px-2 border border-[#D4AF37]/25 text-[#D4AF37] hover:border-white hover:text-white rounded transition-colors duration-300 cursor-pointer"
+              className="p-1 px-2 border border-[#D4AF37]/50 text-[#D4AF37] hover:border-white hover:text-white rounded cursor-pointer shadow-[0_0_8px_rgba(212,175,55,0.25)] hover:shadow-[0_0_18px_rgba(212,175,55,0.7)] transition-all duration-300"
             >
               <X className="h-3.5 w-3.5" />
             </motion.button>

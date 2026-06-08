@@ -119,7 +119,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   banners: [
     "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1800&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop",
-    "/src/assets/images/new_notification_logo_1780913672166.png"
+    "/src/assets/images/smart_bell_logo_1780915554092.png"
   ],
   lottery_coin_reward: 500,
   campaign_coin_reward: 1000,
@@ -183,14 +183,18 @@ export const getSimulatedDB = () => {
   
   // Replace old path with the new ultra-premium gilded notification logo
   if (settings.banners) {
-    settings.banners = settings.banners.map(b => b === '/src/assets/images/notification_logo_1780910611360.png' ? '/src/assets/images/new_notification_logo_1780913672166.png' : b);
+    settings.banners = settings.banners.map(b => 
+      (b === '/src/assets/images/notification_logo_1780910611360.png' || b === '/src/assets/images/new_notification_logo_1780913672166.png' || b === 'https://play-lh.googleusercontent.com/ydZ0xsBJwnpLZzRWHwUVso53AYSxoASOEhMpwnwfKK5dMt8jvO7v5siTBlGFe_UPp0OF' || b === '/src/assets/images/luxury_bell_active_1780914607223.png' || b === '/src/assets/images/premium_luxury_bell_logo_1780915390640.png') 
+        ? '/src/assets/images/smart_bell_logo_1780915554092.png' 
+        : b
+    );
   }
 
-  if (!settings.banners || settings.banners.length < 3 || !settings.banners.includes('/src/assets/images/new_notification_logo_1780913672166.png')) {
+  if (!settings.banners || settings.banners.length < 3 || !settings.banners.includes('/src/assets/images/smart_bell_logo_1780915554092.png')) {
     settings.banners = [
       "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1800&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop",
-      "/src/assets/images/new_notification_logo_1780913672166.png"
+      "/src/assets/images/smart_bell_logo_1780915554092.png"
     ];
     setStored('stylex_settings', settings);
   }

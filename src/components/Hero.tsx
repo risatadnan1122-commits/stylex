@@ -21,7 +21,7 @@ export default function Hero({
   const slideList = banners && banners.length > 0 ? banners : [
     "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1800&auto=format&fit=crop",
     "https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=1800&auto=format&fit=crop",
-    "/src/assets/images/new_notification_logo_1780913672166.png"
+    "/src/assets/images/smart_bell_logo_1780915554092.png"
   ];
 
   useEffect(() => {

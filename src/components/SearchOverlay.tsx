@@ -117,7 +117,7 @@ export default function SearchOverlay({
         </div>
         <button 
           onClick={onClose}
-          className="group flex items-center space-x-2.5 bg-zinc-900/80 border border-[#D4AF37]/25 hover:border-[#D4AF37] px-4 py-2 rounded-full text-[10px] font-mono tracking-widest text-white uppercase transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+          className="group flex items-center space-x-2.5 bg-zinc-900/85 border border-[#D4AF37]/50 hover:border-[#D4AF37] px-4 py-2 rounded-full text-[10px] font-mono tracking-widest text-white uppercase transition-all duration-300 shadow-[0_0_15px_rgba(212,175,55,0.35)] hover:shadow-[0_0_25px_rgba(212,175,55,0.85)]"
         >
           <span>CLOSE ATELIER</span>
           <X className="h-4 w-4 text-[#D4AF37] transform group-hover:rotate-90 transition-transform duration-300" />
@@ -143,10 +143,10 @@ export default function SearchOverlay({
         {/* EXTREMELY ANIMATED AND GLOWING SEARCH INPUT ELEMENT */}
         <div className="w-full max-w-3xl relative mb-10">
           {/* Neon outline border effect that expands on pulse or focus */}
-          <div className={`absolute -inset-[2px] rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#B8860B] opacity-50 blur-[8px] transition-all duration-700 pointer-events-none ${isTyping ? 'opacity-100 blur-[15px] scale-[1.01]' : 'opacity-40 blur-[6px]'}`} />
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] opacity-60 pointer-events-none" />
+          <div className={`absolute -inset-[3px] rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#B8860B] opacity-70 blur-[12px] transition-all duration-700 pointer-events-none ${isTyping ? 'opacity-100 blur-[20px] scale-[1.015]' : 'opacity-40 blur-[8px]'}`} />
+          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-[#D4AF37] via-[#ffdf6d] to-[#D4AF37] opacity-80 pointer-events-none" />
           
-          <div className="relative flex items-center bg-black/95 rounded-2xl border border-[#D4AF37] overflow-hidden p-1 shadow-[0_15px_50px_rgba(0,0,0,0.95)]">
+          <div className="relative flex items-center bg-black/95 rounded-2xl border border-[#D4AF37] overflow-hidden p-1 shadow-[0_0_45px_rgba(212,175,55,0.35)] hover:shadow-[0_0_55px_rgba(212,175,55,0.55)] focus-within:shadow-[0_0_65px_rgba(212,175,55,0.7)] hover:border-[#ffdf6d] focus-within:border-[#ffdf6d] transition-all duration-500">
             <span className="pl-6 pr-3 flex items-center pointer-events-none">
               <Search className={`h-6 w-6 text-[#D4AF37] transition-transform duration-500 ${isTyping ? 'scale-[1.2] rotate-12 text-[#ffdf6d]' : ''}`} />
             </span>
@@ -162,7 +162,7 @@ export default function SearchOverlay({
             {query && (
               <button 
                 onClick={() => setQuery('')}
-                className="p-3 mr-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full border border-[#D4AF37]/30 text-[#D4AF37] hover:text-white transition-all active:scale-95"
+                className="p-3 mr-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full border border-[#D4AF37]/50 text-[#D4AF37] hover:text-white transition-all active:scale-95 shadow-[0_0_12px_rgba(212,175,55,0.3)] hover:shadow-[0_0_20px_rgba(212,175,55,0.75)] hover:border-[#D4AF37]"
               >
                 <X className="h-4 w-4" />
               </button>

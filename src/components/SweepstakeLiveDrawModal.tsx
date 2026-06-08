@@ -173,7 +173,7 @@ export default function SweepstakeLiveDrawModal({
           <button 
             type="button"
             onClick={onClose}
-            className="p-1.5 hover:bg-white/5 border border-white/10 hover:border-[#D4AF37] text-gray-400 hover:text-[#D4AF37] rounded-xl transition-all"
+            className="p-1.5 hover:bg-white/5 border border-white/10 hover:border-[#D4AF37] text-gray-400 hover:text-[#D4AF37] rounded-xl shadow-[0_0_8px_rgba(212,175,55,0.15)] hover:shadow-[0_0_18px_rgba(212,175,55,0.65)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>

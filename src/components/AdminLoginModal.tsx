@@ -52,7 +52,7 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
           <button 
             type="button"
             onClick={onClose}
-            className="p-1 px-2 border border-[#D4AF37]/20 text-gray-400 hover:text-white hover:border-[#D4AF37] rounded transition-all cursor-pointer"
+            className="p-1 px-2 border border-[#D4AF37]/35 text-gray-400 hover:text-white hover:border-[#D4AF37] rounded cursor-pointer shadow-[0_0_8px_rgba(212,175,55,0.2)] hover:shadow-[0_0_18px_rgba(212,175,55,0.65)] hover:scale-105 active:scale-95 transition-all duration-300"
           >
             <X className="h-3.5 w-3.5" />
           </button>

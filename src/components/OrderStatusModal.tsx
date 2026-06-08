@@ -141,7 +141,7 @@ export default function OrderStatusModal({ isOpen, onClose, orders, onAddOrderTo
           </div>
           <button
             onClick={onClose}
-            className="p-1 px-2 border border-[#D4AF37]/25 text-[#D4AF37] hover:border-white hover:text-white rounded transition-colors cursor-pointer select-none"
+            className="p-1 px-2 border border-[#D4AF37]/45 text-[#D4AF37] hover:border-white hover:text-white rounded cursor-pointer select-none shadow-[0_0_8px_rgba(212,175,55,0.25)] hover:shadow-[0_0_18px_rgba(212,175,55,0.7)] hover:scale-105 active:scale-95 transition-all duration-300"
           >
             <X className="h-4 w-4" />
           </button>

@@ -190,7 +190,7 @@ export default function AdminDashboard({
           </div>
           <button
             onClick={onClose}
-            className="p-1 px-3 border border-gold-border/20 text-gold-accent hover:border-gold-accent hover:text-white rounded transition-colors"
+            className="p-1 px-3 border border-[#D4AF37]/50 text-gold-accent hover:border-[#D4AF37] hover:text-white rounded shadow-[0_0_8px_rgba(212,175,55,0.25)] hover:shadow-[0_0_18px_rgba(212,175,55,0.7)] hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer"
           >
             Exit Console
           </button>
@@ -543,7 +543,7 @@ export default function AdminDashboard({
                             setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
                             setShowProductForm(false);
                           }}
-                          className="px-4 py-2 border border-gray-700 hover:border-white text-gray-300 text-[10.5px] font-mono hover:scale-[1.02] active:scale-95 tracking-widest uppercase rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1"
+                          className="px-4 py-2 border border-gray-700 hover:border-[#D4AF37] text-gray-300 hover:text-white text-[10.5px] font-mono hover:scale-[1.02] active:scale-95 tracking-widest uppercase rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 shadow-[0_0_8px_rgba(212,175,55,0.05)] hover:shadow-[0_0_18px_rgba(212,175,55,0.5)]"
                         >
                           <X className="h-3.5 w-3.5" />
                           <span>Cancel</span>

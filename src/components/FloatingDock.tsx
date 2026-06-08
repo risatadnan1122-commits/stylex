@@ -463,20 +463,23 @@ export default function FloatingDock({
         {/* TAB 3: SPARKLES ACTIVITIES */}
         <button
           onClick={() => setActiveTab(activeTab === 'notifications' ? null : 'notifications')}
-          className={`p-2.5 xs:p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
+          className={`p-2 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
             activeTab === 'notifications'
-              ? 'bg-[#D4AF37] text-black border-transparent shadow-md'
+              ? 'bg-[#D4AF37] text-black border-transparent shadow-md font-bold'
               : 'text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37]'
           }`}
           title="VIP Perks & Order Updates"
         >
           <img 
-            src="/src/assets/images/new_notification_logo_1780913672166.png" 
+            src={activeTab === 'notifications'
+              ? "/src/assets/images/smart_bell_logo_1780915554092.png"
+              : "/src/assets/images/smart_bell_normal_1780915868471.png"
+            } 
             alt="VIP Perks & Order Updates" 
-            className={`h-4.5 w-4.5 object-contain transition-all duration-300 ${
+            className={`h-9 w-9 object-contain transition-all duration-300 rounded-full ${
               activeTab === 'notifications' 
-                ? 'brightness-0 contrast-125' 
-                : 'brightness-110 drop-shadow-[0_0_6px_rgba(212,175,55,0.73)]'
+                ? 'brightness-125 contrast-110 scale-105 drop-shadow-[0_0_12px_rgba(212,175,55,0.95)]' 
+                : 'brightness-110 hover:scale-105 drop-shadow-[0_0_8px_rgba(212,175,55,0.733)]'
             }`}
             referrerPolicy="no-referrer"
           />

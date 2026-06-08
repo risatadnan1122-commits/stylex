@@ -73,7 +73,7 @@ export default function GiftModal({
           {/* Close handle */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors p-1 bg-black/40 border border-zinc-800 rounded-full"
+            className="absolute top-4 right-4 text-gray-400 hover:text-[#D4AF37] hover:border-[#D4AF37] p-1 bg-black/80 border border-zinc-700 rounded-full shadow-[0_0_8px_rgba(212,175,55,0.15)] hover:shadow-[0_0_18px_rgba(212,175,55,0.655)] hover:scale-105 active:scale-95 transition-all duration-300 pointer-events-auto"
           >
             <X className="h-4 w-4" />
           </button>
@@ -211,7 +211,7 @@ export default function GiftModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full text-gray-500 hover:text-gray-300 font-mono text-[10px] tracking-widest uppercase transition-colors"
+                  className="w-full text-gray-400 hover:text-white font-mono text-[10px] tracking-widest uppercase border border-zinc-800 hover:border-red-500/40 hover:bg-red-950/20 py-2.5 rounded-lg active:scale-95 transition-all duration-300 shadow-[0_0_5px_rgba(0,0,0,0.5)] hover:shadow-[0_0_15px_rgba(239,68,68,0.35)]"
                 >
                   DEFER FOR LATER
                 </button>
