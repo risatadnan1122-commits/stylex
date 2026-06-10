@@ -164,22 +164,17 @@ export default function Navbar({
               onClick={() => window.dispatchEvent(new CustomEvent('open-dock-tab', { detail: 'notifications' }))}
               onMouseEnter={() => setBellHovered(true)}
               onMouseLeave={() => setBellHovered(false)}
-              className="hidden md:flex relative border border-[#D4AF37]/35 hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:scale-105 active:scale-95 duration-300 rounded bg-black/60 hover:bg-black transition-all shrink-0 items-center justify-center h-14 w-14 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/bell"
+              className="hidden md:flex relative border border-[#D4AF37]/35 hover:border-[#D4AF37] hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:scale-105 active:scale-95 duration-300 rounded bg-black/60 hover:bg-black transition-all shrink-0 items-center justify-center h-10 w-10 cursor-pointer shadow-[0_4px_15px_rgba(0,0,0,0.6)] overflow-hidden group/bell"
               title="System Notifications"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/15 to-transparent opacity-0 group-hover/bell:opacity-100 transition-opacity" />
               {/* Pulsing notification point badge - Premium breathing radial halo */}
-              <span className="absolute top-2 right-2 flex h-2.5 w-2.5 z-10">
+              <span className="absolute top-1 right-1 flex h-2 w-2 z-10">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-80"></span>
                 <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-55 scale-125"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_8px_rgba(239,68,68,0.95)] border border-red-400/35"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-gradient-to-r from-red-600 to-red-500 shadow-[0_0_8px_rgba(239,68,68,0.95)] border border-red-400/35"></span>
               </span>
-              <img 
-                src={bellHovered ? "/src/assets/images/smart_bell_logo_1780915554092.png" : "/src/assets/images/smart_bell_normal_1780915868471.png"} 
-                alt="System Notifications" 
-                className="h-11 w-11 object-contain rounded-full border border-[#D4AF37]/20 p-0.5 filter brightness-110 drop-shadow-[0_0_8px_rgba(212,175,55,0.7)] group-hover/bell:scale-115 group-hover/bell:rotate-12 transition-all duration-300" 
-                referrerPolicy="no-referrer"
-              />
+              <Bell className="h-4.5 w-4.5 text-[#D4AF37] group-hover/bell:scale-115 group-hover/bell:rotate-12 transition-all duration-300 drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]" />
             </button>
 
             {/* VIP Present indicator 🎁 */}
@@ -274,19 +269,14 @@ export default function Navbar({
           onMouseLeave={() => setBellHoveredMobile(false)}
           onTouchStart={() => setBellHoveredMobile(true)}
           onTouchEnd={() => setBellHoveredMobile(false)}
-          className="relative h-12 w-12 border border-[#D4AF37]/25 text-[#D4AF37] rounded bg-[#0E0E0E] shrink-0 flex items-center justify-center active:scale-90 transition-all duration-300"
+          className="relative h-10 w-10 border border-[#D4AF37]/35 hover:border-[#D4AF37] text-[#D4AF37] rounded bg-black shrink-0 flex items-center justify-center active:scale-90 transition-all duration-300"
           title="System Notifications"
         >
-          <span className="absolute top-1.5 right-1.5 flex h-1.5 w-1.5 z-10">
+          <span className="absolute top-1 right-1 flex h-1.5 w-1.5 z-10">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
           </span>
-          <img 
-            src={bellHoveredMobile ? "/src/assets/images/smart_bell_logo_1780915554092.png" : "/src/assets/images/smart_bell_normal_1780915868471.png"} 
-            alt="System Notifications" 
-            className="h-10 w-10 object-contain rounded-full border border-[#D4AF37]/20 p-0.5 filter brightness-125 drop-shadow-[0_0_10px_rgba(212,175,55,0.85)] animate-pulse" 
-            referrerPolicy="no-referrer"
-          />
+          <Bell className="h-4.5 w-4.5 text-[#D4AF37] drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]" />
         </button>
 
         {/* VIP Present */}

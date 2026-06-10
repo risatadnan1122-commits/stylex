@@ -12,6 +12,7 @@ import {
 } from './types';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import ShaderHero from './components/ui/animated-shader-hero';
 import SearchOverlay from './components/SearchOverlay';
 import ProductCard from './components/ProductCard';
 import CartModal from './components/CartModal';
@@ -24,7 +25,7 @@ import AdminLoginModal from './components/AdminLoginModal';
 import OrderStatusModal from './components/OrderStatusModal';
 import GiftModal from './components/GiftModal';
 import AnnouncementPopup from './components/AnnouncementPopup';
-import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, ShoppingCart, Eye, X, MessageSquare, Clock, Globe } from 'lucide-react';
+import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, ShoppingCart, Eye, X, MessageSquare, Clock, Globe, Share2, CheckCheck, Instagram, Twitter, Music } from 'lucide-react';
 
 export default function App() {
   const db = getSimulatedDB();
@@ -92,7 +93,78 @@ export default function App() {
       setQuickViewActiveImage(null);
     }
   }, [quickViewProduct]);
+
   const [isOrderStatusOpen, setIsOrderStatusOpen] = useState(false);
+  const [isSharedCopied, setIsSharedCopied] = useState(false);
+  const [heroMode, setHeroMode] = useState<'cinematic' | 'shader'>('cinematic');
+
+  // Handle URL deep-linking for individual products
+  useEffect(() => {
+    const handleUrlDeepLink = () => {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get('product') || params.get('p');
+      const hash = window.location.hash;
+      const hashProductId = hash && hash.startsWith('#product-') ? hash.substring(9) : null;
+      
+      const targetId = productId || hashProductId;
+      if (targetId && products.length > 0) {
+        const matchingProduct = products.find(p => p.id === targetId || String(p.id) === String(targetId));
+        if (matchingProduct) {
+          setQuickViewProduct(matchingProduct);
+        }
+      }
+    };
+
+    if (products.length > 0) {
+      handleUrlDeepLink();
+    }
+
+    window.addEventListener('popstate', handleUrlDeepLink);
+    window.addEventListener('hashchange', handleUrlDeepLink);
+    return () => {
+      window.removeEventListener('popstate', handleUrlDeepLink);
+      window.removeEventListener('hashchange', handleUrlDeepLink);
+    };
+  }, [products]);
+
+  // Sync state to URL params to enable back button / sharing of open details
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (quickViewProduct) {
+      params.set('product', String(quickViewProduct.id));
+      const newUrl = `${window.location.pathname}?${params.toString()}${window.location.hash}`;
+      window.history.replaceState({ ...window.history.state }, '', newUrl);
+    } else {
+      const oldProduct = params.get('product');
+      if (oldProduct) {
+        params.delete('product');
+        let newUrl = window.location.pathname;
+        const queryStr = params.toString();
+        if (queryStr) {
+          newUrl += `?${queryStr}`;
+        }
+        newUrl += window.location.hash;
+        window.history.replaceState({ ...window.history.state }, '', newUrl);
+      }
+    }
+  }, [quickViewProduct]);
+
+  const handleShareProduct = () => {
+    if (!quickViewProduct) return;
+    const url = `${window.location.origin}${window.location.pathname}?product=${quickViewProduct.id}`;
+    const shareText = `💎 STYLE X | Aureum Luxury Atelier\n\n⚜️ ${quickViewProduct.name.toUpperCase()}\n🏷️ Category: ${quickViewProduct.category}\n💰 Price: ৳${quickViewProduct.price.toLocaleString()} BDT\n✨ Description: ${quickViewProduct.description}\n\n🔗 Discover at: ${url}`;
+    
+    try {
+      navigator.clipboard.writeText(shareText).then(() => {
+        setIsSharedCopied(true);
+        setTimeout(() => setIsSharedCopied(false), 2200);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
   const [isGiftModalOpen, setIsGiftModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [giftCouponCode, setGiftCouponCode] = useState('');
@@ -634,8 +706,8 @@ export default function App() {
       />
 
       {/* Absolute Premium Atmospheric Mesh Backplane */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.06),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(212,175,55,0.03),transparent_40%)] pointer-events-none z-0" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(212,175,55,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(212,175,55,0.015)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.06),transparent_45%),radial-gradient(circle_at_bottom_left,rgba(212,175,55,0.03),transparent_40%)] pointer-events-none z-0" />
+      <div className="fixed inset-0 bg-[linear-gradient(rgba(212,175,55,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(212,175,55,0.015)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none z-0" />
       
       {/* Subtle Side Rails from the Sleek Interface theme */}
       <div className="fixed top-1/2 left-4 -translate-y-1/2 hidden xl:flex flex-col gap-12 opacity-35 text-[9px] tracking-[0.5em] origin-left -rotate-90 pointer-events-none select-none font-mono uppercase z-15 text-[#CFCFCF]">
@@ -703,16 +775,69 @@ export default function App() {
         onOpenSearch={() => setIsSearchOpen(true)}
       />
 
-      {/* 3. CINEMATIC HERO PRESENTATION STAGE */}
-      <Hero
-        siteName={settings.site_name}
-        banners={settings.banners}
-        logoTextTitle={settings.logo_text_title}
-        logoTextSubtitle={settings.logo_text_subtitle}
-        onExplore={() => {
-          document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-      />
+      {/* 3. CINEMATIC HERO PRESENTATION STAGE WITH INTEGRATED DYNAMIC SHADER SWITCHER */}
+      {heroMode === 'cinematic' ? (
+        <div className="relative group/cinemathero">
+          <Hero
+            siteName={settings.site_name}
+            banners={settings.banners}
+            logoTextTitle={settings.logo_text_title}
+            logoTextSubtitle={settings.logo_text_subtitle}
+            onExplore={() => {
+              document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          />
+          {/* Quick interactive shader switcher badge inside the Hero viewport */}
+          <div className="absolute top-24 right-6 sm:right-12 z-20 animate-fade-in-down">
+            <button
+              onClick={() => setHeroMode('shader')}
+              className="px-4 py-2.5 bg-black/85 hover:bg-black border border-[#D4AF37] hover:border-[#ffdf6d] text-[#D4AF37] hover:text-[#ffdf6d] font-mono text-[9px] tracking-[0.25em] rounded transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_4px_20px_rgba(212,175,55,0.4)] flex items-center gap-1.5 cursor-pointer uppercase font-bold"
+            >
+              <Sparkles className="h-3 w-3 text-[#D4AF37] animate-pulse" />
+              <span>Interactive Shader Mode ✦</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="relative group/shaderhero w-full overflow-hidden self-stretch select-none" style={{ height: '95vh' }}>
+          <ShaderHero
+            trustBadge={{
+              text: "AUREUM EXPERIENCE • REAL-TIME WEBGL SHADER",
+              icons: ["✨", "🎨", "🚀"]
+            }}
+            headline={{
+              line1: settings.logo_text_title || "STYLE X",
+              line2: "IMMERSE ATELIER"
+            }}
+            subtitle="A meticulous curation of minimalist form. Glide your pointer to ripple dynamic atmospheric golden clouds."
+            buttons={{
+              primary: {
+                text: "DISCOVER SHOP",
+                onClick: () => {
+                  document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              },
+              secondary: {
+                text: "CINEMATIC CAROUSEL",
+                onClick: () => {
+                  setHeroMode('cinematic');
+                }
+              }
+            }}
+            className="w-full h-full"
+          />
+          
+          {/* Mode switcher back badge inside shader viewport */}
+          <div className="absolute top-24 right-6 sm:right-12 z-20 animate-fade-in-down">
+            <button
+              onClick={() => setHeroMode('cinematic')}
+              className="px-4 py-2.5 bg-black/85 hover:bg-black border border-gray-600 hover:border-[#D4AF37] text-gray-300 hover:text-[#D4AF37] font-mono text-[9px] tracking-[0.25em] rounded transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_4px_15px_rgba(0,0,0,0.8)] flex items-center gap-1.5 cursor-pointer uppercase font-bold"
+            >
+              <span>⚜️ Cinematic Carousel</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Showcase Stage Grid */}
       <main id="shop-stage" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-20">
@@ -1028,7 +1153,26 @@ export default function App() {
                     </span>
                   </div>
                 </div>
-                <h4 className="serif-title text-2xl font-light text-white uppercase tracking-wider mt-1.5">{quickViewProduct.name}</h4>
+                <div className="flex items-start justify-between gap-4 mt-2">
+                  <h4 className="serif-title text-2xl font-light text-white uppercase tracking-wider">{quickViewProduct.name}</h4>
+                  <button
+                    onClick={handleShareProduct}
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-[#D4AF37]/35 rounded bg-black/40 text-[9px] font-mono tracking-[0.1em] uppercase text-gray-300 hover:text-[#D4AF37] hover:border-[#D4AF37] hover:shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:scale-105 active:scale-95 duration-200 cursor-pointer shrink-0"
+                    title="Share product link"
+                  >
+                    {isSharedCopied ? (
+                      <>
+                        <CheckCheck className="h-3.5 w-3.5 text-[#D4AF37]" />
+                        <span className="text-[#D4AF37] font-bold">COPIED</span>
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="h-3.5 w-3.5 text-[#D4AF37]/80" />
+                        <span>SHARE</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 
                 {/* Brand-new luxurious price presentation block */}
                 <div className="flex items-center gap-3 mt-4 mb-3">
@@ -1153,6 +1297,37 @@ export default function App() {
             >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               24/7 WHATSAPP CONCIERGE
+            </a>
+          </div>
+
+          {/* Social Media Channels */}
+          <div className="flex justify-center items-center gap-4 py-2 select-none">
+            <a 
+              href="https://instagram.com/stylex.collective" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center h-10 w-10 rounded-full border border-[#D4AF37]/30 hover:border-[#D4AF37] bg-black/60 hover:bg-[#D4AF37]/10 transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:scale-105 active:scale-95"
+              title="Instagram"
+            >
+              <Instagram className="h-4.5 w-4.5 text-[#D4AF37] group-hover:scale-110 duration-200 transition-transform" />
+            </a>
+            <a 
+              href="https://x.com/stylex_collective" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center h-10 w-10 rounded-full border border-[#D4AF37]/30 hover:border-[#D4AF37] bg-black/60 hover:bg-[#D4AF37]/10 transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:scale-105 active:scale-95"
+              title="X (Twitter)"
+            >
+              <Twitter className="h-4.5 w-4.5 text-[#D4AF37] group-hover:scale-110 duration-200 transition-transform" />
+            </a>
+            <a 
+              href="https://tiktok.com/@stylex.collective" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="group flex items-center justify-center h-10 w-10 rounded-full border border-[#D4AF37]/30 hover:border-[#D4AF37] bg-black/60 hover:bg-[#D4AF37]/10 transition-all duration-300 hover:shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:scale-105 active:scale-95"
+              title="TikTok"
+            >
+              <Music className="h-4.5 w-4.5 text-[#D4AF37] group-hover:scale-110 duration-200 transition-transform" />
             </a>
           </div>
           <p className="text-[10px] font-mono tracking-widest text-[#B8860B] uppercase flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 select-none">

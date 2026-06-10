@@ -26,6 +26,7 @@ export interface Product {
   coupon_code?: string;
   coupon_discount?: number;
   free_delivery?: boolean;
+  bengali_details?: string;
 }
 
 export interface Order {

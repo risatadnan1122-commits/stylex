@@ -245,18 +245,19 @@ export default function ProductCard({
             
             {showBengaliDetails && (
               <div className="mt-2 text-[10px] text-zinc-300 font-sans leading-relaxed text-left space-y-2.5 animate-fade-in bg-[#050505] p-2.5 sm:p-3 rounded-lg border border-[#D4AF37]/20 shadow-[inset_0_1px_5px_rgba(0,0,0,0.8)]">
-                <div className="flex items-start space-x-2">
-                  <span className="text-[#D4AF37] text-[8px] mt-1 shrink-0">✦</span>
-                  <p className="text-zinc-300">এটি একটি ১০০% প্রিমিয়াম ও গ্যারান্টিযুক্ত কিউরেটেড প্রোডাক্ট।</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-[#D4AF37] text-[8px] mt-1 shrink-0">✦</span>
-                  <p className="text-zinc-300">কাস্টমাইজড প্রিমিয়াম লাক্সারি বক্স প্যাকেজিং এবং সেহটি বাবল র‍্যাপ কভারেজ।</p>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <span className="text-[#D4AF37] text-[8px] mt-1 shrink-0">✦</span>
-                  <p className="text-zinc-300">সরাসরি হোয়াটসঅ্যাপে কনফার্ম করে দ্রুত কুরিয়ারে ক্যাশ অন ডেলিভারি সুবিধা।</p>
-                </div>
+                {(product.bengali_details 
+                  ? product.bengali_details.split('\n').map(l => l.trim()).filter(Boolean)
+                  : [
+                      "এটি একটি ১০০% প্রিমিয়াম ও গ্যারান্টিযুক্ত কিউরেটেড প্রোডাক্ট।",
+                      "কাস্টমাইজড প্রিমিয়াম লাক্সারি বক্স প্যাকেজিং এবং সেহটি বাবল র‍্যাপ কভারেজ।",
+                      "সরাসরি হোয়াটসঅ্যাপে কনফার্ম করে দ্রুত কুরিয়ারে ক্যাশ অন ডেলিভারি সুবিধা।"
+                    ]
+                ).map((point, i) => (
+                  <div key={i} className="flex items-start space-x-2">
+                    <span className="text-[#D4AF37] text-[8px] mt-1 shrink-0">✦</span>
+                    <p className="text-zinc-300">{point}</p>
+                  </div>
+                ))}
               </div>
             )}
           </div>

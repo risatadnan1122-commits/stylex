@@ -54,7 +54,7 @@ export default function AdminDashboard({
   
   // States for CRUD forms
   const [productForm, setProductForm] = useState<Partial<Product>>({
-    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], free_delivery: false
+    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], free_delivery: false, bengali_details: ''
   });
   const [additionalImageInput, setAdditionalImageInput] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -112,7 +112,8 @@ export default function AdminDashboard({
       additional_images: productForm.additional_images || [],
       coupon_code: productForm.coupon_code || undefined,
       coupon_discount: productForm.coupon_discount ? Number(productForm.coupon_discount) : undefined,
-      free_delivery: !!productForm.free_delivery
+      free_delivery: !!productForm.free_delivery,
+      bengali_details: productForm.bengali_details || ''
     };
 
     if (editingProductId) {
@@ -123,7 +124,7 @@ export default function AdminDashboard({
     }
 
     // Reset Form
-    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], coupon_code: '', coupon_discount: undefined, free_delivery: false });
+    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], coupon_code: '', coupon_discount: undefined, free_delivery: false, bengali_details: '' });
     setAdditionalImageInput('');
     setShowProductForm(false);
   };
@@ -144,7 +145,8 @@ export default function AdminDashboard({
       additional_images: prod.additional_images || [],
       coupon_code: prod.coupon_code || '',
       coupon_discount: prod.coupon_discount,
-      free_delivery: !!prod.free_delivery
+      free_delivery: !!prod.free_delivery,
+      bengali_details: prod.bengali_details || ''
     });
     setAdditionalImageInput('');
     setShowProductForm(true);
@@ -863,7 +865,18 @@ export default function AdminDashboard({
                                 placeholder="Woven elegantly with authentic micro-knit textures..."
                                 value={productForm.description || ''}
                                 onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans resize-none text-left"
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans resize-none text-left mb-4"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">কেন কিনবেন? (Bengali Details - One statement per line)</label>
+                              <textarea
+                                rows={3}
+                                placeholder="এটি একটি ১০০% প্রিমিয়াম প্রোডাক্ট।&#10;কাস্টমাইজড প্রিমিয়াম প্যাকেজিং সুবিধা।"
+                                value={productForm.bengali_details || ''}
+                                onChange={(e) => setProductForm({ ...productForm, bengali_details: e.target.value })}
+                                className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans text-left"
                               />
                             </div>
                           </div>

@@ -463,27 +463,15 @@ export default function FloatingDock({
         {/* TAB 3: SPARKLES ACTIVITIES */}
         <button
           onClick={() => setActiveTab(activeTab === 'notifications' ? null : 'notifications')}
-          className={`p-2 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
+          className={`p-2.5 xs:p-3 rounded-full cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95 relative border ${
             activeTab === 'notifications'
-              ? 'bg-[#D4AF37] text-black border-transparent shadow-md font-bold'
-              : 'text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37]'
+              ? 'bg-[#D4AF37] text-black border-transparent shadow-[0_0_15px_rgba(212,175,55,0.45)]'
+              : 'text-[#D4AF37] bg-black border-[#D4AF37]/35 hover:border-[#D4AF37] hover:text-white'
           }`}
           title="VIP Perks & Order Updates"
         >
-          <img 
-            src={activeTab === 'notifications'
-              ? "/src/assets/images/smart_bell_logo_1780915554092.png"
-              : "/src/assets/images/smart_bell_normal_1780915868471.png"
-            } 
-            alt="VIP Perks & Order Updates" 
-            className={`h-9 w-9 object-contain transition-all duration-300 rounded-full ${
-              activeTab === 'notifications' 
-                ? 'brightness-125 contrast-110 scale-105 drop-shadow-[0_0_12px_rgba(212,175,55,0.95)]' 
-                : 'brightness-110 hover:scale-105 drop-shadow-[0_0_8px_rgba(212,175,55,0.733)]'
-            }`}
-            referrerPolicy="no-referrer"
-          />
-          {orders.length > 0 && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 animate-ping" />}
+          <Bell className={`h-4.5 w-4.5 ${activeTab === 'notifications' ? 'animate-bounce' : ''}`} />
+          {orders.length > 0 && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 animate-ping border border-black" />}
         </button>
 
         {/* TAB 4: CONCIERGE LIVE CHAT */}
