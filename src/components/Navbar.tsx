@@ -44,7 +44,11 @@ export default function Navbar({
     setSearchVal('');
     onSearch('');
     onSelectCategory('All');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if ((window as any).lenis) {
+      (window as any).lenis.scrollTo(0, { duration: 1.2 });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const categories = ['All', 'MEN'];
@@ -108,7 +112,13 @@ export default function Navbar({
           {/* CENTER COL: Elite Navigation Links (Centered, spacious, premium hierarchy) */}
           <div className="hidden lg:flex items-center space-x-12 justify-center flex-1 max-w-xl mx-8 font-mono">
             <button 
-              onClick={() => document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' })} 
+              onClick={() => {
+                if ((window as any).lenis) {
+                  (window as any).lenis.scrollTo('#shop-stage', { duration: 1.2 });
+                } else {
+                  document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' });
+                }
+              }} 
               className="relative text-[10.5px] tracking-[0.3em] text-gray-300 hover:text-white uppercase font-bold transition-all duration-300 py-2.5 group cursor-pointer"
             >
               <span>DISCOVER SHOP</span>
@@ -318,7 +328,14 @@ export default function Navbar({
           <div className="space-y-3 relative z-10">
             {/* DISCOVER SHOP Row */}
             <button 
-              onClick={() => { document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }}
+              onClick={() => {
+                if ((window as any).lenis) {
+                  (window as any).lenis.scrollTo('#shop-stage', { duration: 1.2 });
+                } else {
+                  document.getElementById('shop-stage')?.scrollIntoView({ behavior: 'smooth' });
+                }
+                setMobileMenuOpen(false);
+              }}
               className="flex items-center justify-between w-full text-left bg-zinc-950/60 hover:bg-zinc-900 border border-[#D4AF37]/15 hover:border-[#D4AF37]/50 p-3.5 rounded-lg transition-all duration-300 group/item active:scale-98 shadow-[0_4px_15px_rgba(0,0,0,0.6)]"
             >
               <div className="flex items-center space-x-3">

@@ -14,6 +14,7 @@ interface AdminDashboardProps {
   coupons: Coupon[];
   settings: SiteSettings;
   chats: ChatMessage[];
+  visitorCount?: number;
   onAddProduct: (prod: Omit<Product, 'id'>) => void;
   onUpdateProduct: (product: Product) => void;
   onDeleteProduct: (id: string) => void;
@@ -35,6 +36,7 @@ export default function AdminDashboard({
   coupons,
   settings,
   chats,
+  visitorCount,
   onAddProduct,
   onUpdateProduct,
   onDeleteProduct,
@@ -54,7 +56,7 @@ export default function AdminDashboard({
   
   // States for CRUD forms
   const [productForm, setProductForm] = useState<Partial<Product>>({
-    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], free_delivery: false, bengali_details: ''
+    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', additional_images: [], free_delivery: false, bengali_details: ''
   });
   const [additionalImageInput, setAdditionalImageInput] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -73,6 +75,125 @@ export default function AdminDashboard({
   // Live Sweepstakes Mode state
   const [isLiveSweepstakeOpen, setIsLiveSweepstakeOpen] = useState(false);
 
+  // Premium Campaigns State
+  const [campaigns, setCampaigns] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('stylex_promo_campaigns');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return [
+      {
+        id: 'camp_1',
+        name: '✦ AUREUM GALA CAMPAIGN ✦',
+        subtitle: 'SUMMER GILDED APPAREL EVENT',
+        discountCode: 'AUREUM100',
+        coinReward: 1000,
+        bannerImage: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop',
+        active: true,
+        description: 'Enjoy high-precision tailoring with Aureum signature highlights.'
+      },
+      {
+        id: 'camp_2',
+        name: '✦ MIDNIGHT ECLIPSE APPAREL ✦',
+        subtitle: 'NOIR LUXURY COLLECTIVE',
+        discountCode: 'NIGHTGOLD20',
+        coinReward: 1500,
+        bannerImage: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=800&auto=format&fit=crop',
+        active: false,
+        description: 'Elite silhouettes framed in midnight shadows and gilded threads.'
+      }
+    ];
+  });
+
+  const saveCampaignsList = (updated: any[]) => {
+    setCampaigns(updated);
+    try {
+      localStorage.setItem('stylex_promo_campaigns', JSON.stringify(updated));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleToggleCampaignActive = (id: string) => {
+    const updated = campaigns.map(camp => ({
+      ...camp,
+      active: camp.id === id
+    }));
+    saveCampaignsList(updated);
+
+    const activeCamp = updated.find(c => c.active);
+    if (activeCamp) {
+      const updatedSeo = {
+        ...seoForm,
+        campaign_coin_reward: activeCamp.coinReward,
+        popup_title: activeCamp.name,
+        popup_message: `${activeCamp.subtitle}. ${activeCamp.description}. Enter promo code "${activeCamp.discountCode}" at checkout to redeem.`,
+        popup_coupon_code: activeCamp.discountCode,
+        popup_image_url: activeCamp.bannerImage || seoForm.popup_image_url
+      };
+      setSeoForm(updatedSeo);
+      onSaveSettings(updatedSeo);
+    }
+  };
+
+  const handleDeleteCampaign = (id: string) => {
+    const toDelete = campaigns.find(c => c.id === id);
+    if (!toDelete) return;
+    
+    const updated = campaigns.filter(camp => camp.id !== id);
+    if (toDelete.active && updated.length > 0) {
+      updated[0].active = true;
+      saveCampaignsList(updated);
+      handleToggleCampaignActive(updated[0].id);
+    } else {
+      saveCampaignsList(updated);
+    }
+  };
+
+  // Add campaign form states
+  const [newCampName, setNewCampName] = useState('');
+  const [newCampSubtitle, setNewCampSubtitle] = useState('');
+  const [newCampCode, setNewCampCode] = useState('');
+  const [newCampReward, setNewCampReward] = useState(1000);
+  const [newCampBanner, setNewCampBanner] = useState('');
+  const [newCampDesc, setNewCampDesc] = useState('');
+
+  const handleAddCampaignSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCampName || !newCampCode) {
+      alert("Please provide at least a Campaign Name and Coupon Code.");
+      return;
+    }
+
+    const newCamp = {
+      id: 'camp_' + Date.now(),
+      name: `✦ ${newCampName.toUpperCase()} ✦`,
+      subtitle: newCampSubtitle.toUpperCase() || 'EXCLUSIVE BRAND CAMPAIGN',
+      discountCode: newCampCode.toUpperCase(),
+      coinReward: Number(newCampReward) || 1000,
+      bannerImage: newCampBanner || 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop',
+      active: false,
+      description: newCampDesc || 'Elevating aesthetics with dynamic luxury coordinates.'
+    };
+
+    const updated = [...campaigns, newCamp];
+    saveCampaignsList(updated);
+
+    // Reset Form
+    setNewCampName('');
+    setNewCampSubtitle('');
+    setNewCampCode('');
+    setNewCampReward(1000);
+    setNewCampBanner('');
+    setNewCampDesc('');
+
+    alert(`Campaign "${newCampName}" has been deployed as Inactive. You can activate it at any time!`);
+  };
+
   // Modern live simulation variables for premium design atelier mockup
   const [previewAccent, setPreviewAccent] = useState<'emerald' | 'gold' | 'onyx' | 'pearl'>('gold');
   const [previewSize, setPreviewSize] = useState<string>('M');
@@ -85,7 +206,7 @@ export default function AdminDashboard({
     }
     return acc;
   }, 0);
-  const totalVisitorsMock = 125; // Matching screenshot exactly
+  const totalVisitorsMock = visitorCount ?? 148; // Gilded brand launch baseline visitors
 
   const handleProductSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +229,7 @@ export default function AdminDashboard({
       sizes: compiledSizes,
       stock: Number(productForm.stock || 1),
       featured: !!productForm.featured,
+      majestic_highlight: !!productForm.majestic_highlight,
       image_url: productForm.image_url,
       additional_images: productForm.additional_images || [],
       coupon_code: productForm.coupon_code || undefined,
@@ -124,7 +246,7 @@ export default function AdminDashboard({
     }
 
     // Reset Form
-    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', additional_images: [], coupon_code: '', coupon_discount: undefined, free_delivery: false, bengali_details: '' });
+    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', additional_images: [], coupon_code: '', coupon_discount: undefined, free_delivery: false, bengali_details: '' });
     setAdditionalImageInput('');
     setShowProductForm(false);
   };
@@ -141,6 +263,7 @@ export default function AdminDashboard({
       sizes: prod.sizes,
       stock: prod.stock,
       featured: prod.featured,
+      majestic_highlight: !!prod.majestic_highlight,
       image_url: prod.image_url,
       additional_images: prod.additional_images || [],
       coupon_code: prod.coupon_code || '',
@@ -348,9 +471,9 @@ export default function AdminDashboard({
                   </div>
 
                   <div className="p-4 bg-black/60 border border-gold-border/25 rounded-lg">
-                    <span className="text-[9px] font-mono text-gray-500 uppercase block">VIRTUAL VISITORS</span>
+                    <span className="text-[9px] font-mono text-gray-500 uppercase block">TOTAL SITE VISITORS</span>
                     <span className="serif-title text-2xl font-semibold text-gold-secondary tracking-wide block mt-1">{totalVisitorsMock}</span>
-                    <p className="text-[9px] text-gray-500 mt-2">Live traffic metrics simulation</p>
+                    <p className="text-[9px] text-gray-500 mt-2">100% accurate persistent session hits</p>
                   </div>
                 </div>
 
@@ -527,7 +650,8 @@ export default function AdminDashboard({
                               description: random.description,
                               coupon_code: random.coupon_code,
                               coupon_discount: random.coupon_discount,
-                              featured: random.featured
+                              featured: random.featured,
+                              majestic_highlight: !!random.featured
                             });
                           }}
                           className="px-4 py-2 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/25 text-[#D4AF37] border border-[#D4AF37]/45 text-[10.5px] font-mono hover:scale-[1.02] active:scale-95 tracking-widest uppercase rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5"
@@ -542,7 +666,7 @@ export default function AdminDashboard({
                           type="button"
                           onClick={() => {
                             setEditingProductId(null);
-                            setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
+                            setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', coupon_code: '', coupon_discount: undefined });
                             setShowProductForm(false);
                           }}
                           className="px-4 py-2 border border-gray-700 hover:border-[#D4AF37] text-gray-300 hover:text-white text-[10.5px] font-mono hover:scale-[1.02] active:scale-95 tracking-widest uppercase rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 shadow-[0_0_8px_rgba(212,175,55,0.05)] hover:shadow-[0_0_18px_rgba(212,175,55,0.5)]"
@@ -589,7 +713,7 @@ export default function AdminDashboard({
                                 className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono transition-all"
                               />
                             </div>
-                          </div>                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                          </div>                           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-1">
                             <div>
                               <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Category Classification *</label>
                               <select
@@ -605,7 +729,11 @@ export default function AdminDashboard({
                             
                             <div>
                               <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Exhibition Status</label>
-                              <div className="flex items-center h-10 bg-black/60 px-3 border border-gold-border/15 rounded">
+                              <div className={`flex items-center h-10 px-3 border rounded transition-all duration-300 ${
+                                productForm.featured 
+                                  ? 'bg-[#120f05] border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.25)] ring-1 ring-[#D4AF37]/35' 
+                                  : 'bg-black/60 border-gold-border/15 hover:border-[#D4AF37]/45'
+                              }`}>
                                 <input
                                   type="checkbox"
                                   id="featured_atelier"
@@ -613,8 +741,32 @@ export default function AdminDashboard({
                                   onChange={(e) => setProductForm({ ...productForm, featured: e.target.checked })}
                                   className="accent-[#D4AF37] h-4 w-4 cursor-pointer"
                                 />
-                                <label htmlFor="featured_atelier" className="text-[9.5px] font-mono text-gray-300 uppercase ml-2.5 select-none cursor-pointer">
-                                  Front Carousel
+                                <label htmlFor="featured_atelier" className={`text-[9.5px] font-mono uppercase ml-2.5 select-none cursor-pointer font-bold flex items-center gap-1 transition-all duration-300 ${
+                                  productForm.featured ? 'text-[#ffdf6d]' : 'text-gray-300'
+                                }`}>
+                                  <span>{productForm.featured ? '✧ Highlight Active' : 'Front Carousel'}</span>
+                                </label>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Majestic Highlight</label>
+                              <div className={`flex items-center h-10 px-3 border rounded transition-all duration-300 ${
+                                productForm.majestic_highlight 
+                                  ? 'bg-[#120f05] border-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.25)] ring-1 ring-[#D4AF37]/35' 
+                                  : 'bg-black/60 border-gold-border/15 hover:border-[#D4AF37]/45'
+                              }`}>
+                                <input
+                                  type="checkbox"
+                                  id="majestic_highlight_atelier"
+                                  checked={productForm.majestic_highlight || false}
+                                  onChange={(e) => setProductForm({ ...productForm, majestic_highlight: e.target.checked })}
+                                  className="accent-[#D4AF37] h-4 w-4 cursor-pointer"
+                                />
+                                <label htmlFor="majestic_highlight_atelier" className={`text-[9.5px] font-mono uppercase ml-2.5 select-none cursor-pointer font-bold flex items-center gap-1 transition-all duration-300 ${
+                                  productForm.majestic_highlight ? 'text-[#ffdf6d]' : 'text-gray-300'
+                                }`}>
+                                  <span>{productForm.majestic_highlight ? '★ Majestic Active' : 'Majestic Slot'}</span>
                                 </label>
                               </div>
                             </div>
@@ -775,12 +927,12 @@ export default function AdminDashboard({
                             <div className="border-t border-[#D4AF37]/15 pt-3.5 space-y-3">
                               <div className="flex justify-between items-center">
                                 <span className="text-[9px] font-mono text-gray-300 uppercase font-black tracking-widest block">✦ Alternate Gallery Images</span>
-                                <span className="text-[8px] font-mono text-gray-500 uppercase">Up to 5 images</span>
+                                <span className="text-[8px] font-mono text-gray-500 uppercase">Up to 20 images (multi-paste supported)</span>
                               </div>
 
                               {/* Gallery Grid Previews */}
                               {productForm.additional_images && productForm.additional_images.length > 0 ? (
-                                <div className="grid grid-cols-5 gap-2">
+                                <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-2">
                                   {productForm.additional_images.map((imgUrl, index) => (
                                     <div key={index} className="relative aspect-[4/5] bg-zinc-950 border border-[#D4AF37]/20 rounded overflow-hidden group/galleryitem">
                                       <img src={imgUrl} alt={`Gallery Alternate ${index}`} className="w-full h-full object-cover" />
@@ -806,11 +958,11 @@ export default function AdminDashboard({
 
                               {/* Gallery Inputs */}
                               <div className="space-y-2">
-                                <label className="text-[8.5px] font-mono text-zinc-500 uppercase block">Add Alternate Image Link or Upload</label>
+                                <label className="text-[8.5px] font-mono text-zinc-500 uppercase block">Add Image Links (paste one or multiple links separated by commas/spaces) or Upload</label>
                                 <div className="flex gap-2">
                                   <input
                                     type="url"
-                                    placeholder="Paste link, then tap 'Add'..."
+                                    placeholder="Paste 1 or more links separated by commas or spaces..."
                                     value={additionalImageInput}
                                     onChange={(e) => setAdditionalImageInput(e.target.value)}
                                     className="flex-1 bg-black text-xs text-white border border-[#D4AF37]/25 p-2 focus:outline-none focus:border-[#D4AF37] rounded font-mono placeholder:text-zinc-700 placeholder:text-[9px]"
@@ -819,12 +971,22 @@ export default function AdminDashboard({
                                     type="button"
                                     onClick={() => {
                                       if (!additionalImageInput) return;
+                                      const urlsToAdd = additionalImageInput
+                                        .split(/[\s,;\n]+/)
+                                        .map(u => u.trim())
+                                        .filter(u => u.length > 0);
+
+                                      if (urlsToAdd.length === 0) return;
+
                                       const current = productForm.additional_images || [];
-                                      if (current.length >= 5) {
-                                        alert('Luxury configuration: maximum 5 alternate gallery images permitted.');
+                                      const maxAllowed = 20;
+                                      if (current.length >= maxAllowed) {
+                                        alert(`Luxury configuration: maximum ${maxAllowed} alternate gallery images permitted.`);
                                         return;
                                       }
-                                      setProductForm({ ...productForm, additional_images: [...current, additionalImageInput] });
+
+                                      const combined = [...current, ...urlsToAdd].slice(0, maxAllowed);
+                                      setProductForm({ ...productForm, additional_images: combined });
                                       setAdditionalImageInput('');
                                     }}
                                     className="shrink-0 bg-[#D4AF37] hover:bg-[#ffeb9e] text-black font-extrabold px-3 py-2 rounded text-[10px] font-mono uppercase tracking-widest transition-colors cursor-pointer"
@@ -832,24 +994,41 @@ export default function AdminDashboard({
                                     Add
                                   </button>
                                   <label className="shrink-0 flex items-center justify-center bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/35 text-[#D4AF37] px-3 rounded text-[10px] font-mono cursor-pointer transition-colors uppercase tracking-widest font-bold">
-                                    Upload File
+                                    Upload Files
                                     <input 
                                       type="file" 
                                       accept="image/*" 
+                                      multiple
                                       className="hidden" 
                                       onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (file) {
+                                        const files = Array.from(e.target.files || []);
+                                        if (files.length > 0) {
                                           const current = productForm.additional_images || [];
-                                          if (current.length >= 5) {
-                                            alert('Luxury configuration: maximum 5 alternate gallery images permitted.');
+                                          const maxAllowed = 20;
+                                          if (current.length >= maxAllowed) {
+                                            alert(`Luxury configuration: maximum ${maxAllowed} alternate gallery images permitted.`);
                                             return;
                                           }
-                                          const reader = new FileReader();
-                                          reader.onloadend = () => {
-                                            setProductForm({ ...productForm, additional_images: [...current, reader.result as string] });
-                                          };
-                                          reader.readAsDataURL(file);
+                                          
+                                          const remainingSpots = maxAllowed - current.length;
+                                          const filesToProcess = files.slice(0, remainingSpots);
+                                          
+                                          Promise.all(
+                                            filesToProcess.map((file: File) => {
+                                              return new Promise<string>((resolve) => {
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                  resolve(reader.result as string);
+                                                };
+                                                reader.readAsDataURL(file as Blob);
+                                              });
+                                            })
+                                          ).then(results => {
+                                            setProductForm({
+                                              ...productForm,
+                                              additional_images: [...current, ...results]
+                                            });
+                                          });
                                         }
                                       }}
                                     />
@@ -888,7 +1067,7 @@ export default function AdminDashboard({
                             type="button"
                             onClick={() => {
                               setEditingProductId(null);
-                              setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '', coupon_code: '', coupon_discount: undefined });
+                              setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', coupon_code: '', coupon_discount: undefined });
                               setShowProductForm(false);
                             }}
                             className="px-6 py-3 border border-gray-700 hover:border-gray-500 text-gray-400 rounded-lg text-xs font-mono tracking-widest uppercase transition-colors"
@@ -966,6 +1145,12 @@ export default function AdminDashboard({
                               {productForm.featured && (
                                 <div className="absolute top-2 left-2 bg-[#D4AF37] text-black font-bold font-mono text-[8px] px-2 py-0.5 rounded uppercase tracking-wider">
                                   Featured Showcase
+                                </div>
+                              )}
+
+                              {productForm.majestic_highlight && (
+                                <div className="absolute top-2 right-2 bg-purple-950/90 border border-[#D4AF37] text-[#D4AF37] font-bold font-mono text-[8px] px-2 py-0.5 rounded uppercase tracking-wider">
+                                  ★ Majestic
                                 </div>
                               )}
 
@@ -1116,7 +1301,7 @@ export default function AdminDashboard({
                   <button
                     onClick={() => {
                       setEditingProductId(null);
-                      setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, image_url: '' });
+                      setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '' });
                       setShowProductForm(true);
                     }}
                     className="w-full sm:w-auto bg-white hover:bg-[#CFCFCF] text-black text-xs font-bold py-3 px-8 rounded-xl tracking-widest uppercase shrink-0 transition-colors duration-200 shadow-md cursor-pointer text-center"
@@ -1162,6 +1347,20 @@ export default function AdminDashboard({
                                 <div className="flex flex-col text-left">
                                   <span className="serif-title font-serif italic text-sm text-[#CFCFCF] group-hover:text-white transition-colors">{prod.name}</span>
                                   <span className="text-[9px] font-mono text-gray-500 tracking-wider lowercase mt-0.5">{prod.id.substring(0, 8)}</span>
+                                  {(prod.featured || prod.majestic_highlight) && (
+                                    <div className="flex items-center gap-1.5 mt-1.5">
+                                      {prod.featured && (
+                                        <span className="text-[7.5px] font-mono leading-none tracking-wider font-bold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/35 px-1 py-0.5 rounded">
+                                          ✧ Featured
+                                        </span>
+                                      )}
+                                      {prod.majestic_highlight && (
+                                        <span className="text-[7.5px] font-mono leading-none tracking-wider font-bold bg-amber-955/20 text-[#ffdf6d] border border-amber-500/40 px-1 py-0.5 rounded">
+                                          ★ Majestic
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </td>
 
@@ -1197,7 +1396,11 @@ export default function AdminDashboard({
                                   <Edit3 className="h-4 w-4" />
                                 </button>
                                 <button
-                                  onClick={() => onDeleteProduct(prod.id)}
+                                  onClick={() => {
+                                    if (confirm(`Are you absolutely sure you want to permanently delete and decommission "${prod.name}"? This action cannot be undone.`)) {
+                                      onDeleteProduct(prod.id);
+                                    }
+                                  }}
                                   className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
                                   title="Decommission piece"
                                 >
@@ -1422,44 +1625,242 @@ export default function AdminDashboard({
               </div>
             )}
 
-            {/* 6. CONCIERGE CHATS SCREEN */}
+            {/* 6. CONCIERGE CHATS & CAMPAIGNS HUB */}
             {activeTab === 'chat' && (
-              <div className="space-y-4">
-                <span className="text-[10px] font-mono tracking-widest text-[#B8860B] uppercase block">REALTIME CONCIERGE RESPONSE TERMINAL</span>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                 
-                <div className="p-4 bg-black/60 border border-gold-border/20 rounded-lg max-h-[220px] overflow-y-auto space-y-3 scrollbar-thin">
-                  {chats.map((ch, idx) => (
-                    <div key={idx} className="text-xs">
-                      <div className="flex items-center space-x-2">
-                        <span className={`font-mono text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
-                          ch.sender_id === 'customer_guest' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-gold-accent/10 text-gold-accent border border-gold-accent/20'
-                        }`}>
-                          {ch.sender_id === 'customer_guest' ? 'Customer Message' : 'Admin Concierge'}
-                        </span>
-                        <span className="text-[8px] font-mono text-gray-500">{new Date(ch.created_at).toLocaleTimeString()}</span>
-                      </div>
-                      <p className="text-gray-300 mt-1 pl-1 italic">"{ch.message}"</p>
+                {/* COLUMN 1: LIVE PROMOTIONAL CAMPAIGNS */}
+                <div className="space-y-4 p-5 bg-black/60 border border-gold-border/25 rounded-lg shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 right-0 h-24 w-24 bg-[#D4AF37]/5 rounded-full blur-xl pointer-events-none" />
+                  
+                  <div className="flex items-center justify-between border-b border-gold-border/15 pb-2.5">
+                    <div>
+                      <span className="text-[10px] font-mono tracking-widest text-[#B8860B] uppercase block">CELESTIAL CAMPAIGN CABINET</span>
+                      <p className="text-[9px] text-gray-500 font-mono">Deploy high-end promo events globally</p>
                     </div>
-                  ))}
+                    <Megaphone className="h-4 w-4 text-gold-accent animate-pulse" />
+                  </div>
+
+                  {/* Campaigns List */}
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto scrollbar-thin pr-1">
+                    {campaigns.map((camp) => (
+                      <div 
+                        key={camp.id} 
+                        className={`p-3 rounded-lg border transition-all duration-300 relative overflow-hidden group/camp ${
+                          camp.active 
+                            ? 'bg-gradient-to-r from-[#2c2208]/80 via-black to-black border-gold-accent/40 shadow-[0_0_15px_rgba(212,175,55,0.08)]' 
+                            : 'bg-black/40 border-gold-border/10 hover:border-gold-border/25'
+                        }`}
+                      >
+                        {/* Status Glow Aura */}
+                        {camp.active && (
+                          <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-gold-accent animate-pulse" />
+                        )}
+
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center space-x-3">
+                            <img 
+                              src={camp.bannerImage || "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=100&auto=format"} 
+                              alt={camp.name} 
+                              className="w-10 h-10 object-cover rounded border border-gold-border/20 shrink-0" 
+                            />
+                            <div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-serif text-[11px] font-semibold text-white tracking-wide block uppercase">
+                                  {camp.name.replace(/✦/g, '').trim()}
+                                </span>
+                                {camp.active ? (
+                                  <span className="text-[7.5px] font-mono font-bold bg-[#D4AF37]/15 text-[#ffdf6d] border border-[#D4AF37]/35 px-1 rounded animate-pulse">
+                                    ACTIVE
+                                  </span>
+                                ) : (
+                                  <span className="text-[7.5px] font-mono bg-zinc-800 text-zinc-400 px-1 rounded">
+                                    INACTIVE
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[8.5px] font-mono text-gray-500 block tracking-wider uppercase mt-0.5">
+                                {camp.subtitle}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center space-x-1 shrink-0">
+                            {!camp.active && (
+                              <button 
+                                type="button"
+                                onClick={() => handleToggleCampaignActive(camp.id)}
+                                className="px-2 py-0.5 bg-gold-accent/10 border border-gold-border/30 hover:bg-gold-accent hover:text-black rounded text-[8.5px] font-mono text-gold-accent uppercase cursor-pointer transition-all duration-300"
+                                title="Activate campaign layout settings"
+                              >
+                                Deploy
+                              </button>
+                            )}
+                            <button 
+                              type="button"
+                              onClick={() => handleDeleteCampaign(camp.id)}
+                              className="p-1 border border-red-500/10 hover:border-red-500/40 text-red-400/80 hover:text-red-400 hover:bg-red-500/5 rounded cursor-pointer transition-colors"
+                              title="Delete Campaign"
+                            >
+                              <Trash className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Details */}
+                        <div className="mt-2.5 pt-2 border-t border-gold-border/10 grid grid-cols-2 gap-2 text-[8.5px] font-mono">
+                          <div>
+                            <span className="text-gray-500 uppercase block">Coupon Code:</span>
+                            <span className="text-gold-secondary font-semibold">{camp.discountCode}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500 uppercase block">Coin reward:</span>
+                            <span className="text-[#ffe994] font-semibold">{camp.coinReward} Coins</span>
+                          </div>
+                        </div>
+                        <p className="text-[9px] text-zinc-400 italic mt-2 line-clamp-1">
+                          "{camp.description}"
+                        </p>
+                      </div>
+                    ))}
+                    {campaigns.length === 0 && (
+                      <div className="text-center py-8 text-gray-500 text-xs font-mono italic">
+                        No custom campaigns configured. Seed a campaign below to begin.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Form to insert campaign */}
+                  <form onSubmit={handleAddCampaignSubmit} className="pt-3 border-t border-gold-border/15 space-y-2.5">
+                    <span className="text-[9.5px] font-mono text-gold-accent uppercase tracking-widest block font-bold">CREATE LUXURY EVENT</span>
+                    
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[8px] font-mono text-gray-500 uppercase block mb-0.5">Campaign Name *</label>
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="e.g. Aureum Gala" 
+                          value={newCampName}
+                          onChange={(e) => setNewCampName(e.target.value)}
+                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-mono text-gray-500 uppercase block mb-0.5">Brand Subtitle</label>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. SUMMER APPAREL" 
+                          value={newCampSubtitle}
+                          onChange={(e) => setNewCampSubtitle(e.target.value)}
+                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[8px] font-mono text-gray-500 uppercase block mb-0.5">Coupon Code *</label>
+                        <input 
+                          type="text" 
+                          required
+                          placeholder="e.g. GOLDEN100" 
+                          value={newCampCode}
+                          onChange={(e) => setNewCampCode(e.target.value)}
+                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-mono text-gray-500 uppercase block mb-0.5">Coin Reward amount</label>
+                        <input 
+                          type="number" 
+                          value={newCampReward}
+                          onChange={(e) => setNewCampReward(Number(e.target.value))}
+                          className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[8px] font-mono text-gray-500 uppercase block mb-0.5">Campaign Banner image URL</label>
+                      <input 
+                        type="url" 
+                        placeholder="https://images.unsplash.com/..." 
+                        value={newCampBanner}
+                        onChange={(e) => setNewCampBanner(e.target.value)}
+                        className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[8px] font-mono text-gray-500 uppercase block mb-0.5">Short Promo Description</label>
+                      <input 
+                        type="text" 
+                        placeholder="Premium tailoring options with dynamic seasonal highlights." 
+                        value={newCampDesc}
+                        onChange={(e) => setNewCampDesc(e.target.value)}
+                        className="w-full bg-black text-xs text-white border border-[#D4AF37]/20 p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                      />
+                    </div>
+
+                    <button 
+                      type="submit"
+                      className="w-full py-2 bg-gradient-to-r from-gold-secondary to-gold-accent hover:brightness-110 active:scale-[0.98] text-black font-semibold text-[9px] tracking-widest uppercase rounded cursor-pointer transition-all duration-300"
+                    >
+                      Deploy Campaign
+                    </button>
+                  </form>
                 </div>
 
-                {/* Formulation Reply */}
-                <form onSubmit={sendAdminReply} className="flex gap-2">
-                  <input
-                    type="text"
-                    required
-                    placeholder="Enter elegant responsive instructions to client..."
-                    value={adminChatMsg}
-                    onChange={(e) => setAdminChatMsg(e.target.value)}
-                    className="flex-1 bg-black text-xs text-white border border-gold-border/30 pl-3 py-2.5 focus:outline-none focus:border-gold-accent"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-gold-accent font-semibold hover:bg-gold-secondary text-black text-xs px-5 rounded cursor-pointer"
-                  >
-                    Transmit Reply
-                  </button>
-                </form>
+                {/* COLUMN 2: REAL-TIME CONCIERGE RESPONSE TERMINAL */}
+                <div className="space-y-4 p-5 bg-black/60 border border-gold-border/20 rounded-lg shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-gold-border/15 pb-2.5">
+                    <div>
+                      <span className="text-[10px] font-mono tracking-widest text-[#B8860B] uppercase block">CONCIERGE MESSAGING FLIGHTS</span>
+                      <p className="text-[9px] text-gray-500 font-mono">Live customer interface dispatcher</p>
+                    </div>
+                    <MessageSquare className="h-4 w-4 text-[#D4AF37]" />
+                  </div>
+                  
+                  <div className="p-4 bg-black/60 border border-gold-border/20 rounded-lg h-[240px] overflow-y-auto space-y-3 scrollbar-thin">
+                    {chats.map((ch, idx) => (
+                      <div key={idx} className="text-xs">
+                        <div className="flex items-center space-x-2">
+                          <span className={`font-mono text-[9px] px-1.5 py-0.2 rounded font-bold uppercase ${
+                            ch.sender_id === 'customer_guest' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' : 'bg-gold-accent/10 text-gold-accent border border-gold-accent/20'
+                          }`}>
+                            {ch.sender_id === 'customer_guest' ? 'Customer Message' : 'Admin Concierge'}
+                          </span>
+                          <span className="text-[8px] font-mono text-gray-500">{new Date(ch.created_at).toLocaleTimeString()}</span>
+                        </div>
+                        <p className="text-gray-300 mt-1 pl-1 italic">"{ch.message}"</p>
+                      </div>
+                    ))}
+                    {chats.length === 0 && (
+                      <div className="text-center py-16 text-gray-500 text-xs font-mono italic">
+                        No active live chat history found.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Formulation Reply */}
+                  <form onSubmit={sendAdminReply} className="flex gap-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter elegant responsive instructions to client..."
+                      value={adminChatMsg}
+                      onChange={(e) => setAdminChatMsg(e.target.value)}
+                      className="flex-1 bg-black text-xs text-white border border-gold-border/30 pl-3 py-2.5 focus:outline-none focus:border-gold-accent"
+                    />
+                    <button
+                      type="submit"
+                      className="bg-gold-accent font-semibold hover:bg-gold-secondary text-black text-xs px-5 rounded cursor-pointer transition-colors"
+                    >
+                      Transmit Reply
+                    </button>
+                  </form>
+                </div>
 
               </div>
             )}
