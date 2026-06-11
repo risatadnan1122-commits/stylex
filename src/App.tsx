@@ -39,6 +39,57 @@ export default function App() {
   const [chats, setChats] = useState<ChatMessage[]>(db.chats);
   const [currentUser, setCurrentUser] = useState<AppUser | null>(db.currentUser);
 
+  // Load unified database state from server-side database in background on startup
+  useEffect(() => {
+    let active = true;
+    fetch('/api/db')
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP status: ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (!active || !data) return;
+        
+        console.log("[Luxe Sync] Universal backend state fetched successfully!", data);
+
+        if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+          setProducts(data.products);
+          localStorage.setItem('stylex_products', JSON.stringify(data.products));
+        }
+        if (data.settings) {
+          setSettings(data.settings);
+          localStorage.setItem('stylex_settings', JSON.stringify(data.settings));
+        }
+        if (data.coupons && Array.isArray(data.coupons)) {
+          setCoupons(data.coupons);
+          localStorage.setItem('stylex_coupons', JSON.stringify(data.coupons));
+        }
+        if (data.reviews && Array.isArray(data.reviews)) {
+          setReviews(data.reviews);
+          localStorage.setItem('stylex_reviews', JSON.stringify(data.reviews));
+        }
+        if (data.chats && Array.isArray(data.chats)) {
+          setChats(data.chats);
+          localStorage.setItem('stylex_chats', JSON.stringify(data.chats));
+        }
+        if (data.orders && Array.isArray(data.orders)) {
+          setOrders(data.orders);
+          localStorage.setItem('stylex_orders', JSON.stringify(data.orders));
+        }
+        if (data.currentUser !== undefined) {
+          setCurrentUser(data.currentUser);
+          localStorage.setItem('stylex_current_user', JSON.stringify(data.currentUser));
+        }
+      })
+      .catch(err => {
+        console.warn("[Luxe Sync] Server offline or unreachable. Running in client storage fallback:", err);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   // Accurate session visitor counter (persisted in localStorage)
   const [visitorCount, setVisitorCount] = useState<number>(() => {
     try {

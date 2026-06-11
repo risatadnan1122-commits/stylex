@@ -169,6 +169,22 @@ const setStored = (key: string, val: any) => {
   localStorage.setItem(key, JSON.stringify(val));
 };
 
+const syncToServer = (key: string, value: any) => {
+  try {
+    fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value })
+    })
+    .then(r => r.json())
+    .catch(err => {
+      console.warn(`[Luxe Sync Fallback] Sync failure for key "${key}", using cache:`, err);
+    });
+  } catch (err) {
+    console.warn(`[Luxe Sync Error] Sync execution error for key "${key}":`, err);
+  }
+};
+
 // VIRTUAL MEMORY MANAGER
 export const getSimulatedDB = () => {
   let products = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
@@ -258,12 +274,12 @@ export const getSimulatedDB = () => {
     chats,
     orders,
     currentUser,
-    saveProducts: (p: Product[]) => setStored('stylex_products', p),
-    saveSettings: (s: SiteSettings) => setStored('stylex_settings', s),
-    saveCoupons: (c: Coupon[]) => setStored('stylex_coupons', c),
-    saveReviews: (r: Review[]) => setStored('stylex_reviews', r),
-    saveChats: (ch: ChatMessage[]) => setStored('stylex_chats', ch),
-    saveOrders: (o: Order[]) => setStored('stylex_orders', o),
-    saveCurrentUser: (user: AppUser | null) => setStored('stylex_current_user', user)
+    saveProducts: (p: Product[]) => { setStored('stylex_products', p); syncToServer('products', p); },
+    saveSettings: (s: SiteSettings) => { setStored('stylex_settings', s); syncToServer('settings', s); },
+    saveCoupons: (c: Coupon[]) => { setStored('stylex_coupons', c); syncToServer('coupons', c); },
+    saveReviews: (r: Review[]) => { setStored('stylex_reviews', r); syncToServer('reviews', r); },
+    saveChats: (ch: ChatMessage[]) => { setStored('stylex_chats', ch); syncToServer('chats', ch); },
+    saveOrders: (o: Order[]) => { setStored('stylex_orders', o); syncToServer('orders', o); },
+    saveCurrentUser: (user: AppUser | null) => { setStored('stylex_current_user', user); syncToServer('currentUser', user); }
   };
 };
