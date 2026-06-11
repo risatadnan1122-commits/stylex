@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Product, Order, ChatMessage, Review, SiteSettings, Coupon, AppUser } from './types';
+import { supabaseErrorHandler } from './supabaseErrorHandler';
 
 // Read dynamic environment variables safely
 const getEnvVar = (key: string): string => {
@@ -48,7 +49,7 @@ export const initializeDynamicSupabase = (url: string, key: string) => {
 };
 
 // HIGH-END LUXURY SEED DATA FOR SIMULATION MODE
-const DEFAULT_PRODUCTS: Product[] = [
+export const DEFAULT_PRODUCTS: Product[] = [
   {
     id: 'ebf743ba-7607-42c6-b333-f38bdf8872f2',
     name: 'Risat Adnan',
@@ -114,7 +115,7 @@ const DEFAULT_PRODUCTS: Product[] = [
   }
 ];
 
-const DEFAULT_SETTINGS: SiteSettings = {
+export const DEFAULT_SETTINGS: SiteSettings = {
   id: 'settings_main',
   site_name: 'STYLE X COLLECTIVE',
   whatsapp_number: '8801700000000',
@@ -152,17 +153,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
   popup_image_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=600&auto=format&fit=crop'
 };
 
-const DEFAULT_COUPONS: Coupon[] = [
+export const DEFAULT_COUPONS: Coupon[] = [
   { id: 'a3b2bfa9-6bf1-447a-afcf-bbf212361de4', code: 'AUREUM100', discount_type: 'fixed', discount_value: 100, min_order_amount: 500, active: true },
   { id: 'e1329bf8-fc2d-41a9-b7b5-2fa942be4b60', code: 'NIGHTGOLD20', discount_type: 'percentage', discount_value: 20, min_order_amount: 1000, active: true }
 ];
 
-const DEFAULT_REVIEWS: Review[] = [
+export const DEFAULT_REVIEWS: Review[] = [
   { id: '83e9bbfd-e854-46fd-abf6-86c57f58be6f', product_id: 'ebf743ba-7607-42c6-b333-f38bdf8872f2', customer_name: 'Edward Sterling', rating: 5, comment: 'Exquisite weight and stunning brushed gold. The precision craftsmanship is undeniable.', approved: true, created_at: '2026-05-12T10:00:00Z' },
   { id: '06fbe92e-360e-4861-ba1b-be6bfb3f2343', product_id: '67c51cb4-77bf-4632-95f7-6bf6f16361a9', customer_name: 'Genevieve V.', rating: 5, comment: 'Absolutely mesmerizing. The stitching is flawless and it coordinates beautifully with any high-end evening look.', approved: true, created_at: '2026-05-20T14:30:00Z' }
 ];
 
-const DEFAULT_CHATS: ChatMessage[] = [
+export const DEFAULT_CHATS: ChatMessage[] = [
   { id: 'cf6721da-190f-48e5-b1a3-2ca73a887ccd', sender_id: 'system', receiver_id: 'customer_guest', message: 'Welcome to STYLE X. Our personal concierge is at your absolute service.', seen: true, created_at: '2026-06-04T12:00:00Z' }
 ];
 
@@ -341,7 +342,7 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       currentUser: null
     };
   } catch (err) {
-    console.error('[Luxe Supabase Loader Error]', err);
+    supabaseErrorHandler(err, 'Database catalog loading');
     return null;
   }
 };
@@ -409,19 +410,8 @@ const syncToServer = async (key: string, value: any) => {
         // Save/Upsert active products
         const { error } = await realSupabase.from('products').upsert(payload);
         if (error) throw error;
-
-        // Difference pruning
-        const { data: dbItems } = await realSupabase.from('products').select('id');
-        if (dbItems) {
-          const dbIds = dbItems.map(row => row.id);
-          const activeIds = payload.map(p => p.id);
-          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
-          if (idsToDelete.length > 0) {
-            await realSupabase.from('products').delete().in('id', idsToDelete);
-          }
-        }
         
-        console.log('[Luxe Supabase Sync] Products list successfully written into Supabase.');
+        console.log('[Luxe Supabase Sync] Products list successfully written into Supabase (No destructive difference pruning).');
       } else if (key === 'settings' && value) {
         const s = value;
         const payload = {
@@ -469,18 +459,6 @@ const syncToServer = async (key: string, value: any) => {
         
         const { error } = await realSupabase.from('reviews').upsert(payload);
         if (error) throw error;
-
-        // Difference pruning
-        const { data: dbItems } = await realSupabase.from('reviews').select('id');
-        if (dbItems) {
-          const dbIds = dbItems.map(row => row.id);
-          const activeIds = payload.map(r => r.id);
-          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
-          if (idsToDelete.length > 0) {
-            await realSupabase.from('reviews').delete().in('id', idsToDelete);
-          }
-        }
-
         console.log('[Luxe Supabase Sync] Reviews list successfully written into Supabase.');
       } else if (key === 'chats' && Array.isArray(value)) {
         const payload = value.map(c => ({
@@ -494,18 +472,6 @@ const syncToServer = async (key: string, value: any) => {
         
         const { error } = await realSupabase.from('chats').upsert(payload);
         if (error) throw error;
-
-        // Difference pruning
-        const { data: dbItems } = await realSupabase.from('chats').select('id');
-        if (dbItems) {
-          const dbIds = dbItems.map(row => row.id);
-          const activeIds = payload.map(c => c.id);
-          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
-          if (idsToDelete.length > 0) {
-            await realSupabase.from('chats').delete().in('id', idsToDelete);
-          }
-        }
-
         console.log('[Luxe Supabase Sync] Chats list successfully written into Supabase.');
       } else if (key === 'orders' && Array.isArray(value)) {
         const payload = value.map(o => ({
@@ -544,17 +510,6 @@ const syncToServer = async (key: string, value: any) => {
           }
         }
 
-        // Difference pruning for orders
-        const { data: dbItems } = await realSupabase.from('orders').select('id');
-        if (dbItems) {
-          const dbIds = dbItems.map(row => row.id);
-          const activeIds = payload.map(o => o.id);
-          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
-          if (idsToDelete.length > 0) {
-            await realSupabase.from('orders').delete().in('id', idsToDelete);
-          }
-        }
-
         console.log('[Luxe Supabase Sync] Orders list successfully written into Supabase.');
       } else if (key === 'coupons' && Array.isArray(value)) {
         const payload = value.map(c => ({
@@ -568,25 +523,18 @@ const syncToServer = async (key: string, value: any) => {
         
         const { error } = await realSupabase.from('coupons').upsert(payload);
         if (error) throw error;
-
-        // Difference pruning
-        const { data: dbItems } = await realSupabase.from('coupons').select('id');
-        if (dbItems) {
-          const dbIds = dbItems.map(row => row.id);
-          const activeIds = payload.map(c => c.id);
-          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
-          if (idsToDelete.length > 0) {
-            await realSupabase.from('coupons').delete().in('id', idsToDelete);
-          }
-        }
-
         console.log('[Luxe Supabase Sync] Coupons list successfully written into Supabase.');
       }
     } catch (err) {
-      console.warn('[Luxe Supabase Sync Error]', err);
+      supabaseErrorHandler(err, `Synchronizing ${key} ledger`);
     }
   }
 };
+
+// Memory cache stores to completely replace localStorage for products, orders, and reviews
+export let memoryProducts: Product[] = [...DEFAULT_PRODUCTS];
+export let memoryReviews: Review[] = [...DEFAULT_REVIEWS];
+export let memoryOrders: Order[] = [];
 
 // VIRTUAL MEMORY MANAGER
 export const getSimulatedDB = () => {
@@ -619,23 +567,15 @@ export const getSimulatedDB = () => {
     });
   };
 
-  let loadedProducts = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
-  
-  // Transform all product IDs to clean UUIDs and de-duplicate by unique item ID
+  // Convert and format products directly from memory cache
   const productMap = new Map<string, Product>();
-  loadedProducts.forEach(p => {
+  memoryProducts.forEach(p => {
     if (p && p.id) {
       const cleanId = toUUID(p.id);
       productMap.set(cleanId, { ...p, id: cleanId });
     }
   });
   let products = Array.from(productMap.values());
-
-  // Force update back if all IDs were migrated or if duplicates were removed
-  const anyProductMigratedOrDuplicated = loadedProducts.some(p => !isUUID(p.id)) || (loadedProducts.length !== products.length);
-  if (anyProductMigratedOrDuplicated) {
-    setStored('stylex_products', products);
-  }
 
   const settings = getStored<SiteSettings>('stylex_settings', DEFAULT_SETTINGS);
   
@@ -708,18 +648,14 @@ export const getSimulatedDB = () => {
     setStored('stylex_coupons', coupons);
   }
 
-  const loadedReviews = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);
   const reviewMap = new Map<string, Review>();
-  loadedReviews.forEach(r => {
+  memoryReviews.forEach(r => {
     if (r && r.id) {
       const cleanId = toUUID(r.id);
       reviewMap.set(cleanId, { ...r, id: cleanId, product_id: toUUID(r.product_id) });
     }
   });
   const reviews = Array.from(reviewMap.values());
-  if (loadedReviews.some(r => !isUUID(r.id) || !isUUID(r.product_id)) || loadedReviews.length !== reviews.length) {
-    setStored('stylex_reviews', reviews);
-  }
 
   const loadedChats = getStored<ChatMessage[]>('stylex_chats', DEFAULT_CHATS);
   const chatMap = new Map<string, ChatMessage>();
@@ -734,9 +670,8 @@ export const getSimulatedDB = () => {
     setStored('stylex_chats', chats);
   }
 
-  const loadedOrders = getStored<Order[]>('stylex_orders', []);
   const orderMap = new Map<string, Order>();
-  loadedOrders.forEach(o => {
+  memoryOrders.forEach(o => {
     if (o && o.id) {
       const cleanId = toUUID(o.id);
       orderMap.set(cleanId, {
@@ -752,9 +687,6 @@ export const getSimulatedDB = () => {
     }
   });
   const orders = Array.from(orderMap.values());
-  if (loadedOrders.some(o => !isUUID(o.id) || (o.user_id && !isUUID(o.user_id)) || (o.order_items || []).some(item => !isUUID(item.id) || !isUUID(item.product_id))) || loadedOrders.length !== orders.length) {
-    setStored('stylex_orders', orders);
-  }
 
   const loadedCurrentUser = getStored<AppUser | null>('stylex_current_user', {
     id: 'f93d47ce-73ba-4ef3-b183-bcff217e9ccd',
@@ -780,12 +712,12 @@ export const getSimulatedDB = () => {
     chats,
     orders,
     currentUser,
-    saveProducts: (p: Product[]) => { setStored('stylex_products', p); syncToServer('products', p); },
+    saveProducts: (p: Product[]) => { memoryProducts = p; syncToServer('products', p); },
     saveSettings: (s: SiteSettings) => { setStored('stylex_settings', s); syncToServer('settings', s); },
     saveCoupons: (c: Coupon[]) => { setStored('stylex_coupons', c); syncToServer('coupons', c); },
-    saveReviews: (r: Review[]) => { setStored('stylex_reviews', r); syncToServer('reviews', r); },
+    saveReviews: (r: Review[]) => { memoryReviews = r; syncToServer('reviews', r); },
     saveChats: (ch: ChatMessage[]) => { setStored('stylex_chats', ch); syncToServer('chats', ch); },
-    saveOrders: (o: Order[]) => { setStored('stylex_orders', o); syncToServer('orders', o); },
+    saveOrders: (o: Order[]) => { memoryOrders = o; syncToServer('orders', o); },
     saveCurrentUser: (user: AppUser | null) => { setStored('stylex_current_user', user); syncToServer('currentUser', user); }
   };
 };

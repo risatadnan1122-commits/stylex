@@ -7,7 +7,12 @@ import {
   isRealSupabaseConfigured, 
   realSupabase,
   initializeDynamicSupabase,
-  loadAllDataFromSupabase
+  loadAllDataFromSupabase,
+  DEFAULT_PRODUCTS,
+  DEFAULT_SETTINGS,
+  DEFAULT_REVIEWS,
+  DEFAULT_COUPONS,
+  DEFAULT_CHATS
 } from './supabaseClient';
 import { 
   Product, Order, Review, Coupon, SiteSettings, ChatMessage, CartItem, AppUser 
@@ -27,6 +32,8 @@ import AdminLoginModal from './components/AdminLoginModal';
 import OrderStatusModal from './components/OrderStatusModal';
 import GiftModal from './components/GiftModal';
 import AnnouncementPopup from './components/AnnouncementPopup';
+import { supabaseErrorHandler } from './supabaseErrorHandler';
+import LuxeToastContainer from './components/LuxeToastContainer';
 import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, ShoppingCart, Eye, X, MessageSquare, Clock, Globe, Share2, CheckCheck, Instagram, Facebook, Music, ChevronUp, Crown } from 'lucide-react';
 
 const generateUUID = (): string => {
@@ -45,14 +52,14 @@ const generateUUID = (): string => {
 export default function App() {
   const db = getSimulatedDB();
 
-  // Primary State Channels
-  const [products, setProducts] = useState<Product[]>(db.products);
-  const [orders, setOrders] = useState<Order[]>(db.orders);
-  const [reviews, setReviews] = useState<Review[]>(db.reviews);
-  const [coupons, setCoupons] = useState<Coupon[]>(db.coupons);
-  const [settings, setSettings] = useState<SiteSettings>(db.settings);
-  const [chats, setChats] = useState<ChatMessage[]>(db.chats);
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(db.currentUser);
+  // Primary State Channels initialized with safe default configurations directly
+  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [reviews, setReviews] = useState<Review[]>(DEFAULT_REVIEWS);
+  const [coupons, setCoupons] = useState<Coupon[]>(DEFAULT_COUPONS);
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [chats, setChats] = useState<ChatMessage[]>(DEFAULT_CHATS);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
 
   // Load unified database state from server-side database in background on startup
   useEffect(() => {
@@ -101,7 +108,6 @@ export default function App() {
         if (loadedJson.products && loadedJson.products.length > 0) {
           console.log('[Supabase loaded products]', loadedJson.products);
           setProducts(loadedJson.products);
-          localStorage.setItem('stylex_products', JSON.stringify(loadedJson.products));
           hasLoadedAny = true;
         } else if (loadedJson.products && loadedJson.products.length === 0) {
           console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
@@ -110,7 +116,6 @@ export default function App() {
 
         if (loadedJson.settings) {
           setSettings(loadedJson.settings);
-          localStorage.setItem('stylex_settings', JSON.stringify(loadedJson.settings));
           hasLoadedAny = true;
         } else {
           console.log('[Luxe Supabase Seed] Seeding default settings to Supabase...');
@@ -119,7 +124,6 @@ export default function App() {
 
         if (loadedJson.reviews && loadedJson.reviews.length > 0) {
           setReviews(loadedJson.reviews);
-          localStorage.setItem('stylex_reviews', JSON.stringify(loadedJson.reviews));
           hasLoadedAny = true;
         } else if (loadedJson.reviews && loadedJson.reviews.length === 0) {
           await db.saveReviews(reviews);
@@ -127,7 +131,6 @@ export default function App() {
 
         if (loadedJson.chats && loadedJson.chats.length > 0) {
           setChats(loadedJson.chats);
-          localStorage.setItem('stylex_chats', JSON.stringify(loadedJson.chats));
           hasLoadedAny = true;
         } else if (loadedJson.chats && loadedJson.chats.length === 0) {
           await db.saveChats(chats);
@@ -135,13 +138,11 @@ export default function App() {
 
         if (loadedJson.orders && loadedJson.orders.length > 0) {
           setOrders(loadedJson.orders);
-          localStorage.setItem('stylex_orders', JSON.stringify(loadedJson.orders));
           hasLoadedAny = true;
         }
 
         if (loadedJson.coupons && loadedJson.coupons.length > 0) {
           setCoupons(loadedJson.coupons);
-          localStorage.setItem('stylex_coupons', JSON.stringify(loadedJson.coupons));
           hasLoadedAny = true;
         } else if (loadedJson.coupons && loadedJson.coupons.length === 0) {
           await db.saveCoupons(coupons);
@@ -149,7 +150,7 @@ export default function App() {
 
         return hasLoadedAny;
       } catch (e) {
-        console.error('[Luxe Supabase Load Core Fail]', e);
+        supabaseErrorHandler(e, 'Secure catalog database handshake');
         return false;
       }
     };
@@ -180,33 +181,22 @@ export default function App() {
       console.log("[Luxe Cloud Fallback] Pulled state from public cloud:", results);
       if (results.products && Array.isArray(results.products) && results.products.length > 0) {
         const incoming = results.products.filter((p: any) => p && p.id);
-        // Direct overwrite prevents local storage staleness / incognito issues!
         setProducts(incoming);
-        try {
-          localStorage.setItem('stylex_products', JSON.stringify(incoming));
-        } catch (e) {
-          console.error('[Luxe Clear/Save Fallback] Failed resetting storage:', e);
-        }
       }
       if (results.settings) {
         setSettings(results.settings);
-        localStorage.setItem('stylex_settings', JSON.stringify(results.settings));
       }
       if (results.coupons && Array.isArray(results.coupons)) {
         setCoupons(results.coupons);
-        localStorage.setItem('stylex_coupons', JSON.stringify(results.coupons));
       }
       if (results.reviews && Array.isArray(results.reviews)) {
         setReviews(results.reviews);
-        localStorage.setItem('stylex_reviews', JSON.stringify(results.reviews));
       }
       if (results.chats && Array.isArray(results.chats)) {
         setChats(results.chats);
-        localStorage.setItem('stylex_chats', JSON.stringify(results.chats));
       }
       if (results.orders && Array.isArray(results.orders)) {
         setOrders(results.orders);
-        localStorage.setItem('stylex_orders', JSON.stringify(results.orders));
       }
     };
 
@@ -254,37 +244,25 @@ export default function App() {
 
           if (data.products && Array.isArray(data.products) && data.products.length > 0) {
             const incoming = data.products.filter((p: any) => p && p.id);
-            // Overwriting directly clears cache out of sync problems completely!
             setProducts(incoming);
-            try {
-              localStorage.setItem('stylex_products', JSON.stringify(incoming));
-            } catch (e) {
-              console.error('[Luxe Save] Failed resetting storage:', e);
-            }
           }
           if (data.settings) {
             setSettings(data.settings);
-            localStorage.setItem('stylex_settings', JSON.stringify(data.settings));
           }
           if (data.coupons && Array.isArray(data.coupons)) {
             setCoupons(data.coupons);
-            localStorage.setItem('stylex_coupons', JSON.stringify(data.coupons));
           }
           if (data.reviews && Array.isArray(data.reviews)) {
             setReviews(data.reviews);
-            localStorage.setItem('stylex_reviews', JSON.stringify(data.reviews));
           }
           if (data.chats && Array.isArray(data.chats)) {
             setChats(data.chats);
-            localStorage.setItem('stylex_chats', JSON.stringify(data.chats));
           }
           if (data.orders && Array.isArray(data.orders)) {
             setOrders(data.orders);
-            localStorage.setItem('stylex_orders', JSON.stringify(data.orders));
           }
           if (data.currentUser !== undefined) {
             setCurrentUser(data.currentUser);
-            localStorage.setItem('stylex_current_user', JSON.stringify(data.currentUser));
           }
         })
         .catch(err => {
@@ -615,54 +593,240 @@ export default function App() {
     localStorage.setItem('stylex_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  // Sync Supabase listeners (Only triggers warning if you have real Supabase keys configured)
+  // Sync Supabase listeners (Configures multi-device real-time sync across all clients instantly)
   useEffect(() => {
     if (isRealSupabaseConfigured && realSupabase) {
-      // Setup Realtime Chats feed Sync channel
-      const channel = realSupabase
-        .channel('chat_public_feed')
+      console.log('[Luxe Realtime] Registering live database synchronizers...');
+
+      // 1. Products synchronization
+      const productsChannel = realSupabase
+        .channel('realtime_products_sync')
         .on(
           'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'chats' },
-          (payload) => {
-            const newMsg = payload.new as ChatMessage;
-            setChats(prev => {
-              if (prev.find(m => m.id === newMsg.id)) return prev;
-              return [...prev, newMsg];
-            });
+          { event: '*', schema: 'public', table: 'products' },
+          (payload: any) => {
+            console.log('[Luxe Sync Products]', payload);
+            if (payload.eventType === 'INSERT') {
+              const fresh = payload.new as Product;
+              setProducts((prev) => {
+                if (prev.some(p => p.id === fresh.id)) return prev;
+                return [...prev, fresh];
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              const revised = payload.new as Product;
+              setProducts((prev) => prev.map(p => p.id === revised.id ? { ...p, ...revised } : p));
+            } else if (payload.eventType === 'DELETE') {
+              const deletedId = payload.old.id;
+              setProducts((prev) => prev.filter(p => p.id !== deletedId));
+            }
+          }
+        )
+        .subscribe();
+
+      // 2. Reviews synchronization
+      const reviewsChannel = realSupabase
+        .channel('realtime_reviews_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'reviews' },
+          (payload: any) => {
+            console.log('[Luxe Sync Reviews]', payload);
+            if (payload.eventType === 'INSERT') {
+              const fresh = payload.new as Review;
+              setReviews((prev) => {
+                if (prev.some(r => r.id === fresh.id)) return prev;
+                return [fresh, ...prev];
+              });
+            } else if (payload.eventType === 'UPDATE') {
+              const revised = payload.new as Review;
+              setReviews((prev) => prev.map(r => r.id === revised.id ? { ...r, ...revised } : r));
+            } else if (payload.eventType === 'DELETE') {
+              const deletedId = payload.old.id;
+              setReviews((prev) => prev.filter(r => r.id !== deletedId));
+            }
+          }
+        )
+        .subscribe();
+
+      // 3. Chat Messages synchronization
+      const chatsChannel = realSupabase
+        .channel('realtime_chats_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'chats' },
+          (payload: any) => {
+            console.log('[Luxe Sync Chats]', payload);
+            if (payload.eventType === 'INSERT') {
+              const fresh = payload.new as ChatMessage;
+              setChats((prev) => {
+                if (prev.some(c => c.id === fresh.id)) return prev;
+                return [...prev, fresh];
+              });
+            }
+          }
+        )
+        .subscribe();
+
+      // 4. Orders synchronization
+      const ordersChannel = realSupabase
+        .channel('realtime_orders_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          (payload: any) => {
+            console.log('[Luxe Sync Orders]', payload);
+            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+              loadAllDataFromSupabase().then((data) => {
+                if (data?.orders) {
+                  setOrders(data.orders);
+                }
+              });
+            }
+          }
+        )
+        .subscribe();
+
+      // 5. Site Settings synchronization
+      const settingsChannel = realSupabase
+        .channel('realtime_settings_sync')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'site_settings' },
+          (payload: any) => {
+            console.log('[Luxe Sync Settings]', payload);
+            if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+              setSettings((prev) => ({ ...prev, ...payload.new }));
+            }
           }
         )
         .subscribe();
 
       return () => {
-        realSupabase.removeChannel(channel);
+        realSupabase.removeChannel(productsChannel);
+        realSupabase.removeChannel(reviewsChannel);
+        realSupabase.removeChannel(chatsChannel);
+        realSupabase.removeChannel(ordersChannel);
+        realSupabase.removeChannel(settingsChannel);
       };
     }
   }, []);
 
   // 1. ADD / EDIT / DELETE PRODUCTS CABINETS
-  const handleAddProduct = (newProd: Omit<Product, 'id'>) => {
+  const handleAddProduct = async (newProd: Omit<Product, 'id'>) => {
+    const id = generateUUID();
     const fresh: Product = {
       ...newProd,
-      id: generateUUID(),
+      id,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+    
+    // Optimistic local update
     const updated = [...products, fresh];
     setProducts(updated);
     db.saveProducts(updated);
+
+    // Fine-grained direct database write to Supabase
+    if (isRealSupabaseConfigured && realSupabase) {
+      try {
+        const payload = {
+          id: fresh.id,
+          name: fresh.name,
+          slug: fresh.slug || fresh.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          price: Number(fresh.price),
+          old_price: fresh.old_price ? Number(fresh.old_price) : null,
+          description: fresh.description || '',
+          category: fresh.category || 'Apparel',
+          sizes: fresh.sizes || [],
+          stock: fresh.stock ? Number(fresh.stock) : 0,
+          featured: !!fresh.featured,
+          image_url: fresh.image_url || '',
+          additional_images: fresh.additional_images || [],
+          coupon_code: fresh.coupon_code || null,
+          coupon_discount: fresh.coupon_discount ? Number(fresh.coupon_discount) : null,
+          free_delivery: !!fresh.free_delivery,
+          bengali_details: fresh.bengali_details || '',
+          majestic_highlight: !!fresh.majestic_highlight,
+          trending: !!fresh.trending,
+          created_at: fresh.created_at,
+          updated_at: fresh.updated_at
+        };
+        const { error } = await realSupabase.from('products').insert([payload]);
+        if (error) {
+          supabaseErrorHandler(error, 'Adding product to database');
+        } else {
+          console.log('[Supabase Add Product SUCCESS]', id);
+        }
+      } catch (err) {
+        supabaseErrorHandler(err, 'Adding product to database');
+      }
+    }
   };
 
-  const handleUpdateProduct = (revisedProd: Product) => {
+  const handleUpdateProduct = async (revisedProd: Product) => {
     const updated = products.map(p => p.id === revisedProd.id ? { ...p, ...revisedProd, updated_at: new Date().toISOString() } : p);
     setProducts(updated);
     db.saveProducts(updated);
+
+    // Fine-grained direct database write to Supabase
+    if (isRealSupabaseConfigured && realSupabase) {
+      try {
+        const payload = {
+          name: revisedProd.name,
+          slug: revisedProd.slug || revisedProd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          price: Number(revisedProd.price),
+          old_price: revisedProd.old_price ? Number(revisedProd.old_price) : null,
+          description: revisedProd.description || '',
+          category: revisedProd.category || 'Apparel',
+          sizes: revisedProd.sizes || [],
+          stock: revisedProd.stock ? Number(revisedProd.stock) : 0,
+          featured: !!revisedProd.featured,
+          image_url: revisedProd.image_url || '',
+          additional_images: revisedProd.additional_images || [],
+          coupon_code: revisedProd.coupon_code || null,
+          coupon_discount: revisedProd.coupon_discount ? Number(revisedProd.coupon_discount) : null,
+          free_delivery: !!revisedProd.free_delivery,
+          bengali_details: revisedProd.bengali_details || '',
+          majestic_highlight: !!revisedProd.majestic_highlight,
+          trending: !!revisedProd.trending,
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await realSupabase
+          .from('products')
+          .update(payload)
+          .eq('id', revisedProd.id);
+        if (error) {
+          supabaseErrorHandler(error, 'Updating product specifications');
+        } else {
+          console.log('[Supabase Update Product SUCCESS]', revisedProd.id);
+        }
+      } catch (err) {
+        supabaseErrorHandler(err, 'Updating product specifications');
+      }
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
+  const handleDeleteProduct = async (id: string) => {
     const updated = products.filter(p => p.id !== id);
     setProducts(updated);
     db.saveProducts(updated);
+
+    // Fine-grained direct database write to Supabase
+    if (isRealSupabaseConfigured && realSupabase) {
+      try {
+        const { error } = await realSupabase
+          .from('products')
+          .delete()
+          .eq('id', id);
+        if (error) {
+          supabaseErrorHandler(error, 'Retiring catalog product');
+        } else {
+          console.log('[Supabase Delete Product SUCCESS]', id);
+        }
+      } catch (err) {
+        supabaseErrorHandler(err, 'Retiring catalog product');
+      }
+    }
   };
 
   // 2. ORDER PROCESSING SUBMISSION
@@ -1819,6 +1983,7 @@ export default function App() {
         </div>
       </footer>
 
+      <LuxeToastContainer />
     </div>
   );
 }
