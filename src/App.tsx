@@ -43,6 +43,35 @@ export default function App() {
   useEffect(() => {
     let active = true;
 
+    const deepMergeProducts = (existing: Product[], incoming: Product[]): Product[] => {
+      const mergedMap = new Map<string, Product>();
+      
+      existing.forEach(p => {
+        if (p && p.id) {
+          mergedMap.set(p.id, { ...p });
+        }
+      });
+
+      incoming.forEach(p => {
+        if (p && p.id) {
+          const existingProd = mergedMap.get(p.id);
+          if (existingProd) {
+            mergedMap.set(p.id, {
+              ...existingProd,
+              ...p,
+              sizes: Array.isArray(p.sizes) 
+                ? Array.from(new Set([...(existingProd.sizes || []), ...p.sizes]))
+                : (p.sizes || existingProd.sizes)
+            });
+          } else {
+            mergedMap.set(p.id, { ...p });
+          }
+        }
+      });
+
+      return Array.from(mergedMap.values());
+    };
+
     const loadFromKVDB = async () => {
       console.log("[Luxe Sync] Fallback: Pulling state from persistent global cloud bucket...");
       const keys = ['products', 'settings', 'coupons', 'reviews', 'chats', 'orders'];
@@ -68,18 +97,15 @@ export default function App() {
       
       console.log("[Luxe Cloud Fallback] Pulled state from public cloud:", results);
       if (results.products && Array.isArray(results.products) && results.products.length > 0) {
+        const incoming = results.products.filter((p: any) => p && p.id);
         setProducts(prevProducts => {
-          const merged = [...prevProducts];
-          results.products.forEach((inc: Product) => {
-            if (!inc || !inc.id) return;
-            const idx = merged.findIndex(p => p.id === inc.id);
-            if (idx !== -1) {
-              merged[idx] = { ...merged[idx], ...inc };
-            } else {
-              merged.push(inc);
-            }
-          });
-          localStorage.setItem('stylex_products', JSON.stringify(merged));
+          const merged = deepMergeProducts(prevProducts, incoming);
+          try {
+            localStorage.removeItem('stylex_products');
+            localStorage.setItem('stylex_products', JSON.stringify(merged));
+          } catch (e) {
+            console.error('[Luxe Clear/Save Fallback] Failed resetting storage:', e);
+          }
           return merged;
         });
       }
@@ -123,18 +149,15 @@ export default function App() {
         console.log("[Luxe Sync] Universal local backend state fetched successfully!", data);
 
         if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+          const incoming = data.products.filter((p: any) => p && p.id);
           setProducts(prevProducts => {
-            const merged = [...prevProducts];
-            data.products.forEach((inc: Product) => {
-              if (!inc || !inc.id) return;
-              const idx = merged.findIndex(p => p.id === inc.id);
-              if (idx !== -1) {
-                merged[idx] = { ...merged[idx], ...inc };
-              } else {
-                merged.push(inc);
-              }
-            });
-            localStorage.setItem('stylex_products', JSON.stringify(merged));
+            const merged = deepMergeProducts(prevProducts, incoming);
+            try {
+              localStorage.removeItem('stylex_products');
+              localStorage.setItem('stylex_products', JSON.stringify(merged));
+            } catch (e) {
+              console.error('[Luxe Clear/Save] Failed resetting storage:', e);
+            }
             return merged;
           });
         }

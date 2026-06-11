@@ -38,9 +38,25 @@ create table if not exists public.products (
   stock integer default 0 check (stock >= 0),
   featured boolean default false,
   image_url text,
+  additional_images text[] default '{}',
+  coupon_code text,
+  coupon_discount numeric check (coupon_discount >= 0),
+  free_delivery boolean default false,
+  bengali_details text,
+  majestic_highlight boolean default false,
+  trending boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- Ensure existing products table is brought up to date with new columns
+alter table public.products add column if not exists additional_images text[] default '{}';
+alter table public.products add column if not exists coupon_code text;
+alter table public.products add column if not exists coupon_discount numeric check (coupon_discount >= 0);
+alter table public.products add column if not exists free_delivery boolean default false;
+alter table public.products add column if not exists bengali_details text;
+alter table public.products add column if not exists majestic_highlight boolean default false;
+alter table public.products add column if not exists trending boolean default false;
 
 -- 4. CREATE ORDERS TABLE
 create table if not exists public.orders (
@@ -112,31 +128,58 @@ alter table public.chats enable row level security;
 alter table public.site_settings enable row level security;
 
 -- 10. POLICIES: USERS TABLE
+drop policy if exists "Public users read roles" on public.users;
 create policy "Public users read roles" on public.users for select using (true);
-create policy "Allow insert on sign up" on public.users for insert with check (auth.uid() = id);
+
+drop policy if exists "Allow insert on sign up" on public.users;
+create policy "Allow insert on sign up" on public.users for insert with check (true);
+
+drop policy if exists "Allow update on own profile" on public.users;
 create policy "Allow update on own profile" on public.users for update using (auth.uid() = id);
 
 -- 11. POLICIES: PRODUCTS TABLE
+drop policy if exists "Admins manage products" on public.products;
 create policy "Admins manage products" on public.products for all using (
   exists (select 1 from public.users where id = auth.uid() and role = 'admin')
 );
+
+drop policy if exists "Public view products" on public.products;
 create policy "Public view products" on public.products for select using (true);
 
 -- 12. POLICIES: ORDERS TABLE
+drop policy if exists "Admins manage orders" on public.orders;
 create policy "Admins manage orders" on public.orders for all using (
   exists (select 1 from public.users where id = auth.uid() and role = 'admin')
 );
+
+drop policy if exists "Customers manage own orders" on public.orders;
 create policy "Customers manage own orders" on public.orders for all using (
   auth.uid() = user_id
 );
+
+drop policy if exists "Allow anonymous order generation" on public.orders;
 create policy "Allow anonymous order generation" on public.orders for insert with check (true);
 
 -- 13. POLICIES: CHATS (REALTIME COMPILATION)
+drop policy if exists "Anyone can insert chat" on public.chats;
 create policy "Anyone can insert chat" on public.chats for insert with check (true);
+
+drop policy if exists "Anyone can select chats" on public.chats;
 create policy "Anyone can select chats" on public.chats for select using (true);
 
 -- ENABLE REPLICATION FOR REALTIME CHATS
-alter publication supabase_realtime add table public.chats;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'chats'
+  ) then
+    alter publication supabase_realtime add table public.chats;
+  end if;
+exception
+  when others then null;
+end;
+$$;
 `;
 
   const handleCopy = () => {

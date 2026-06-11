@@ -28,6 +28,7 @@ export interface Product {
   free_delivery?: boolean;
   bengali_details?: string;
   majestic_highlight?: boolean;
+  trending?: boolean;
 }
 
 export interface Order {

@@ -209,8 +209,10 @@ const syncToServer = (key: string, value: any) => {
 export const getSimulatedDB = () => {
   let products = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
   
-  // Force migration for premium screenshot compliance
-  if (products.length > 0 && products[0].id === 'p1' && products[0].name !== 'Risat Adnan') {
+  // Force migration for premium screenshot compliance (Safeguarded to prevent resetting custom user products)
+  const isDefaultUnmodified = products.length === DEFAULT_PRODUCTS.length && 
+    products.every((p, idx) => p.id === DEFAULT_PRODUCTS[idx].id && p.name === DEFAULT_PRODUCTS[idx].name);
+  if (isDefaultUnmodified && products.length > 0 && products[0].id === 'p1' && products[0].name !== 'Risat Adnan') {
     products = DEFAULT_PRODUCTS;
     setStored('stylex_products', DEFAULT_PRODUCTS);
   }
