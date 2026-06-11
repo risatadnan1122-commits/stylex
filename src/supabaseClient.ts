@@ -181,8 +181,173 @@ const setStored = (key: string, val: any) => {
   localStorage.setItem(key, JSON.stringify(val));
 };
 
+export interface SupabaseData {
+  products: Product[];
+  settings: SiteSettings;
+  reviews: Review[];
+  chats: ChatMessage[];
+  orders: Order[];
+  coupons: Coupon[];
+  currentUser: AppUser | null;
+}
+
+// 1. Core Loader: Fetches products/settings/orders/reviews/coupons FROM Supabase first
+export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> => {
+  if (!isRealSupabaseConfigured || !realSupabase) {
+    console.log('[Luxe Supabase Loader] Real Supabase client is not configured; running in Simulation local mode.');
+    return null;
+  }
+
+  try {
+    console.log('[Luxe Supabase Loader] Fetching all key datasets directly from Supabase...');
+    
+    // Fetch critical tables in parallel to minimize latency!
+    const [
+      { data: prods, error: pErr },
+      { data: settingsData, error: sErr },
+      { data: revs, error: rErr },
+      { data: chatsData, error: cErr },
+      { data: cpns, error: cpErr }
+    ] = await Promise.all([
+      realSupabase.from('products').select('*').order('created_at', { ascending: false }),
+      realSupabase.from('site_settings').select('*'),
+      realSupabase.from('reviews').select('*').order('created_at', { ascending: false }),
+      realSupabase.from('chats').select('*').order('created_at', { ascending: true }),
+      realSupabase.from('coupons').select('*').order('code', { ascending: true })
+    ]);
+
+    // Handle orders with order_items join carefully
+    let ords: any[] | null = null;
+    let oErr: any = null;
+    try {
+      const res = await realSupabase.from('orders').select('*, order_items(*)').order('created_at', { ascending: false });
+      ords = res.data;
+      oErr = res.error;
+    } catch (e) {
+      console.warn('[Luxe Supabase Load Orders Fallback] Join order_items query failed; falling back to direct table pull:', e);
+      // Fallback if there is no relation or if there is any mapping compile warning
+      const res = await realSupabase.from('orders').select('*').order('created_at', { ascending: false });
+      ords = res.data;
+      oErr = res.error;
+    }
+
+    if (pErr) console.warn('[Supabase load products error]', pErr);
+    if (sErr) console.warn('[Supabase load settings error]', sErr);
+    if (rErr) console.warn('[Supabase load reviews error]', rErr);
+    if (cErr) console.warn('[Supabase load chats error]', cErr);
+    if (oErr) console.warn('[Supabase load orders error]', oErr);
+    if (cpErr) console.warn('[Supabase load coupons error]', cpErr);
+
+    // If all datasets fail or are completely missing, return null
+    if (!prods && !settingsData && !revs && !chatsData && !ords && !cpns) {
+      console.warn('[Luxe Supabase Loader Fail] No keys loaded correctly from database tables.');
+      return null;
+    }
+
+    // Cast or extract lists
+    const productsList = (prods || []) as Product[];
+    
+    let siteSettings = DEFAULT_SETTINGS;
+    if (settingsData && settingsData.length > 0) {
+      const dbSettings = settingsData[0];
+      siteSettings = {
+        ...DEFAULT_SETTINGS,
+        ...dbSettings,
+        // Make sure banners and lottery_prizes arrays are correctly structured
+        banners: Array.isArray(dbSettings.banners) ? dbSettings.banners : (typeof dbSettings.banners === 'string' ? JSON.parse(dbSettings.banners) : DEFAULT_SETTINGS.banners),
+        lottery_prizes: Array.isArray(dbSettings.lottery_prizes) ? dbSettings.lottery_prizes : (typeof dbSettings.lottery_prizes === 'string' ? JSON.parse(dbSettings.lottery_prizes) : DEFAULT_SETTINGS.lottery_prizes),
+      };
+    }
+
+    const reviewsList = (revs || []) as Review[];
+    const chatsList = (chatsData || []) as ChatMessage[];
+    const ordersList = (ords || []) as any[];
+    const couponsList = (cpns || []) as Coupon[];
+
+    // Ensure all formats match TypeScript exactly
+    const formattedProducts = productsList.map(p => ({
+      ...p,
+      sizes: Array.isArray(p.sizes) ? p.sizes : [],
+      featured: !!p.featured,
+      free_delivery: !!p.free_delivery,
+      majestic_highlight: !!p.majestic_highlight,
+      trending: !!p.trending,
+      additional_images: Array.isArray(p.additional_images) ? p.additional_images : []
+    }));
+
+    const formattedReviews = reviewsList.map(r => ({
+      ...r,
+      approved: !!r.approved,
+      rating: Number(r.rating) || 5
+    }));
+
+    const formattedChats = chatsList.map(c => ({
+      ...c,
+      seen: !!c.seen
+    }));
+
+    const formattedOrders = ordersList.map(o => {
+      const itemsRaw = o.order_items || [];
+      const formattedItems = itemsRaw.map((item: any) => ({
+        id: item.id,
+        order_id: item.order_id,
+        product_id: item.product_id,
+        quantity: Number(item.quantity) || 1,
+        price: Number(item.price) || 0,
+        product_name: item.product_name || (formattedProducts.find(p => p.id === item.product_id)?.name || 'Premium Item'),
+        product_image: item.product_image || (formattedProducts.find(p => p.id === item.product_id)?.image_url || '')
+      }));
+
+      return {
+        id: o.id,
+        order_number: o.order_number,
+        user_id: o.user_id,
+        status: o.status || 'Pending',
+        subtotal: Number(o.subtotal) || 0,
+        delivery_charge: Number(o.delivery_charge) || 0,
+        total: Number(o.total) || 0,
+        customer_name: o.customer_name,
+        customer_phone: o.customer_phone,
+        customer_address: o.customer_address,
+        payment_method: o.payment_method || 'Cash On Delivery',
+        created_at: o.created_at,
+        order_items: formattedItems
+      } as Order;
+    });
+
+    const formattedCoupons = couponsList.map(c => ({
+      ...c,
+      discount_value: Number(c.discount_value) || 0,
+      min_order_amount: Number(c.min_order_amount) || 0,
+      active: !!c.active
+    }));
+
+    console.log('[Luxe Supabase Loader] Loaded successfully from Cloud tables:', {
+      products: formattedProducts.length,
+      settings: siteSettings.site_name,
+      reviews: formattedReviews.length,
+      chats: formattedChats.length,
+      orders: formattedOrders.length,
+      coupons: formattedCoupons.length
+    });
+
+    return {
+      products: formattedProducts,
+      settings: siteSettings,
+      reviews: formattedReviews,
+      chats: formattedChats,
+      orders: formattedOrders,
+      coupons: formattedCoupons,
+      currentUser: null
+    };
+  } catch (err) {
+    console.error('[Luxe Supabase Loader Error]', err);
+    return null;
+  }
+};
+
 const syncToServer = async (key: string, value: any) => {
-  // 1. Post to local /api/db (for local express environments)
+  // 1. Post to local /api/db (for local express fallback)
   try {
     fetch('/api/db', {
       method: 'POST',
@@ -196,7 +361,7 @@ const syncToServer = async (key: string, value: any) => {
     console.warn(`[Luxe Sync Local Error]`, err);
   }
 
-  // 2. Post to public high-availability cloud bucket (so Vercel/external devices sync in perfect real-time!)
+  // 2. Post to public high-availability cloud bucket
   try {
     fetch(`https://kvdb.io/MccUniDWnyYmhrF9HjQC1L/${key}`, {
       method: 'POST',
@@ -216,7 +381,7 @@ const syncToServer = async (key: string, value: any) => {
     console.warn(`[Luxe Cloud Sync Crash]`, err);
   }
 
-  // 3. Post to real Supabase database if configured
+  // 3. Post/Sync to real Supabase database if configured
   if (isRealSupabaseConfigured && realSupabase) {
     try {
       if (key === 'products' && Array.isArray(value)) {
@@ -241,11 +406,11 @@ const syncToServer = async (key: string, value: any) => {
           trending: !!p.trending
         }));
         
-        // Save/Upsert active records
+        // Save/Upsert active products
         const { error } = await realSupabase.from('products').upsert(payload);
         if (error) throw error;
 
-        // Secure difference-based pruning to handle deletions safely
+        // Difference pruning
         const { data: dbItems } = await realSupabase.from('products').select('id');
         if (dbItems) {
           const dbIds = dbItems.map(row => row.id);
@@ -305,7 +470,7 @@ const syncToServer = async (key: string, value: any) => {
         const { error } = await realSupabase.from('reviews').upsert(payload);
         if (error) throw error;
 
-        // Secure difference-based pruning
+        // Difference pruning
         const { data: dbItems } = await realSupabase.from('reviews').select('id');
         if (dbItems) {
           const dbIds = dbItems.map(row => row.id);
@@ -330,7 +495,7 @@ const syncToServer = async (key: string, value: any) => {
         const { error } = await realSupabase.from('chats').upsert(payload);
         if (error) throw error;
 
-        // Secure difference-based pruning
+        // Difference pruning
         const { data: dbItems } = await realSupabase.from('chats').select('id');
         if (dbItems) {
           const dbIds = dbItems.map(row => row.id);
@@ -361,7 +526,25 @@ const syncToServer = async (key: string, value: any) => {
         const { error } = await realSupabase.from('orders').upsert(payload);
         if (error) throw error;
 
-        // Secure difference-based pruning
+        // Upsert order items if orders contain nested order_items detail list
+        for (const o of value) {
+          if (o.order_items && Array.isArray(o.order_items) && o.order_items.length > 0) {
+            const itemsPayload = o.order_items.map((item: any) => ({
+              id: item.id || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+                const r = (Math.random() * 16) | 0;
+                const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                return v.toString(16);
+              }),
+              order_id: o.id,
+              product_id: item.product_id,
+              quantity: Number(item.quantity) || 1,
+              price: Number(item.price) || 0
+            }));
+            await realSupabase.from('order_items').upsert(itemsPayload);
+          }
+        }
+
+        // Difference pruning for orders
         const { data: dbItems } = await realSupabase.from('orders').select('id');
         if (dbItems) {
           const dbIds = dbItems.map(row => row.id);
@@ -373,6 +556,31 @@ const syncToServer = async (key: string, value: any) => {
         }
 
         console.log('[Luxe Supabase Sync] Orders list successfully written into Supabase.');
+      } else if (key === 'coupons' && Array.isArray(value)) {
+        const payload = value.map(c => ({
+          id: c.id,
+          code: c.code,
+          discount_type: c.discount_type || 'fixed',
+          discount_value: Number(c.discount_value) || 0,
+          min_order_amount: Number(c.min_order_amount) || 0,
+          active: !!c.active
+        }));
+        
+        const { error } = await realSupabase.from('coupons').upsert(payload);
+        if (error) throw error;
+
+        // Difference pruning
+        const { data: dbItems } = await realSupabase.from('coupons').select('id');
+        if (dbItems) {
+          const dbIds = dbItems.map(row => row.id);
+          const activeIds = payload.map(c => c.id);
+          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
+          if (idsToDelete.length > 0) {
+            await realSupabase.from('coupons').delete().in('id', idsToDelete);
+          }
+        }
+
+        console.log('[Luxe Supabase Sync] Coupons list successfully written into Supabase.');
       }
     } catch (err) {
       console.warn('[Luxe Supabase Sync Error]', err);

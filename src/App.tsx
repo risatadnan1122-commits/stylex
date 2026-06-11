@@ -6,7 +6,8 @@ import {
   getSimulatedDB, 
   isRealSupabaseConfigured, 
   realSupabase,
-  initializeDynamicSupabase
+  initializeDynamicSupabase,
+  loadAllDataFromSupabase
 } from './supabaseClient';
 import { 
   Product, Order, Review, Coupon, SiteSettings, ChatMessage, CartItem, AppUser 
@@ -90,84 +91,60 @@ export default function App() {
       if (!isRealSupabaseConfigured || !realSupabase) return false;
       try {
         console.log("[Luxe Sync] Loading initial database state from Supabase...");
-        
-        // 1. Load products
-        const { data: sbProds, error: pErr } = await realSupabase
-          .from('products')
-          .select('*')
-          .order('id', { ascending: true });
-        
-        // 2. Load site_settings
-        const { data: sbSettings, error: sErr } = await realSupabase
-          .from('site_settings')
-          .select('*');
-        
-        // 3. Load reviews
-        const { data: sbReviews, error: rErr } = await realSupabase
-          .from('reviews')
-          .select('*');
-          
-        // 4. Load chats
-        const { data: sbChats, error: cErr } = await realSupabase
-          .from('chats')
-          .select('*');
-          
-        // 5. Load orders
-        const { data: sbOrders, error: oErr } = await realSupabase
-          .from('orders')
-          .select('*');
-
-        if (pErr) console.warn('[Supabase load products error]', pErr);
-        if (sErr) console.warn('[Supabase load settings error]', sErr);
-        if (rErr) console.warn('[Supabase load reviews error]', rErr);
-        if (cErr) console.warn('[Supabase load chats error]', cErr);
-        if (oErr) console.warn('[Supabase load orders error]', oErr);
+        const loadedJson = await loadAllDataFromSupabase();
+        if (!loadedJson) return false;
 
         if (!active) return true;
 
         let hasLoadedAny = false;
 
-        if (sbProds && sbProds.length > 0) {
-          console.log('[Supabase loaded products]', sbProds);
-          setProducts(sbProds as Product[]);
-          localStorage.setItem('stylex_products', JSON.stringify(sbProds));
+        if (loadedJson.products && loadedJson.products.length > 0) {
+          console.log('[Supabase loaded products]', loadedJson.products);
+          setProducts(loadedJson.products);
+          localStorage.setItem('stylex_products', JSON.stringify(loadedJson.products));
           hasLoadedAny = true;
-        } else if (sbProds && sbProds.length === 0) {
-          // Empty remote database - let's seed current products to Supabase!
-          console.log('[Luxe Supabase Seed] Seeding current products list to new Supabase database...');
+        } else if (loadedJson.products && loadedJson.products.length === 0) {
+          console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
           await db.saveProducts(products);
         }
 
-        if (sbSettings && sbSettings.length > 0) {
-          const rec = sbSettings[0];
-          setSettings(prev => ({ ...prev, ...rec }));
-          localStorage.setItem('stylex_settings', JSON.stringify({ ...db.settings, ...rec }));
+        if (loadedJson.settings) {
+          setSettings(loadedJson.settings);
+          localStorage.setItem('stylex_settings', JSON.stringify(loadedJson.settings));
           hasLoadedAny = true;
-        } else if (sbSettings && sbSettings.length === 0) {
-          console.log('[Luxe Supabase Seed] Seeding default settings to new Supabase database...');
+        } else {
+          console.log('[Luxe Supabase Seed] Seeding default settings to Supabase...');
           await db.saveSettings(settings);
         }
 
-        if (sbReviews && sbReviews.length > 0) {
-          setReviews(sbReviews as Review[]);
-          localStorage.setItem('stylex_reviews', JSON.stringify(sbReviews));
+        if (loadedJson.reviews && loadedJson.reviews.length > 0) {
+          setReviews(loadedJson.reviews);
+          localStorage.setItem('stylex_reviews', JSON.stringify(loadedJson.reviews));
           hasLoadedAny = true;
-        } else if (sbReviews && sbReviews.length === 0) {
+        } else if (loadedJson.reviews && loadedJson.reviews.length === 0) {
           await db.saveReviews(reviews);
         }
 
-        if (sbChats && sbChats.length > 0) {
-          setChats(sbChats as ChatMessage[]);
-          localStorage.setItem('stylex_chats', JSON.stringify(sbChats));
+        if (loadedJson.chats && loadedJson.chats.length > 0) {
+          setChats(loadedJson.chats);
+          localStorage.setItem('stylex_chats', JSON.stringify(loadedJson.chats));
           hasLoadedAny = true;
-        } else if (sbChats && sbChats.length === 0) {
+        } else if (loadedJson.chats && loadedJson.chats.length === 0) {
           await db.saveChats(chats);
         }
 
-        if (sbOrders && sbOrders.length > 0) {
-          setOrders(sbOrders as Order[]);
-          localStorage.setItem('stylex_orders', JSON.stringify(sbOrders));
+        if (loadedJson.orders && loadedJson.orders.length > 0) {
+          setOrders(loadedJson.orders);
+          localStorage.setItem('stylex_orders', JSON.stringify(loadedJson.orders));
           hasLoadedAny = true;
+        }
+
+        if (loadedJson.coupons && loadedJson.coupons.length > 0) {
+          setCoupons(loadedJson.coupons);
+          localStorage.setItem('stylex_coupons', JSON.stringify(loadedJson.coupons));
+          hasLoadedAny = true;
+        } else if (loadedJson.coupons && loadedJson.coupons.length === 0) {
+          await db.saveCoupons(coupons);
         }
 
         return hasLoadedAny;

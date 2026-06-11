@@ -12,12 +12,14 @@ export default function SetupDocModal({ onClose }: SetupDocModalProps) {
 -- Copy & Run this SQL inside your Supabase SQL Editor to create tables & secure permissions.
 
 -- 0. CLEANUP (OPTIONAL: UNCOMMENT IF YOU WANT A FULL FRESH RE-INSTALLATION)
-drop table if exists public.order_items cascade;
-drop table if exists public.reviews cascade;
-drop table if exists public.products cascade;
-drop table if exists public.orders cascade;
-drop table if exists public.chats cascade;
-drop table if exists public.site_settings cascade;
+-- drop table if exists public.order_items cascade;
+-- drop table if exists public.reviews cascade;
+-- drop table if exists public.products cascade;
+-- drop table if exists public.orders cascade;
+-- drop table if exists public.chats cascade;
+-- drop table if exists public.site_settings cascade;
+-- drop table if exists public.coupons cascade;
+-- drop table if exists public.users cascade;
 
 -- 1. EXTENSIONS
 create extension if not exists "uuid-ossp";
@@ -76,7 +78,7 @@ create table if not exists public.orders (
   id text primary key,
   order_number text unique not null,
   user_id uuid references public.users(id) on delete set null,
-  status text default 'Pending' check (status in ('Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled')),
+  status text default 'Pending' check (status in ('Pending', 'Confirmed', 'Courier', 'Delivered', 'Cancelled', 'Processing', 'Shipped')),
   subtotal numeric not null,
   delivery_charge numeric default 0,
   total numeric not null,
@@ -106,6 +108,16 @@ create table if not exists public.reviews (
   comment text,
   approved boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- 6.5. CREATE COUPONS TABLE
+create table if not exists public.coupons (
+  id text primary key,
+  code text unique not null,
+  discount_type text default 'percentage' check (discount_type in ('percentage', 'fixed')),
+  discount_value numeric not null,
+  min_order_amount numeric default 0,
+  active boolean default true
 );
 
 -- 7. CREATE CHATS TABLE (Supabase Realtime Live Streaming)
@@ -159,6 +171,7 @@ alter table public.products enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.reviews enable row level security;
+alter table public.coupons enable row level security;
 alter table public.chats enable row level security;
 alter table public.site_settings enable row level security;
 
@@ -189,14 +202,31 @@ create policy "Customers manage own orders" on public.orders for all using (true
 drop policy if exists "Allow anonymous order generation" on public.orders;
 create policy "Allow anonymous order generation" on public.orders for insert with check (true);
 
--- 13. POLICIES: CHATS (REALTIME COMPILATION)
+-- 13. POLICIES: REVIEWS TABLE
+drop policy if exists "Public view reviews" on public.reviews;
+create policy "Public view reviews" on public.reviews for select using (true);
+
+drop policy if exists "Anyone can write reviews" on public.reviews;
+create policy "Anyone can write reviews" on public.reviews for insert with check (true);
+
+drop policy if exists "Admins manage reviews" on public.reviews;
+create policy "Admins manage reviews" on public.reviews for all using (true);
+
+-- 13.5 POLICIES: COUPONS TABLE
+drop policy if exists "Public view coupons" on public.coupons;
+create policy "Public view coupons" on public.coupons for select using (true);
+
+drop policy if exists "Anyone manage coupons" on public.coupons;
+create policy "Anyone manage coupons" on public.coupons for all using (true);
+
+-- 14. POLICIES: CHATS (REALTIME COMPILATION)
 drop policy if exists "Anyone can insert chat" on public.chats;
 create policy "Anyone can insert chat" on public.chats for insert with check (true);
 
 drop policy if exists "Anyone can select chats" on public.chats;
 create policy "Anyone can select chats" on public.chats for select using (true);
 
--- 14. POLICIES: SITE SETTINGS TABLE
+-- 15. POLICIES: SITE SETTINGS TABLE
 drop policy if exists "Public view settings" on public.site_settings;
 create policy "Public view settings" on public.site_settings for select using (true);
 
