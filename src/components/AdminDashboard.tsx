@@ -62,6 +62,7 @@ export default function AdminDashboard({
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   
   const [newCoupon, setNewCoupon] = useState<Omit<Coupon, 'id'>>({
     code: '', discount_type: 'fixed', discount_value: 50, min_order_amount: 100, active: true
@@ -1395,17 +1396,37 @@ export default function AdminDashboard({
                                 >
                                   <Edit3 className="h-4 w-4" />
                                 </button>
-                                <button
-                                  onClick={() => {
-                                    if (confirm(`Are you absolutely sure you want to permanently delete and decommission "${prod.name}"? This action cannot be undone.`)) {
-                                      onDeleteProduct(prod.id);
-                                    }
-                                  }}
-                                  className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                                  title="Decommission piece"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </button>
+                                {deleteConfirmId === prod.id ? (
+                                  <span className="inline-flex items-center gap-1 bg-red-950/40 border border-red-500/30 p-1 px-2 rounded text-xs select-none">
+                                    <span className="text-[10px] text-red-200 font-mono">Delete?</span>
+                                    <button
+                                      onClick={() => {
+                                        onDeleteProduct(prod.id);
+                                        setDeleteConfirmId(null);
+                                      }}
+                                      className="text-red-400 hover:text-red-300 font-bold px-1 py-0.5 rounded transition-colors text-[10px] cursor-pointer"
+                                      title="Yes, delete"
+                                    >
+                                      Yes
+                                    </button>
+                                    <span className="text-gray-600">|</span>
+                                    <button
+                                      onClick={() => setDeleteConfirmId(null)}
+                                      className="text-gray-400 hover:text-white px-1 py-0.5 rounded transition-colors text-[10px] cursor-pointer"
+                                      title="Cancel"
+                                    >
+                                      No
+                                    </button>
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => setDeleteConfirmId(prod.id)}
+                                    className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                                    title="Decommission piece"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           ))}

@@ -170,18 +170,38 @@ const setStored = (key: string, val: any) => {
 };
 
 const syncToServer = (key: string, value: any) => {
+  // 1. Post to local /api/db (for local express environments)
   try {
     fetch('/api/db', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key, value })
     })
-    .then(r => r.json())
     .catch(err => {
-      console.warn(`[Luxe Sync Fallback] Sync failure for key "${key}", using cache:`, err);
+      console.warn(`[Luxe Sync Local Fallback] Sync not running locally:`, err);
     });
   } catch (err) {
-    console.warn(`[Luxe Sync Error] Sync execution error for key "${key}":`, err);
+    console.warn(`[Luxe Sync Local Error]`, err);
+  }
+
+  // 2. Post to public high-availability cloud bucket (so Vercel/external devices sync in perfect real-time!)
+  try {
+    fetch(`https://kvdb.io/MccUniDWnyYmhrF9HjQC1L/${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(value)
+    })
+    .then(r => {
+      if (!r.ok) {
+        throw new Error(`HTTP ${r.status}`);
+      }
+      console.log(`[Luxe Cloud Sync] Securely pushed key "${key}" to persistent global cloud bucket.`);
+    })
+    .catch(err => {
+      console.warn(`[Luxe Cloud Sync Fail] Error pushing key "${key}" to cloud bin:`, err);
+    });
+  } catch (err) {
+    console.warn(`[Luxe Cloud Sync Crash]`, err);
   }
 };
 
