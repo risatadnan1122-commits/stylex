@@ -5,7 +5,8 @@ import Helmet from './components/Helmet';
 import { 
   getSimulatedDB, 
   isRealSupabaseConfigured, 
-  realSupabase 
+  realSupabase,
+  initializeDynamicSupabase
 } from './supabaseClient';
 import { 
   Product, Order, Review, Coupon, SiteSettings, ChatMessage, CartItem, AppUser 
@@ -202,16 +203,13 @@ export default function App() {
       console.log("[Luxe Cloud Fallback] Pulled state from public cloud:", results);
       if (results.products && Array.isArray(results.products) && results.products.length > 0) {
         const incoming = results.products.filter((p: any) => p && p.id);
-        setProducts(prevProducts => {
-          const merged = deepMergeProducts(prevProducts, incoming);
-          try {
-            localStorage.removeItem('stylex_products');
-            localStorage.setItem('stylex_products', JSON.stringify(merged));
-          } catch (e) {
-            console.error('[Luxe Clear/Save Fallback] Failed resetting storage:', e);
-          }
-          return merged;
-        });
+        // Direct overwrite prevents local storage staleness / incognito issues!
+        setProducts(incoming);
+        try {
+          localStorage.setItem('stylex_products', JSON.stringify(incoming));
+        } catch (e) {
+          console.error('[Luxe Clear/Save Fallback] Failed resetting storage:', e);
+        }
       }
       if (results.settings) {
         setSettings(results.settings);
@@ -236,6 +234,21 @@ export default function App() {
     };
 
     const initLoad = async () => {
+      // 1. Core check: load dynamic backend keys at runtime (Vercel / Cloud Run fluid environment)
+      try {
+        const configRes = await fetch('/api/config');
+        if (configRes.ok) {
+          const configData = await configRes.json();
+          if (configData.supabaseUrl && configData.supabaseKey) {
+            console.log("[Luxe Dynamic Config] Successfully fetched credentials from the host server. Initializing client...");
+            initializeDynamicSupabase(configData.supabaseUrl, configData.supabaseKey);
+          }
+        }
+      } catch (err) {
+        console.warn("[Luxe Dynamic Config] No backend configuration could be read, utilizing default environment variables:", err);
+      }
+
+      // 2. Load from Supabase if configured dynamically
       if (isRealSupabaseConfigured && realSupabase) {
         const success = await loadFromSupabase();
         if (success) {
@@ -244,6 +257,7 @@ export default function App() {
         }
       }
 
+      // 3. Fallback to API endpoints or Cloud KVDB
       fetch('/api/db')
         .then(res => {
           if (!res.ok) throw new Error(`HTTP status: ${res.status}`);
@@ -263,16 +277,13 @@ export default function App() {
 
           if (data.products && Array.isArray(data.products) && data.products.length > 0) {
             const incoming = data.products.filter((p: any) => p && p.id);
-            setProducts(prevProducts => {
-              const merged = deepMergeProducts(prevProducts, incoming);
-              try {
-                localStorage.removeItem('stylex_products');
-                localStorage.setItem('stylex_products', JSON.stringify(merged));
-              } catch (e) {
-                console.error('[Luxe Clear/Save] Failed resetting storage:', e);
-              }
-              return merged;
-            });
+            // Overwriting directly clears cache out of sync problems completely!
+            setProducts(incoming);
+            try {
+              localStorage.setItem('stylex_products', JSON.stringify(incoming));
+            } catch (e) {
+              console.error('[Luxe Save] Failed resetting storage:', e);
+            }
           }
           if (data.settings) {
             setSettings(data.settings);

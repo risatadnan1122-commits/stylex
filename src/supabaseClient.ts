@@ -10,30 +10,42 @@ const getEnvVar = (key: string): string => {
   }
 };
 
-const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
-const supabaseKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || getEnvVar('VITE_SUPABASE_PUBLISHABLE_KEY');
+const defaultSupabaseUrl = getEnvVar('VITE_SUPABASE_URL');
+const defaultSupabaseKey = getEnvVar('VITE_SUPABASE_ANON_KEY') || getEnvVar('VITE_SUPABASE_PUBLISHABLE_KEY');
 
-// Let's check if the real keys exist and are formatted reasonably
-const checkSupabaseConfig = (): boolean => {
-  if (!supabaseUrl || supabaseUrl === 'undefined' || !supabaseKey || supabaseKey === 'undefined') {
+// Basic URL regex check to prevent createClient crashes due to malformed URLs
+const checkSupabaseConfig = (url: string, key: string): boolean => {
+  if (!url || url === 'undefined' || !key || key === 'undefined') {
     return false;
   }
-  // Basic URL regex check to prevent createClient crashes due to malformed URLs
-  return supabaseUrl.startsWith('http://') || supabaseUrl.startsWith('https://');
+  return url.startsWith('http://') || url.startsWith('https://');
 };
 
-export const isRealSupabaseConfigured = checkSupabaseConfig();
+export let isRealSupabaseConfigured = checkSupabaseConfig(defaultSupabaseUrl, defaultSupabaseKey);
 
 // Real Supabase client (only initialized safely under try-catch if keys are configured)
-export const realSupabase = (() => {
+export let realSupabase: any = (() => {
   if (!isRealSupabaseConfigured) return null;
   try {
-    return createClient(supabaseUrl, supabaseKey);
+    return createClient(defaultSupabaseUrl, defaultSupabaseKey);
   } catch (err) {
     console.error('Supabase client failed to initialize securely:', err);
     return null;
   }
 })();
+
+// Initialize dynamic runtime configurations (e.g. from server-side environment fetched dynamically)
+export const initializeDynamicSupabase = (url: string, key: string) => {
+  if (checkSupabaseConfig(url, key)) {
+    try {
+      realSupabase = createClient(url, key);
+      isRealSupabaseConfigured = true;
+      console.log('[Luxe Dynamic Supabase Client] Successfully enabled runtime database synchronization with:', url);
+    } catch (err) {
+      console.error('[Luxe Dynamic Supabase Client Fail] Dynamic initialization error:', err);
+    }
+  }
+};
 
 // HIGH-END LUXURY SEED DATA FOR SIMULATION MODE
 const DEFAULT_PRODUCTS: Product[] = [

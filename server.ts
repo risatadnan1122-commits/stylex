@@ -289,6 +289,14 @@ async function startServer() {
     }
   }
 
+  // API endpoint: Serve public configuration to the frontend dynamically at runtime
+  app.get('/api/config', (req, res) => {
+    res.json({
+      supabaseUrl: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "",
+      supabaseKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || ""
+    });
+  });
+
   // API endpoint: Get complete dataset
   app.get('/api/db', (req, res) => {
     res.json(readDB());
