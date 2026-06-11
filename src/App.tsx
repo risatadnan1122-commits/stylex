@@ -72,6 +72,97 @@ export default function App() {
       return Array.from(mergedMap.values());
     };
 
+    const loadFromSupabase = async (): Promise<boolean> => {
+      if (!isRealSupabaseConfigured || !realSupabase) return false;
+      try {
+        console.log("[Luxe Sync] Loading initial database state from Supabase...");
+        
+        // 1. Load products
+        const { data: sbProds, error: pErr } = await realSupabase
+          .from('products')
+          .select('*')
+          .order('id', { ascending: true });
+        
+        // 2. Load site_settings
+        const { data: sbSettings, error: sErr } = await realSupabase
+          .from('site_settings')
+          .select('*');
+        
+        // 3. Load reviews
+        const { data: sbReviews, error: rErr } = await realSupabase
+          .from('reviews')
+          .select('*');
+          
+        // 4. Load chats
+        const { data: sbChats, error: cErr } = await realSupabase
+          .from('chats')
+          .select('*');
+          
+        // 5. Load orders
+        const { data: sbOrders, error: oErr } = await realSupabase
+          .from('orders')
+          .select('*');
+
+        if (pErr) console.warn('[Supabase load products error]', pErr);
+        if (sErr) console.warn('[Supabase load settings error]', sErr);
+        if (rErr) console.warn('[Supabase load reviews error]', rErr);
+        if (cErr) console.warn('[Supabase load chats error]', cErr);
+        if (oErr) console.warn('[Supabase load orders error]', oErr);
+
+        if (!active) return true;
+
+        let hasLoadedAny = false;
+
+        if (sbProds && sbProds.length > 0) {
+          console.log('[Supabase loaded products]', sbProds);
+          setProducts(sbProds as Product[]);
+          localStorage.setItem('stylex_products', JSON.stringify(sbProds));
+          hasLoadedAny = true;
+        } else if (sbProds && sbProds.length === 0) {
+          // Empty remote database - let's seed current products to Supabase!
+          console.log('[Luxe Supabase Seed] Seeding current products list to new Supabase database...');
+          await db.saveProducts(products);
+        }
+
+        if (sbSettings && sbSettings.length > 0) {
+          const rec = sbSettings[0];
+          setSettings(prev => ({ ...prev, ...rec }));
+          localStorage.setItem('stylex_settings', JSON.stringify({ ...db.settings, ...rec }));
+          hasLoadedAny = true;
+        } else if (sbSettings && sbSettings.length === 0) {
+          console.log('[Luxe Supabase Seed] Seeding default settings to new Supabase database...');
+          await db.saveSettings(settings);
+        }
+
+        if (sbReviews && sbReviews.length > 0) {
+          setReviews(sbReviews as Review[]);
+          localStorage.setItem('stylex_reviews', JSON.stringify(sbReviews));
+          hasLoadedAny = true;
+        } else if (sbReviews && sbReviews.length === 0) {
+          await db.saveReviews(reviews);
+        }
+
+        if (sbChats && sbChats.length > 0) {
+          setChats(sbChats as ChatMessage[]);
+          localStorage.setItem('stylex_chats', JSON.stringify(sbChats));
+          hasLoadedAny = true;
+        } else if (sbChats && sbChats.length === 0) {
+          await db.saveChats(chats);
+        }
+
+        if (sbOrders && sbOrders.length > 0) {
+          setOrders(sbOrders as Order[]);
+          localStorage.setItem('stylex_orders', JSON.stringify(sbOrders));
+          hasLoadedAny = true;
+        }
+
+        return hasLoadedAny;
+      } catch (e) {
+        console.error('[Luxe Supabase Load Core Fail]', e);
+        return false;
+      }
+    };
+
     const loadFromKVDB = async () => {
       console.log("[Luxe Sync] Fallback: Pulling state from persistent global cloud bucket...");
       const keys = ['products', 'settings', 'coupons', 'reviews', 'chats', 'orders'];
@@ -131,65 +222,77 @@ export default function App() {
       }
     };
 
-    fetch('/api/db')
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP status: ${res.status}`);
-        const contentType = res.headers.get('content-type');
-        if (contentType && contentType.includes('text/html')) {
-          throw new Error('HTML response (Vercel routing rewrite detected)');
+    const initLoad = async () => {
+      if (isRealSupabaseConfigured && realSupabase) {
+        const success = await loadFromSupabase();
+        if (success) {
+          console.log("[Luxe Sync] Loaded initial real-time database successfully from Supabase.");
+          return;
         }
-        return res.text();
-      })
-      .then(text => {
-        if (!active) return;
-        if (text.trim().startsWith('<') || text.trim().startsWith('<!DOCTYPE')) {
-          throw new Error('HTML response instead of JSON');
-        }
-        const data = JSON.parse(text);
-        console.log("[Luxe Sync] Universal local backend state fetched successfully!", data);
+      }
 
-        if (data.products && Array.isArray(data.products) && data.products.length > 0) {
-          const incoming = data.products.filter((p: any) => p && p.id);
-          setProducts(prevProducts => {
-            const merged = deepMergeProducts(prevProducts, incoming);
-            try {
-              localStorage.removeItem('stylex_products');
-              localStorage.setItem('stylex_products', JSON.stringify(merged));
-            } catch (e) {
-              console.error('[Luxe Clear/Save] Failed resetting storage:', e);
-            }
-            return merged;
-          });
-        }
-        if (data.settings) {
-          setSettings(data.settings);
-          localStorage.setItem('stylex_settings', JSON.stringify(data.settings));
-        }
-        if (data.coupons && Array.isArray(data.coupons)) {
-          setCoupons(data.coupons);
-          localStorage.setItem('stylex_coupons', JSON.stringify(data.coupons));
-        }
-        if (data.reviews && Array.isArray(data.reviews)) {
-          setReviews(data.reviews);
-          localStorage.setItem('stylex_reviews', JSON.stringify(data.reviews));
-        }
-        if (data.chats && Array.isArray(data.chats)) {
-          setChats(data.chats);
-          localStorage.setItem('stylex_chats', JSON.stringify(data.chats));
-        }
-        if (data.orders && Array.isArray(data.orders)) {
-          setOrders(data.orders);
-          localStorage.setItem('stylex_orders', JSON.stringify(data.orders));
-        }
-        if (data.currentUser !== undefined) {
-          setCurrentUser(data.currentUser);
-          localStorage.setItem('stylex_current_user', JSON.stringify(data.currentUser));
-        }
-      })
-      .catch(err => {
-        console.warn("[Luxe Sync Local] local api failed or redirected, falling back to cloud sync...", err);
-        loadFromKVDB();
-      });
+      fetch('/api/db')
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP status: ${res.status}`);
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('text/html')) {
+            throw new Error('HTML response (Vercel routing rewrite detected)');
+          }
+          return res.text();
+        })
+        .then(text => {
+          if (!active) return;
+          if (text.trim().startsWith('<') || text.trim().startsWith('<!DOCTYPE')) {
+            throw new Error('HTML response instead of JSON');
+          }
+          const data = JSON.parse(text);
+          console.log("[Luxe Sync] Universal local backend state fetched successfully!", data);
+
+          if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+            const incoming = data.products.filter((p: any) => p && p.id);
+            setProducts(prevProducts => {
+              const merged = deepMergeProducts(prevProducts, incoming);
+              try {
+                localStorage.removeItem('stylex_products');
+                localStorage.setItem('stylex_products', JSON.stringify(merged));
+              } catch (e) {
+                console.error('[Luxe Clear/Save] Failed resetting storage:', e);
+              }
+              return merged;
+            });
+          }
+          if (data.settings) {
+            setSettings(data.settings);
+            localStorage.setItem('stylex_settings', JSON.stringify(data.settings));
+          }
+          if (data.coupons && Array.isArray(data.coupons)) {
+            setCoupons(data.coupons);
+            localStorage.setItem('stylex_coupons', JSON.stringify(data.coupons));
+          }
+          if (data.reviews && Array.isArray(data.reviews)) {
+            setReviews(data.reviews);
+            localStorage.setItem('stylex_reviews', JSON.stringify(data.reviews));
+          }
+          if (data.chats && Array.isArray(data.chats)) {
+            setChats(data.chats);
+            localStorage.setItem('stylex_chats', JSON.stringify(data.chats));
+          }
+          if (data.orders && Array.isArray(data.orders)) {
+            setOrders(data.orders);
+            localStorage.setItem('stylex_orders', JSON.stringify(data.orders));
+          }
+          if (data.currentUser !== undefined) {
+            setCurrentUser(data.currentUser);
+            localStorage.setItem('stylex_current_user', JSON.stringify(data.currentUser));
+          }
+        })
+        .catch(err => {
+          console.warn("[Luxe Sync Local] local api failed or redirected, falling back to cloud sync...", err);
+          loadFromKVDB();
+        });
+    };
+
+    initLoad();
 
     return () => {
       active = false;

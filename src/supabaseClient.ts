@@ -169,7 +169,7 @@ const setStored = (key: string, val: any) => {
   localStorage.setItem(key, JSON.stringify(val));
 };
 
-const syncToServer = (key: string, value: any) => {
+const syncToServer = async (key: string, value: any) => {
   // 1. Post to local /api/db (for local express environments)
   try {
     fetch('/api/db', {
@@ -202,6 +202,169 @@ const syncToServer = (key: string, value: any) => {
     });
   } catch (err) {
     console.warn(`[Luxe Cloud Sync Crash]`, err);
+  }
+
+  // 3. Post to real Supabase database if configured
+  if (isRealSupabaseConfigured && realSupabase) {
+    try {
+      if (key === 'products' && Array.isArray(value)) {
+        const payload = value.map(p => ({
+          id: p.id,
+          name: p.name,
+          slug: p.slug || p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          price: Number(p.price),
+          old_price: p.old_price ? Number(p.old_price) : null,
+          description: p.description || '',
+          category: p.category || 'Apparel',
+          sizes: p.sizes || [],
+          stock: p.stock ? Number(p.stock) : 0,
+          featured: !!p.featured,
+          image_url: p.image_url || '',
+          additional_images: p.additional_images || [],
+          coupon_code: p.coupon_code || null,
+          coupon_discount: p.coupon_discount ? Number(p.coupon_discount) : null,
+          free_delivery: !!p.free_delivery,
+          bengali_details: p.bengali_details || '',
+          majestic_highlight: !!p.majestic_highlight,
+          trending: !!p.trending
+        }));
+        
+        // Save/Upsert active records
+        const { error } = await realSupabase.from('products').upsert(payload);
+        if (error) throw error;
+
+        // Secure difference-based pruning to handle deletions safely
+        const { data: dbItems } = await realSupabase.from('products').select('id');
+        if (dbItems) {
+          const dbIds = dbItems.map(row => row.id);
+          const activeIds = payload.map(p => p.id);
+          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
+          if (idsToDelete.length > 0) {
+            await realSupabase.from('products').delete().in('id', idsToDelete);
+          }
+        }
+        
+        console.log('[Luxe Supabase Sync] Products list successfully written into Supabase.');
+      } else if (key === 'settings' && value) {
+        const s = value;
+        const payload = {
+          id: s.id || 'settings_main',
+          site_name: s.site_name,
+          whatsapp_number: s.whatsapp_number,
+          delivery_charge: Number(s.delivery_charge),
+          seo_title: s.seo_title || null,
+          seo_description: s.seo_description || null,
+          seo_keywords: s.seo_keywords || null,
+          seo_og_image: s.seo_og_image || null,
+          apps_script_url: s.apps_script_url || null,
+          logo_text_s: s.logo_text_s || null,
+          logo_text_x: s.logo_text_x || null,
+          logo_text_title: s.logo_text_title || null,
+          logo_text_subtitle: s.logo_text_subtitle || null,
+          banners: s.banners || [],
+          lottery_coin_reward: s.lottery_coin_reward ? Number(s.lottery_coin_reward) : 500,
+          campaign_coin_reward: s.campaign_coin_reward ? Number(s.campaign_coin_reward) : 1000,
+          gift_discount_percent: s.gift_discount_percent ? Number(s.gift_discount_percent) : 25,
+          gift_discount_type: s.gift_discount_type || 'percentage',
+          gift_discount_value: s.gift_discount_value ? Number(s.gift_discount_value) : 25,
+          lottery_prizes: s.lottery_prizes || [],
+          lottery_enabled: s.lottery_enabled !== false,
+          popup_enabled: s.popup_enabled !== false,
+          popup_title: s.popup_title || null,
+          popup_message: s.popup_message || null,
+          popup_coupon_code: s.popup_coupon_code || null,
+          popup_image_url: s.popup_image_url || null
+        };
+        const { error } = await realSupabase.from('site_settings').upsert([payload]);
+        if (error) throw error;
+        console.log('[Luxe Supabase Sync] Settings successfully saved into Supabase.');
+      } else if (key === 'reviews' && Array.isArray(value)) {
+        const payload = value.map(r => ({
+          id: r.id,
+          product_id: r.product_id,
+          user_id: r.user_id || null,
+          customer_name: r.customer_name || 'Anonymous Connoisseur',
+          rating: Number(r.rating) || 5,
+          comment: r.comment || '',
+          approved: !!r.approved,
+          created_at: r.created_at || new Date().toISOString()
+        }));
+        
+        const { error } = await realSupabase.from('reviews').upsert(payload);
+        if (error) throw error;
+
+        // Secure difference-based pruning
+        const { data: dbItems } = await realSupabase.from('reviews').select('id');
+        if (dbItems) {
+          const dbIds = dbItems.map(row => row.id);
+          const activeIds = payload.map(r => r.id);
+          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
+          if (idsToDelete.length > 0) {
+            await realSupabase.from('reviews').delete().in('id', idsToDelete);
+          }
+        }
+
+        console.log('[Luxe Supabase Sync] Reviews list successfully written into Supabase.');
+      } else if (key === 'chats' && Array.isArray(value)) {
+        const payload = value.map(c => ({
+          id: c.id,
+          sender_id: c.sender_id,
+          receiver_id: c.receiver_id,
+          message: c.message,
+          seen: !!c.seen,
+          created_at: c.created_at || new Date().toISOString()
+        }));
+        
+        const { error } = await realSupabase.from('chats').upsert(payload);
+        if (error) throw error;
+
+        // Secure difference-based pruning
+        const { data: dbItems } = await realSupabase.from('chats').select('id');
+        if (dbItems) {
+          const dbIds = dbItems.map(row => row.id);
+          const activeIds = payload.map(c => c.id);
+          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
+          if (idsToDelete.length > 0) {
+            await realSupabase.from('chats').delete().in('id', idsToDelete);
+          }
+        }
+
+        console.log('[Luxe Supabase Sync] Chats list successfully written into Supabase.');
+      } else if (key === 'orders' && Array.isArray(value)) {
+        const payload = value.map(o => ({
+          id: o.id,
+          order_number: o.order_number,
+          user_id: o.user_id || null,
+          status: o.status || 'Pending',
+          subtotal: Number(o.subtotal) || 0,
+          delivery_charge: Number(o.delivery_charge) || 0,
+          total: Number(o.total) || 0,
+          customer_name: o.customer_name,
+          customer_phone: o.customer_phone,
+          customer_address: o.customer_address,
+          payment_method: o.payment_method || 'Cash On Delivery',
+          created_at: o.created_at || new Date().toISOString()
+        }));
+        
+        const { error } = await realSupabase.from('orders').upsert(payload);
+        if (error) throw error;
+
+        // Secure difference-based pruning
+        const { data: dbItems } = await realSupabase.from('orders').select('id');
+        if (dbItems) {
+          const dbIds = dbItems.map(row => row.id);
+          const activeIds = payload.map(o => o.id);
+          const idsToDelete = dbIds.filter(id => !activeIds.includes(id));
+          if (idsToDelete.length > 0) {
+            await realSupabase.from('orders').delete().in('id', idsToDelete);
+          }
+        }
+
+        console.log('[Luxe Supabase Sync] Orders list successfully written into Supabase.');
+      }
+    } catch (err) {
+      console.warn('[Luxe Supabase Sync Error]', err);
+    }
   }
 };
 
