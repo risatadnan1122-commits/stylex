@@ -35,36 +35,41 @@ create table if not exists public.users (
 
 -- 3. CREATE PRODUCTS TABLE (Text-based PK for flawless frontend preset and uploads integration)
 create table if not exists public.products (
-  id text primary key,
-  name text not null,
-  slug text unique not null,
-  price numeric not null check (price >= 0),
-  old_price numeric check (old_price >= 0),
-  description text,
-  category text not null,
-  sizes text[] not null default '{}',
-  stock integer default 0 check (stock >= 0),
-  featured boolean default false,
-  image_url text,
-  additional_images text[] default '{}',
-  coupon_code text,
-  coupon_discount numeric check (coupon_discount >= 0),
-  free_delivery boolean default false,
-  bengali_details text,
-  majestic_highlight boolean default false,
-  trending boolean default false,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  id text primary key
 );
 
--- Ensure existing products table columns are up-to-date with new columns (if not dropped)
-alter table public.products add column if not exists additional_images text[] default '{}';
+-- Ensure existing or newly created products table is brought up to date with ALL columns exactly matching the TypeScript Product interface
+alter table public.products add column if not exists name text default '' not null;
+alter table public.products add column if not exists slug text default '' not null;
+alter table public.products add column if not exists price numeric default 0 not null check (price >= 0);
+alter table public.products add column if not exists old_price numeric check (old_price >= 0);
+alter table public.products add column if not exists description text default '';
+alter table public.products add column if not exists category text default 'Apparel' not null;
+alter table public.products add column if not exists sizes text[] not null default '{}'::text[];
+alter table public.products add column if not exists stock integer default 0 check (stock >= 0);
+alter table public.products add column if not exists featured boolean default false;
+alter table public.products add column if not exists image_url text;
+alter table public.products add column if not exists additional_images text[] default '{}'::text[];
 alter table public.products add column if not exists coupon_code text;
 alter table public.products add column if not exists coupon_discount numeric check (coupon_discount >= 0);
 alter table public.products add column if not exists free_delivery boolean default false;
 alter table public.products add column if not exists bengali_details text;
 alter table public.products add column if not exists majestic_highlight boolean default false;
 alter table public.products add column if not exists trending boolean default false;
+alter table public.products add column if not exists created_at timestamp with time zone default timezone('utc'::text, now()) not null;
+alter table public.products add column if not exists updated_at timestamp with time zone default timezone('utc'::text, now()) not null;
+
+-- Ensure constraints and indexes are established safely
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint 
+    where conname = 'products_slug_key'
+  ) then
+    alter table public.products add constraint products_slug_key unique (slug);
+  end if;
+end;
+$$;
 
 -- 4. CREATE ORDERS TABLE
 create table if not exists public.orders (

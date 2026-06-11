@@ -27,6 +27,19 @@ import GiftModal from './components/GiftModal';
 import AnnouncementPopup from './components/AnnouncementPopup';
 import { Sparkles, Heart, Star, ShieldAlert, ShoppingBag, ShoppingCart, Eye, X, MessageSquare, Clock, Globe, Share2, CheckCheck, Instagram, Facebook, Music, ChevronUp, Crown } from 'lucide-react';
 
+const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    try {
+      return crypto.randomUUID();
+    } catch (e) {}
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 export default function App() {
   const db = getSimulatedDB();
 
@@ -643,7 +656,7 @@ export default function App() {
   const handleAddProduct = (newProd: Omit<Product, 'id'>) => {
     const fresh: Product = {
       ...newProd,
-      id: 'p_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -672,7 +685,7 @@ export default function App() {
     couponapplied: string;
   }, totalSum: number) => {
     const itemsDetail = cartItems.map(item => ({
-      id: 'item_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       order_id: '',
       product_id: item.product.id,
       quantity: item.quantity,
@@ -687,7 +700,7 @@ export default function App() {
 
     const orderNumber = 'STLX-' + Math.floor(100000 + Math.random() * 900000);
     const freshOrder: Order = {
-      id: 'o_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       order_number: orderNumber,
       user_id: currentUser ? currentUser.id : null,
       status: 'Pending',
@@ -741,7 +754,7 @@ export default function App() {
 
     // Dynamic real-time Concierge congratulations feed message
     const botCongratsMsg: ChatMessage = {
-      id: 'bot_msg_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       sender_id: 'system',
       receiver_id: 'customer_guest',
       message: `Greetings ${customerInfo.name}. Your luxury acquisition order ${orderNumber} is received! Outlay: ৳${totalSum.toLocaleString()}. Our curators are verifying dispatch routes and automated dispatch system notifications are transmitted.`,
@@ -769,7 +782,7 @@ export default function App() {
   // 3. REVIEWS & RATINGS INBOX APPRAISAL
   const handleAddReview = (productId: string, rating: number, comment: string, name: string) => {
     const freshReview: Review = {
-      id: 'rev_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       product_id: productId,
       customer_name: name,
       rating,
@@ -798,7 +811,7 @@ export default function App() {
   const handleAddCoupon = (couponDetail: Omit<Coupon, 'id'>) => {
     const fresh: Coupon = {
       ...couponDetail,
-      id: 'c_' + Math.random().toString(36).substr(2, 9)
+      id: generateUUID()
     };
     const updated = [...coupons, fresh];
     setCoupons(updated);
@@ -814,7 +827,7 @@ export default function App() {
   // 5. GLOBAL PRESETS OR AUTH USER SESSIONS
   const handleLogin = (email: string, role: 'admin' | 'customer', fullname: string, phone: string, isSignup?: boolean) => {
     const user: AppUser = {
-      id: 'user_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       email,
       full_name: fullname,
       phone,
@@ -860,7 +873,7 @@ export default function App() {
   // 6. SYMMETRICAL INTERACTIVE LIVE CHATS CONSOLE
   const handleSendMessage = (msg: string) => {
     const fresh: ChatMessage = {
-      id: 'ch_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       sender_id: 'customer_guest',
       receiver_id: 'admin_concierge',
       message: msg,
@@ -882,7 +895,7 @@ export default function App() {
       const selectedReply = automaticReplies[Math.floor(Math.random() * automaticReplies.length)];
       
       const botReply: ChatMessage = {
-        id: 'bot_reply_' + Math.random().toString(36).substr(2, 9),
+        id: generateUUID(),
         sender_id: 'admin_concierge',
         receiver_id: 'customer_guest',
         message: selectedReply,
@@ -897,7 +910,7 @@ export default function App() {
 
   const handleAdminReplyChat = (msg: string) => {
     const fresh: ChatMessage = {
-      id: 'admin_ch_' + Math.random().toString(36).substr(2, 9),
+      id: generateUUID(),
       sender_id: 'admin_concierge',
       receiver_id: 'customer_guest',
       message: msg,

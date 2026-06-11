@@ -38,7 +38,7 @@ export const realSupabase = (() => {
 // HIGH-END LUXURY SEED DATA FOR SIMULATION MODE
 const DEFAULT_PRODUCTS: Product[] = [
   {
-    id: 'p1',
+    id: 'ebf743ba-7607-42c6-b333-f38bdf8872f2',
     name: 'Risat Adnan',
     slug: 'risat-adnan-curate',
     price: 122,
@@ -51,7 +51,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     image_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop'
   },
   {
-    id: 'p2',
+    id: '3d376ca3-1df5-4927-b648-9bb3298c9cd2',
     name: 'Hello',
     slug: 'hello-luxury-box',
     price: 100,
@@ -64,7 +64,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     image_url: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=800&auto=format&fit=crop'
   },
   {
-    id: 'p3',
+    id: '67c51cb4-77bf-4632-95f7-6bf6f16361a9',
     name: 'Risat',
     slug: 'risat-espresso-crema',
     price: 100,
@@ -76,7 +76,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     image_url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop'
   },
   {
-    id: 'p4',
+    id: 'bfdfd498-c6ec-48e0-bb17-76ae3da66971',
     name: 'Hi',
     slug: 'hi-espresso-extraction',
     price: 122,
@@ -89,7 +89,7 @@ const DEFAULT_PRODUCTS: Product[] = [
     image_url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop'
   },
   {
-    id: 'p5',
+    id: 'bfd7e97d-606c-4f81-a957-c81ca0cb6460',
     name: 'Welcome',
     slug: 'welcome-gilded-accessory',
     price: 100,
@@ -127,10 +127,10 @@ const DEFAULT_SETTINGS: SiteSettings = {
   gift_discount_type: 'percentage',
   gift_discount_value: 25,
   lottery_prizes: [
-    { id: 'lp1', title: '1st Prize - Custom Executive Timepiece (5% coupon code)', type: 'watch', minOrder: 0, discount: 5 },
-    { id: 'lp2', title: '2nd Prize - Signature Aureum Cufflinks (3% coupon code)', type: 'jewelry', minOrder: 0, discount: 3 },
-    { id: 'lp3', title: '3rd Prize - Elite Luxury Voucher (20% coupon code)', type: 'voucher', minOrder: 15000, discount: 20 },
-    { id: 'lp4', title: 'Consolation Prize - White-Glove VIP Delivery Pass (50% coupon code)', type: 'service', minOrder: 0, discount: 50 }
+    { id: 'bb9e73ba-1c22-4822-ba34-4bcff4296ccd', title: '1st Prize - Custom Executive Timepiece (5% coupon code)', type: 'watch', minOrder: 0, discount: 5 },
+    { id: 'f2788390-de52-4731-bfb8-bcff21a8dbeb', title: '2nd Prize - Signature Aureum Cufflinks (3% coupon code)', type: 'jewelry', minOrder: 0, discount: 3 },
+    { id: '9bc0032b-f3eb-4682-8bc3-abffcca19dbe', title: '3rd Prize - Elite Luxury Voucher (20% coupon code)', type: 'voucher', minOrder: 15000, discount: 20 },
+    { id: '18abedff-22bf-4632-ab33-bcffeaec29df', title: 'Consolation Prize - White-Glove VIP Delivery Pass (50% coupon code)', type: 'service', minOrder: 0, discount: 50 }
   ],
   lottery_enabled: true,
   popup_enabled: true,
@@ -141,17 +141,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 const DEFAULT_COUPONS: Coupon[] = [
-  { id: 'c1', code: 'AUREUM100', discount_type: 'fixed', discount_value: 100, min_order_amount: 500, active: true },
-  { id: 'c2', code: 'NIGHTGOLD20', discount_type: 'percentage', discount_value: 20, min_order_amount: 1000, active: true }
+  { id: 'a3b2bfa9-6bf1-447a-afcf-bbf212361de4', code: 'AUREUM100', discount_type: 'fixed', discount_value: 100, min_order_amount: 500, active: true },
+  { id: 'e1329bf8-fc2d-41a9-b7b5-2fa942be4b60', code: 'NIGHTGOLD20', discount_type: 'percentage', discount_value: 20, min_order_amount: 1000, active: true }
 ];
 
 const DEFAULT_REVIEWS: Review[] = [
-  { id: 'r1', product_id: 'p1', customer_name: 'Edward Sterling', rating: 5, comment: 'Exquisite weight and stunning brushed gold. The precision craftsmanship is undeniable.', approved: true, created_at: '2026-05-12T10:00:00Z' },
-  { id: 'r2', product_id: 'p3', customer_name: 'Genevieve V.', rating: 5, comment: 'Absolutely mesmerizing. The stitching is flawless and it coordinates beautifully with any high-end evening look.', approved: true, created_at: '2026-05-20T14:30:00Z' }
+  { id: '83e9bbfd-e854-46fd-abf6-86c57f58be6f', product_id: 'ebf743ba-7607-42c6-b333-f38bdf8872f2', customer_name: 'Edward Sterling', rating: 5, comment: 'Exquisite weight and stunning brushed gold. The precision craftsmanship is undeniable.', approved: true, created_at: '2026-05-12T10:00:00Z' },
+  { id: '06fbe92e-360e-4861-ba1b-be6bfb3f2343', product_id: '67c51cb4-77bf-4632-95f7-6bf6f16361a9', customer_name: 'Genevieve V.', rating: 5, comment: 'Absolutely mesmerizing. The stitching is flawless and it coordinates beautifully with any high-end evening look.', approved: true, created_at: '2026-05-20T14:30:00Z' }
 ];
 
 const DEFAULT_CHATS: ChatMessage[] = [
-  { id: 'ch1', sender_id: 'system', receiver_id: 'customer_guest', message: 'Welcome to STYLE X. Our personal concierge is at your absolute service.', seen: true, created_at: '2026-06-04T12:00:00Z' }
+  { id: 'cf6721da-190f-48e5-b1a3-2ca73a887ccd', sender_id: 'system', receiver_id: 'customer_guest', message: 'Welcome to STYLE X. Our personal concierge is at your absolute service.', seen: true, created_at: '2026-06-04T12:00:00Z' }
 ];
 
 // STATE STORAGE SIMULATION
@@ -370,14 +370,51 @@ const syncToServer = async (key: string, value: any) => {
 
 // VIRTUAL MEMORY MANAGER
 export const getSimulatedDB = () => {
-  let products = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
+  const legacyIdMap: Record<string, string> = {
+    'p1': 'ebf743ba-7607-42c6-b333-f38bdf8872f2',
+    'p2': '3d376ca3-1df5-4927-b648-9bb3298c9cd2',
+    'p3': '67c51cb4-77bf-4632-95f7-6bf6f16361a9',
+    'p4': 'bfdfd498-c6ec-48e0-bb17-76ae3da66971',
+    'p5': 'bfd7e97d-606c-4f81-a957-c81ca0cb6460',
+    'r1': '83e9bbfd-e854-46fd-abf6-86c57f58be6f',
+    'r2': '06fbe92e-360e-4861-ba1b-be6bfb3f2343',
+    'c1': 'a3b2bfa9-6bf1-447a-afcf-bbf212361de4',
+    'c2': 'e1329bf8-fc2d-41a9-b7b5-2fa942be4b60',
+    'ch1': 'cf6721da-190f-48e5-b1a3-2ca73a887ccd'
+  };
+
+  const isUUID = (str: string): boolean => {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  };
+
+  const toUUID = (id: string): string => {
+    if (!id) return '00000000-0000-0000-0000-000000000000';
+    if (legacyIdMap[id]) return legacyIdMap[id];
+    if (isUUID(id)) return id;
+    // Map non-uuid alphanumeric slugs gracefully to a stable pseudo-UUID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  };
+
+  let loadedProducts = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
   
-  // Force migration for premium screenshot compliance (Safeguarded to prevent resetting custom user products)
-  const isDefaultUnmodified = products.length === DEFAULT_PRODUCTS.length && 
-    products.every((p, idx) => p.id === DEFAULT_PRODUCTS[idx].id && p.name === DEFAULT_PRODUCTS[idx].name);
-  if (isDefaultUnmodified && products.length > 0 && products[0].id === 'p1' && products[0].name !== 'Risat Adnan') {
-    products = DEFAULT_PRODUCTS;
-    setStored('stylex_products', DEFAULT_PRODUCTS);
+  // Transform all product IDs to clean UUIDs and de-duplicate by unique item ID
+  const productMap = new Map<string, Product>();
+  loadedProducts.forEach(p => {
+    if (p && p.id) {
+      const cleanId = toUUID(p.id);
+      productMap.set(cleanId, { ...p, id: cleanId });
+    }
+  });
+  let products = Array.from(productMap.values());
+
+  // Force update back if all IDs were migrated or if duplicates were removed
+  const anyProductMigratedOrDuplicated = loadedProducts.some(p => !isUUID(p.id)) || (loadedProducts.length !== products.length);
+  if (anyProductMigratedOrDuplicated) {
+    setStored('stylex_products', products);
   }
 
   const settings = getStored<SiteSettings>('stylex_settings', DEFAULT_SETTINGS);
@@ -438,18 +475,82 @@ export const getSimulatedDB = () => {
   if (settings.popup_image_url === undefined) {
     settings.popup_image_url = DEFAULT_SETTINGS.popup_image_url;
   }
-  const coupons = getStored<Coupon[]>('stylex_coupons', DEFAULT_COUPONS);
-  const reviews = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);
-  const chats = getStored<ChatMessage[]>('stylex_chats', DEFAULT_CHATS);
-  const orders = getStored<Order[]>('stylex_orders', []);
-  const currentUser = getStored<AppUser | null>('stylex_current_user', {
-    id: 'user_customer_demo',
+  const loadedCoupons = getStored<Coupon[]>('stylex_coupons', DEFAULT_COUPONS);
+  const couponMap = new Map<string, Coupon>();
+  loadedCoupons.forEach(c => {
+    if (c && c.id) {
+      const cleanId = toUUID(c.id);
+      couponMap.set(cleanId, { ...c, id: cleanId });
+    }
+  });
+  const coupons = Array.from(couponMap.values());
+  if (loadedCoupons.some(c => !isUUID(c.id)) || loadedCoupons.length !== coupons.length) {
+    setStored('stylex_coupons', coupons);
+  }
+
+  const loadedReviews = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);
+  const reviewMap = new Map<string, Review>();
+  loadedReviews.forEach(r => {
+    if (r && r.id) {
+      const cleanId = toUUID(r.id);
+      reviewMap.set(cleanId, { ...r, id: cleanId, product_id: toUUID(r.product_id) });
+    }
+  });
+  const reviews = Array.from(reviewMap.values());
+  if (loadedReviews.some(r => !isUUID(r.id) || !isUUID(r.product_id)) || loadedReviews.length !== reviews.length) {
+    setStored('stylex_reviews', reviews);
+  }
+
+  const loadedChats = getStored<ChatMessage[]>('stylex_chats', DEFAULT_CHATS);
+  const chatMap = new Map<string, ChatMessage>();
+  loadedChats.forEach(ch => {
+    if (ch && ch.id) {
+      const cleanId = toUUID(ch.id);
+      chatMap.set(cleanId, { ...ch, id: cleanId });
+    }
+  });
+  const chats = Array.from(chatMap.values());
+  if (loadedChats.some(ch => !isUUID(ch.id)) || loadedChats.length !== chats.length) {
+    setStored('stylex_chats', chats);
+  }
+
+  const loadedOrders = getStored<Order[]>('stylex_orders', []);
+  const orderMap = new Map<string, Order>();
+  loadedOrders.forEach(o => {
+    if (o && o.id) {
+      const cleanId = toUUID(o.id);
+      orderMap.set(cleanId, {
+        ...o,
+        id: cleanId,
+        user_id: o.user_id ? toUUID(o.user_id) : null,
+        order_items: (o.order_items || []).map(item => ({
+          ...item,
+          id: toUUID(item.id),
+          product_id: toUUID(item.product_id)
+        }))
+      });
+    }
+  });
+  const orders = Array.from(orderMap.values());
+  if (loadedOrders.some(o => !isUUID(o.id) || (o.user_id && !isUUID(o.user_id)) || (o.order_items || []).some(item => !isUUID(item.id) || !isUUID(item.product_id))) || loadedOrders.length !== orders.length) {
+    setStored('stylex_orders', orders);
+  }
+
+  const loadedCurrentUser = getStored<AppUser | null>('stylex_current_user', {
+    id: 'f93d47ce-73ba-4ef3-b183-bcff217e9ccd',
     email: 'risatadnan1122@gmail.com',
     full_name: 'Risat Adnan',
     phone: '+880 17 0000 0112',
     role: 'customer',
     avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop'
   });
+  const currentUser = loadedCurrentUser ? {
+    ...loadedCurrentUser,
+    id: toUUID(loadedCurrentUser.id)
+  } : null;
+  if (loadedCurrentUser && !isUUID(loadedCurrentUser.id)) {
+    setStored('stylex_current_user', currentUser);
+  }
 
   return {
     products,

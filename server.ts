@@ -16,7 +16,7 @@ async function startServer() {
   // Elite Default Datasets matching supabaseClient.ts perfectly
   const DEFAULT_PRODUCTS = [
     {
-      id: 'p1',
+      id: 'ebf743ba-7607-42c6-b333-f38bdf8872f2',
       name: 'Risat Adnan',
       slug: 'risat-adnan-curate',
       price: 122,
@@ -29,7 +29,7 @@ async function startServer() {
       image_url: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&auto=format&fit=crop'
     },
     {
-      id: 'p2',
+      id: '3d376ca3-1df5-4927-b648-9bb3298c9cd2',
       name: 'Hello',
       slug: 'hello-luxury-box',
       price: 100,
@@ -42,7 +42,7 @@ async function startServer() {
       image_url: 'https://images.unsplash.com/photo-1511556532299-8f662fc26c06?w=800&auto=format&fit=crop'
     },
     {
-      id: 'p3',
+      id: '67c51cb4-77bf-4632-95f7-6bf6f16361a9',
       name: 'Risat',
       slug: 'risat-espresso-crema',
       price: 100,
@@ -54,7 +54,7 @@ async function startServer() {
       image_url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop'
     },
     {
-      id: 'p4',
+      id: 'bfdfd498-c6ec-48e0-bb17-76ae3da66971',
       name: 'Hi',
       slug: 'hi-espresso-extraction',
       price: 122,
@@ -67,7 +67,7 @@ async function startServer() {
       image_url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=800&auto=format&fit=crop'
     },
     {
-      id: 'p5',
+      id: 'bfd7e97d-606c-4f81-a957-c81ca0cb6460',
       name: 'Welcome',
       slug: 'welcome-gilded-accessory',
       price: 100,
@@ -105,10 +105,10 @@ async function startServer() {
     gift_discount_type: 'percentage',
     gift_discount_value: 25,
     lottery_prizes: [
-      { id: 'lp1', title: '1st Prize - Custom Executive Timepiece (5% coupon code)', type: 'watch', minOrder: 0, discount: 5 },
-      { id: 'lp2', title: '2nd Prize - Signature Aureum Cufflinks (3% coupon code)', type: 'jewelry', minOrder: 0, discount: 3 },
-      { id: 'lp3', title: '3rd Prize - Elite Luxury Voucher (20% coupon code)', type: 'voucher', minOrder: 15000, discount: 20 },
-      { id: 'lp4', title: 'Consolation Prize - White-Glove VIP Delivery Pass (50% coupon code)', type: 'service', minOrder: 0, discount: 50 }
+      { id: 'bb9e73ba-1c22-4822-ba34-4bcff4296ccd', title: '1st Prize - Custom Executive Timepiece (5% coupon code)', type: 'watch', minOrder: 0, discount: 5 },
+      { id: 'f2788390-de52-4731-bfb8-bcff21a8dbeb', title: '2nd Prize - Signature Aureum Cufflinks (3% coupon code)', type: 'jewelry', minOrder: 0, discount: 3 },
+      { id: '9bc0032b-f3eb-4682-8bc3-abffcca19dbe', title: '3rd Prize - Elite Luxury Voucher (20% coupon code)', type: 'voucher', minOrder: 15000, discount: 20 },
+      { id: '18abedff-22bf-4632-ab33-bcffeaec29df', title: 'Consolation Prize - White-Glove VIP Delivery Pass (50% coupon code)', type: 'service', minOrder: 0, discount: 50 }
     ],
     lottery_enabled: true,
     popup_enabled: true,
@@ -119,17 +119,17 @@ async function startServer() {
   };
 
   const DEFAULT_COUPONS = [
-    { id: 'c1', code: 'AUREUM100', discount_type: 'fixed', discount_value: 100, min_order_amount: 500, active: true },
-    { id: 'c2', code: 'NIGHTGOLD20', discount_type: 'percentage', discount_value: 20, min_order_amount: 1000, active: true }
+    { id: 'a3b2bfa9-6bf1-447a-afcf-bbf212361de4', code: 'AUREUM100', discount_type: 'fixed', discount_value: 100, min_order_amount: 500, active: true },
+    { id: 'e1329bf8-fc2d-41a9-b7b5-2fa942be4b60', code: 'NIGHTGOLD20', discount_type: 'percentage', discount_value: 20, min_order_amount: 1000, active: true }
   ];
 
   const DEFAULT_REVIEWS = [
-    { id: 'r1', product_id: 'p1', customer_name: 'Edward Sterling', rating: 5, comment: 'Exquisite weight and stunning brushed gold. The precision craftsmanship is undeniable.', approved: true, created_at: '2026-05-12T10:00:00Z' },
-    { id: 'r2', product_id: 'p3', customer_name: 'Genevieve V.', rating: 5, comment: 'Absolutely mesmerizing. The stitching is flawless and it coordinates beautifully with any high-end evening look.', approved: true, created_at: '2026-05-20T14:30:00Z' }
+    { id: '83e9bbfd-e854-46fd-abf6-86c57f58be6f', product_id: 'ebf743ba-7607-42c6-b333-f38bdf8872f2', customer_name: 'Edward Sterling', rating: 5, comment: 'Exquisite weight and stunning brushed gold. The precision craftsmanship is undeniable.', approved: true, created_at: '2026-05-12T10:00:00Z' },
+    { id: '06fbe92e-360e-4861-ba1b-be6bfb3f2343', product_id: '67c51cb4-77bf-4632-95f7-6bf6f16361a9', customer_name: 'Genevieve V.', rating: 5, comment: 'Absolutely mesmerizing. The stitching is flawless and it coordinates beautifully with any high-end evening look.', approved: true, created_at: '2026-05-20T14:30:00Z' }
   ];
 
   const DEFAULT_CHATS = [
-    { id: 'ch1', sender_id: 'system', receiver_id: 'customer_guest', message: 'Welcome to STYLE X. Our personal concierge is at your absolute service.', seen: true, created_at: '2026-06-04T12:00:00Z' }
+    { id: 'cf6721da-190f-48e5-b1a3-2ca73a887ccd', sender_id: 'system', receiver_id: 'customer_guest', message: 'Welcome to STYLE X. Our personal concierge is at your absolute service.', seen: true, created_at: '2026-06-04T12:00:00Z' }
   ];
 
   function getInitialDB() {
@@ -143,13 +143,138 @@ async function startServer() {
     };
   }
 
+  const legacyIdMap: Record<string, string> = {
+    'p1': 'ebf743ba-7607-42c6-b333-f38bdf8872f2',
+    'p2': '3d376ca3-1df5-4927-b648-9bb3298c9cd2',
+    'p3': '67c51cb4-77bf-4632-95f7-6bf6f16361a9',
+    'p4': 'bfdfd498-c6ec-48e0-bb17-76ae3da66971',
+    'p5': 'bfd7e97d-606c-4f81-a957-c81ca0cb6460',
+    'r1': '83e9bbfd-e854-46fd-abf6-86c57f58be6f',
+    'r2': '06fbe92e-360e-4861-ba1b-be6bfb3f2343',
+    'c1': 'a3b2bfa9-6bf1-447a-afcf-bbf212361de4',
+    'c2': 'e1329bf8-fc2d-41a9-b7b5-2fa942be4b60',
+    'ch1': 'cf6721da-190f-48e5-b1a3-2ca73a887ccd'
+  };
+
+  const isUUID = (str: string): boolean => {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+  };
+
+  const toUUID = (id: string): string => {
+    if (!id) return '00000000-0000-0000-0000-000000000000';
+    if (legacyIdMap[id]) return legacyIdMap[id];
+    if (isUUID(id)) return id;
+    return id; // Leave UUID or other non-legacy IDs as is
+  };
+
+  function normalizeDB(db: any): boolean {
+    let modified = false;
+
+    if (db.products && Array.isArray(db.products)) {
+      const productMap = new Map<string, any>();
+      db.products.forEach((p: any) => {
+        if (p && p.id) {
+          const cleanId = toUUID(p.id);
+          if (p.id !== cleanId) modified = true;
+          productMap.set(cleanId, { ...p, id: cleanId });
+        }
+      });
+      const originLen = db.products.length;
+      db.products = Array.from(productMap.values());
+      if (db.products.length !== originLen) modified = true;
+    }
+
+    if (db.coupons && Array.isArray(db.coupons)) {
+      const couponMap = new Map<string, any>();
+      db.coupons.forEach((c: any) => {
+        if (c && c.id) {
+          const cleanId = toUUID(c.id);
+          if (c.id !== cleanId) modified = true;
+          couponMap.set(cleanId, { ...c, id: cleanId });
+        }
+      });
+      const originLen = db.coupons.length;
+      db.coupons = Array.from(couponMap.values());
+      if (db.coupons.length !== originLen) modified = true;
+    }
+
+    if (db.reviews && Array.isArray(db.reviews)) {
+      const reviewMap = new Map<string, any>();
+      db.reviews.forEach((r: any) => {
+        if (r && r.id) {
+          const cleanId = toUUID(r.id);
+          const cleanProductId = toUUID(r.product_id);
+          if (r.id !== cleanId || r.product_id !== cleanProductId) modified = true;
+          reviewMap.set(cleanId, { ...r, id: cleanId, product_id: cleanProductId });
+        }
+      });
+      const originLen = db.reviews.length;
+      db.reviews = Array.from(reviewMap.values());
+      if (db.reviews.length !== originLen) modified = true;
+    }
+
+    if (db.chats && Array.isArray(db.chats)) {
+      const chatMap = new Map<string, any>();
+      db.chats.forEach((ch: any) => {
+        if (ch && ch.id) {
+          const cleanId = toUUID(ch.id);
+          if (ch.id !== cleanId) modified = true;
+          chatMap.set(cleanId, { ...ch, id: cleanId });
+        }
+      });
+      const originLen = db.chats.length;
+      db.chats = Array.from(chatMap.values());
+      if (db.chats.length !== originLen) modified = true;
+    }
+
+    if (db.orders && Array.isArray(db.orders)) {
+      const orderMap = new Map<string, any>();
+      db.orders.forEach((o: any) => {
+        if (o && o.id) {
+          const cleanId = toUUID(o.id);
+          const cleanUserId = o.user_id ? toUUID(o.user_id) : null;
+          const cleanItems = (o.order_items || []).map((item: any) => {
+            const cleanItemId = toUUID(item.id);
+            const cleanProdId = toUUID(item.product_id);
+            if (item.id !== cleanItemId || item.product_id !== cleanProdId) modified = true;
+            return {
+              ...item,
+              id: cleanItemId,
+              product_id: cleanProdId
+            };
+          });
+
+          if (o.id !== cleanId || o.user_id !== cleanUserId) modified = true;
+
+          orderMap.set(cleanId, {
+            ...o,
+            id: cleanId,
+            user_id: cleanUserId,
+            order_items: cleanItems
+          });
+        }
+      });
+      const originLen = db.orders.length;
+      db.orders = Array.from(orderMap.values());
+      if (db.orders.length !== originLen) modified = true;
+    }
+
+    return modified;
+  }
+
   function readDB() {
     try {
       if (!fs.existsSync(DB_PATH)) {
         fs.writeFileSync(DB_PATH, JSON.stringify(getInitialDB(), null, 2), 'utf-8');
       }
       const data = fs.readFileSync(DB_PATH, 'utf-8');
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      const wasModified = normalizeDB(parsed);
+      if (wasModified) {
+        writeDB(parsed);
+        console.log('[Luxe Database Server Schema Sync] db normalized on startup and written to disk');
+      }
+      return parsed;
     } catch (e) {
       console.error("Error reading database file, returning default schema:", e);
       return getInitialDB();
