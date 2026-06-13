@@ -182,6 +182,21 @@ const setStored = (key: string, val: any) => {
   localStorage.setItem(key, JSON.stringify(val));
 };
 
+export interface TableStatus {
+  available: boolean;
+  hasSchemaMismatch?: boolean;
+  errorMessage?: string;
+}
+
+export const supabaseTableStatus: Record<string, TableStatus> = {
+  products: { available: true },
+  site_settings: { available: true },
+  reviews: { available: true },
+  chats: { available: true },
+  orders: { available: true },
+  coupons: { available: true }
+};
+
 export interface SupabaseData {
   products: Product[];
   settings: SiteSettings;
@@ -190,6 +205,14 @@ export interface SupabaseData {
   orders: Order[];
   coupons: Coupon[];
   currentUser: AppUser | null;
+  errors?: {
+    products?: any;
+    settings?: any;
+    reviews?: any;
+    chats?: any;
+    orders?: any;
+    coupons?: any;
+  };
 }
 
 // 1. Core Loader: Fetches products/settings/orders/reviews/coupons FROM Supabase first
@@ -198,6 +221,37 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
     console.log('[Luxe Supabase Loader] Real Supabase client is not configured; running in Simulation local mode.');
     return null;
   }
+
+  // Schema aligner helper
+  const checkErrorForStatus = (key: string, error: any) => {
+    if (!error) return;
+    const msg = (error.message || '').toLowerCase();
+    const code = error.code ? String(error.code) : '';
+    
+    const dbKey = key === 'settings' ? 'site_settings' : key;
+    const isMissingTable = msg.includes('does not exist') || msg.includes('not found') || msg.includes('relation');
+    const isMissingColumn = msg.includes('column') || msg.includes('cache');
+    const isRLSOrPrivilege = code === '42501' || msg.includes('row-level security') || msg.includes('privilege') || msg.includes('permission') || msg.includes('policy');
+    
+    if (isMissingTable || isRLSOrPrivilege) {
+      supabaseTableStatus[dbKey] = {
+        available: false,
+        errorMessage: error.message
+      };
+      if (isRLSOrPrivilege) {
+        console.warn(`[Luxe Supabase Schema Check] Table public.${dbKey} has RLS block or privilege restriction. Fallback local/sim activated.`);
+      } else {
+        console.warn(`[Luxe Supabase Schema Check] Table public.${dbKey} does not exist in backend. Fallback local/sim activated.`);
+      }
+    } else if (isMissingColumn) {
+      supabaseTableStatus[dbKey] = {
+        available: false,
+        hasSchemaMismatch: true,
+        errorMessage: error.message
+      };
+      console.warn(`[Luxe Supabase Schema Check] Table public.${dbKey} column/cache mismatch detected. Fallback local/sim activated.`);
+    }
+  };
 
   try {
     console.log('[Luxe Supabase Loader] Fetching all key datasets directly from Supabase...');
@@ -231,6 +285,14 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       ords = res.data;
       oErr = res.error;
     }
+
+    // Dyn schema auditing checks
+    checkErrorForStatus('products', pErr);
+    checkErrorForStatus('settings', sErr);
+    checkErrorForStatus('reviews', rErr);
+    checkErrorForStatus('chats', cErr);
+    checkErrorForStatus('orders', oErr);
+    checkErrorForStatus('coupons', cpErr);
 
     if (pErr) console.warn('[Supabase load products error]', pErr);
     if (sErr) console.warn('[Supabase load settings error]', sErr);
@@ -332,6 +394,15 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       coupons: formattedCoupons.length
     });
 
+    const queryErrors = {
+      products: pErr || null,
+      settings: sErr || null,
+      reviews: rErr || null,
+      chats: cErr || null,
+      orders: oErr || null,
+      coupons: cpErr || null
+    };
+
     return {
       products: formattedProducts,
       settings: siteSettings,
@@ -339,7 +410,8 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       chats: formattedChats,
       orders: formattedOrders,
       coupons: formattedCoupons,
-      currentUser: null
+      currentUser: null,
+      errors: queryErrors
     };
   } catch (err) {
     supabaseErrorHandler(err, 'Database catalog loading');
@@ -384,6 +456,13 @@ const syncToServer = async (key: string, value: any) => {
 
   // 3. Post/Sync to real Supabase database if configured
   if (isRealSupabaseConfigured && realSupabase) {
+    const dbKey = key === 'settings' ? 'site_settings' : (key === 'currentUser' ? 'users' : key);
+    const status = supabaseTableStatus[dbKey];
+    if (status && !status.available) {
+      console.warn(`[Luxe Supabase Safe Prevention] Skipping realtime sync on deactivated/misaligned "${key}" ledger.`);
+      return;
+    }
+
     try {
       if (key === 'products' && Array.isArray(value)) {
         const payload = value.map(p => ({
@@ -525,8 +604,21 @@ const syncToServer = async (key: string, value: any) => {
         if (error) throw error;
         console.log('[Luxe Supabase Sync] Coupons list successfully written into Supabase.');
       }
-    } catch (err) {
-      supabaseErrorHandler(err, `Synchronizing ${key} ledger`);
+    } catch (err: any) {
+      const msg = (err?.message || '').toLowerCase();
+      const code = err?.code ? String(err.code) : '';
+      const isRLSOrPrivilege = code === '42501' || msg.includes('row-level security') || msg.includes('privilege') || msg.includes('permission') || msg.includes('policy');
+
+      if (msg.includes('column') || msg.includes('does not exist') || msg.includes('relation') || msg.includes('cache') || isRLSOrPrivilege) {
+        console.warn(`[Luxe Supabase Auto-Deactivation] Sync temporarily deactivated for "${key}" due to database schema misalignment or security policy:`, err);
+        supabaseTableStatus[dbKey] = {
+          available: false,
+          errorMessage: err.message,
+          hasSchemaMismatch: isRLSOrPrivilege ? false : true
+        };
+      } else {
+        supabaseErrorHandler(err, `Synchronizing ${key} ledger`);
+      }
     }
   }
 };
@@ -721,3 +813,98 @@ export const getSimulatedDB = () => {
     saveCurrentUser: (user: AppUser | null) => { setStored('stylex_current_user', user); syncToServer('currentUser', user); }
   };
 };
+
+/**
+ * HIGH-END SUPABASE STORAGE UPLOADER
+ * Uploads a file directly to the Supabase Storage 'products' bucket,
+ * supporting dynamic bucket provisioning, comprehensive error handling,
+ * and high-end Base64 fallbacks for local simulator modes.
+ */
+export const uploadProductImage = async (file: File): Promise<string> => {
+  // If real Supabase is not configured, fall back to FileReader (Base64)
+  if (!isRealSupabaseConfigured || !realSupabase) {
+    console.log('[Luxe Storage Fallback] No real Supabase client. Converting to elegant Base64 representation.');
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = (e) => reject(e);
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Generate an ultra-clean, elegant, unique pathname to store files securely
+  const fileExt = file.name.split('.').pop() || 'png';
+  const cleanFileName = file.name.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+  const timestamp = Date.now();
+  const filePath = `${timestamp}_${cleanFileName}`;
+
+  try {
+    console.log(`[Luxe Storage] Initiating high-end upload for: ${file.name}, size: ${file.size} bytes`);
+    
+    // Attempt uploading the asset to the 'products' bucket
+    const { data, error } = await realSupabase.storage
+      .from('products')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) {
+       // If the bucket doesn't exist yet, attempt directory provisioning
+       if (error.message && (error.message.includes('not found') || error.message.includes('bucket') || error.message.includes('not exist'))) {
+         console.warn('[Luxe Storage Warning] Bucket "products" not found. Attempting automatic boutique lazy provisioning...');
+         try {
+           const { error: createBucketError } = await realSupabase.storage.createBucket('products', {
+             public: true,
+             fileSizeLimit: 5242880, // 5MB limit for high-end catalog optimization
+             allowedMimeTypes: ['image/*']
+           });
+           
+           if (createBucketError) {
+             console.error('[Luxe Storage] Auto bucket provisioning failed:', createBucketError);
+             throw error; // Re-throw the original error
+           }
+         } catch {
+           throw error; // Re-throw the original error if creation fails
+         }
+         
+         // Retry the upload to the newly provisioned collection
+         const { data: retryData, error: retryError } = await realSupabase.storage
+           .from('products')
+           .upload(filePath, file, {
+             cacheControl: '3600',
+             upsert: true
+           });
+           
+         if (retryError) throw retryError;
+         
+         const { data: publicUrlData } = realSupabase.storage
+           .from('products')
+           .getPublicUrl(filePath);
+         
+         console.log('[Luxe Storage Direct Upload SUCCESS Retried]', publicUrlData.publicUrl);
+         return publicUrlData.publicUrl;
+       }
+       throw error;
+    }
+
+    const { data: publicUrlData } = realSupabase.storage
+      .from('products')
+      .getPublicUrl(filePath);
+
+    console.log('[Luxe Storage Direct Upload SUCCESS]', publicUrlData.publicUrl);
+    return publicUrlData.publicUrl;
+  } catch (err) {
+    console.error('[Luxe Storage Upload Handshake Fail]', err);
+    supabaseErrorHandler(err, `Uploading catalog asset: ${file.name}`);
+    
+    // Graceful, seamless degradation back to elegant Base64 representation
+    console.log('[Luxe Storage Fallback recovery] Initiating Base64 fallback post-crash.');
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+  }
+};
+

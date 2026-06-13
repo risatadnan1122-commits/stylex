@@ -109,15 +109,15 @@ export default function App() {
           console.log('[Supabase loaded products]', loadedJson.products);
           setProducts(loadedJson.products);
           hasLoadedAny = true;
-        } else if (loadedJson.products && loadedJson.products.length === 0) {
+        } else if (loadedJson.products && loadedJson.products.length === 0 && !loadedJson.errors?.products) {
           console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
           await db.saveProducts(products);
         }
 
-        if (loadedJson.settings) {
+        if (loadedJson.settings && !loadedJson.errors?.settings) {
           setSettings(loadedJson.settings);
           hasLoadedAny = true;
-        } else {
+        } else if (!loadedJson.errors?.settings) {
           console.log('[Luxe Supabase Seed] Seeding default settings to Supabase...');
           await db.saveSettings(settings);
         }
@@ -125,14 +125,14 @@ export default function App() {
         if (loadedJson.reviews && loadedJson.reviews.length > 0) {
           setReviews(loadedJson.reviews);
           hasLoadedAny = true;
-        } else if (loadedJson.reviews && loadedJson.reviews.length === 0) {
+        } else if (loadedJson.reviews && loadedJson.reviews.length === 0 && !loadedJson.errors?.reviews) {
           await db.saveReviews(reviews);
         }
 
         if (loadedJson.chats && loadedJson.chats.length > 0) {
           setChats(loadedJson.chats);
           hasLoadedAny = true;
-        } else if (loadedJson.chats && loadedJson.chats.length === 0) {
+        } else if (loadedJson.chats && loadedJson.chats.length === 0 && !loadedJson.errors?.chats) {
           await db.saveChats(chats);
         }
 
@@ -144,7 +144,7 @@ export default function App() {
         if (loadedJson.coupons && loadedJson.coupons.length > 0) {
           setCoupons(loadedJson.coupons);
           hasLoadedAny = true;
-        } else if (loadedJson.coupons && loadedJson.coupons.length === 0) {
+        } else if (loadedJson.coupons && loadedJson.coupons.length === 0 && !loadedJson.errors?.coupons) {
           await db.saveCoupons(coupons);
         }
 

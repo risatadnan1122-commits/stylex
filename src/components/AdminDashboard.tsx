@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Product, Order, Review, Coupon, SiteSettings, ChatMessage } from '../types';
 import SweepstakeLiveDrawModal from './SweepstakeLiveDrawModal';
+import { uploadProductImage, supabaseTableStatus } from '../supabaseClient';
 
 interface AdminDashboardProps {
   products: Product[];
@@ -60,6 +61,11 @@ export default function AdminDashboard({
   });
   const [additionalImageInput, setAdditionalImageInput] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  
+  // Custom high-end uploader indicators
+  const [isUploadingMainImage, setIsUploadingMainImage] = useState(false);
+  const [isUploadingGalleryImages, setIsUploadingGalleryImages] = useState(false);
+  const [isUploadingLogoImage, setIsUploadingLogoImage] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -445,6 +451,27 @@ export default function AdminDashboard({
             )}
 
             {/* Cabinet Tab views */}
+            {Object.entries(supabaseTableStatus).filter(([_, status]) => !status.available).length > 0 && (
+              <div className="mb-6 p-4 rounded-lg bg-[#0C0601] border border-amber-900/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-[0_4px_20px_rgba(212,175,55,0.02)]">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-mono text-[10px] text-amber-400 tracking-[0.2em] uppercase">SUPABASE DATABASE SCHEMA STATUS</h4>
+                    <p className="text-[11px] text-gray-400 mt-1 max-w-[700px] leading-relaxed">
+                      Certain cloud database registers (<strong>{Object.entries(supabaseTableStatus).filter(([_, status]) => !status.available).map(([k]) => k === 'site_settings' ? 'settings' : k).join(', ')}</strong>) are unprovisioned or mismatched. Full interactive operations fell back to local/cloud simulation successfully.
+                    </p>
+                  </div>
+                </div>
+                {onOpenSetupGuide && (
+                  <button 
+                    onClick={onOpenSetupGuide}
+                    className="font-mono text-[9px] uppercase tracking-widest px-3 py-2 bg-amber-500/10 hover:bg-[#D4AF37]/10 text-amber-400 hover:text-[#D4AF37] border border-amber-500/25 rounded transition-all cursor-pointer"
+                  >
+                    SQL ALIGN GUIDE
+                  </button>
+                )}
+              </div>
+            )}
             
             {/* 1. ANALYTICS HUB SCREEN */}
             {activeTab === 'analytics' && (
@@ -903,20 +930,25 @@ export default function AdminDashboard({
                                   onChange={(e) => setProductForm({ ...productForm, image_url: e.target.value })}
                                   className="flex-1 bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-sans"
                                 />
-                                <label className="shrink-0 flex items-center justify-center bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/35 text-[#D4AF37] px-3.5 rounded text-[9px] font-mono cursor-pointer transition-colors uppercase tracking-widest font-bold">
-                                  Upload
+                                <label className="shrink-0 flex items-center justify-center bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/35 text-[#D4AF37] px-3.5 rounded text-[9px] font-mono cursor-pointer transition-colors uppercase tracking-widest font-bold min-w-[80px]">
+                                  {isUploadingMainImage ? 'Uploading...' : 'Upload'}
                                   <input 
                                     type="file" 
                                     accept="image/*" 
+                                    disabled={isUploadingMainImage}
                                     className="hidden" 
-                                    onChange={(e) => {
+                                    onChange={async (e) => {
                                       const file = e.target.files?.[0];
                                       if (file) {
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                          setProductForm({ ...productForm, image_url: reader.result as string });
-                                        };
-                                        reader.readAsDataURL(file);
+                                        setIsUploadingMainImage(true);
+                                        try {
+                                          const uploadedUrl = await uploadProductImage(file);
+                                          setProductForm(prev => ({ ...prev, image_url: uploadedUrl }));
+                                        } catch (uploadError) {
+                                          console.error('[Luxe UI Main Upload Error]', uploadError);
+                                        } finally {
+                                          setIsUploadingMainImage(false);
+                                        }
                                       }
                                     }}
                                   />
@@ -994,14 +1026,15 @@ export default function AdminDashboard({
                                   >
                                     Add
                                   </button>
-                                  <label className="shrink-0 flex items-center justify-center bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/35 text-[#D4AF37] px-3 rounded text-[10px] font-mono cursor-pointer transition-colors uppercase tracking-widest font-bold">
-                                    Upload Files
+                                  <label className="shrink-0 flex items-center justify-center bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 border border-[#D4AF37]/35 text-[#D4AF37] px-3 rounded text-[10px] font-mono cursor-pointer transition-colors uppercase tracking-widest font-bold min-w-[110px]">
+                                    {isUploadingGalleryImages ? 'Uploading...' : 'Upload Files'}
                                     <input 
                                       type="file" 
                                       accept="image/*" 
                                       multiple
+                                      disabled={isUploadingGalleryImages}
                                       className="hidden" 
-                                      onChange={(e) => {
+                                      onChange={async (e) => {
                                         const files = Array.from(e.target.files || []);
                                         if (files.length > 0) {
                                           const current = productForm.additional_images || [];
@@ -1014,22 +1047,20 @@ export default function AdminDashboard({
                                           const remainingSpots = maxAllowed - current.length;
                                           const filesToProcess = files.slice(0, remainingSpots);
                                           
-                                          Promise.all(
-                                            filesToProcess.map((file: File) => {
-                                              return new Promise<string>((resolve) => {
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => {
-                                                  resolve(reader.result as string);
-                                                };
-                                                reader.readAsDataURL(file as Blob);
-                                              });
-                                            })
-                                          ).then(results => {
-                                            setProductForm({
-                                              ...productForm,
-                                              additional_images: [...current, ...results]
-                                            });
-                                          });
+                                          setIsUploadingGalleryImages(true);
+                                          try {
+                                            const results = await Promise.all(
+                                              filesToProcess.map((file: File) => uploadProductImage(file))
+                                            );
+                                            setProductForm(prev => ({
+                                              ...prev,
+                                              additional_images: [...(prev.additional_images || []), ...results]
+                                            }));
+                                          } catch (uploadError) {
+                                            console.error('[Luxe UI Gallery Upload Error]', uploadError);
+                                          } finally {
+                                            setIsUploadingGalleryImages(false);
+                                          }
                                         }
                                       }}
                                     />
@@ -2045,19 +2076,24 @@ export default function AdminDashboard({
                         className="flex-1 bg-black text-xs text-white border border-gold-border/30 p-2.5 rounded font-mono placeholder:text-gray-700"
                       />
                       <div className="flex gap-2">
-                        <label className="bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black font-mono font-bold text-[10px] tracking-wider uppercase px-4 py-2.5 rounded transition-all duration-300 cursor-pointer text-center flex items-center justify-center shrink-0">
-                          <span>Upload File</span>
+                        <label className="bg-gradient-to-r from-[#B8860B] to-[#D4AF37] hover:from-[#D4AF37] hover:to-[#B8860B] text-black font-mono font-bold text-[10px] tracking-wider uppercase px-4 py-2.5 rounded transition-all duration-300 cursor-pointer text-center flex items-center justify-center shrink-0 min-w-[120px]">
+                          <span>{isUploadingLogoImage ? 'Uploading...' : 'Upload File'}</span>
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => {
+                            disabled={isUploadingLogoImage}
+                            onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setSeoForm({ ...seoForm, logo_image_url: reader.result as string });
-                                };
-                                reader.readAsDataURL(file);
+                                setIsUploadingLogoImage(true);
+                                try {
+                                  const uploadedUrl = await uploadProductImage(file);
+                                  setSeoForm(prev => ({ ...prev, logo_image_url: uploadedUrl }));
+                                } catch (uploadError) {
+                                  console.error('[Luxe UI Logo Upload Error]', uploadError);
+                                } finally {
+                                  setIsUploadingLogoImage(false);
+                                }
                               }
                             }}
                             className="hidden"
