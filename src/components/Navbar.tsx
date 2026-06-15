@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, ShoppingBag, User, Menu, X, Settings, Compass, Bell, Crown, Gift, Sparkles } from 'lucide-react';
 import { AppUser, SiteSettings } from '../types';
-import { isRealSupabaseConfigured } from '../supabaseClient';
+import { isRealFirebaseConfigured } from '../firebaseClient';
 
 interface NavbarProps {
   settings: SiteSettings;

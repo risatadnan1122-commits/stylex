@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Product, Order, Review, Coupon, SiteSettings, ChatMessage } from '../types';
 import SweepstakeLiveDrawModal from './SweepstakeLiveDrawModal';
-import { uploadProductImage, supabaseTableStatus } from '../supabaseClient';
+import { uploadProductImage, firebaseTableStatus as supabaseTableStatus } from '../firebaseClient';
 
 interface AdminDashboardProps {
   products: Product[];

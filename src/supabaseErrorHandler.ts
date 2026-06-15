@@ -49,8 +49,8 @@ export const parseSupabaseError = (error: any, contextDescription?: string): Lux
   let title = "DATABASE INFRASTRUCTURE EXCEPTION";
   let message = rawMsg;
 
-  // Exact mappings for typical PostgreSQL / PostgREST error codes
-  if (rawCode === '42501' || rawMsg.toLowerCase().includes('row-level security') || rawMsg.toLowerCase().includes('insufficient privilege')) {
+  // Exact mappings for typical PostgreSQL / PostgREST / Firestore error codes
+  if (rawCode === '42501' || rawMsg.toLowerCase().includes('row-level security') || rawMsg.toLowerCase().includes('insufficient privilege') || rawMsg.toLowerCase().includes('permission-denied') || rawMsg.toLowerCase().includes('insufficient permissions')) {
     title = "AESTHETIC SECURITY BLOCK";
     message = "The STYLE X Collective database declined this request. Safe guest sessions are restricted from altering cloud structures without validated root administrator credentials.";
   } else if (rawCode === '23505' || rawMsg.toLowerCase().includes('unique constraint') || rawMsg.toLowerCase().includes('already exists')) {

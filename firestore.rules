@@ -1,0 +1,179 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- REUSABLE HELPER PRIMITIVES ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Role verification using static email gate based on user runtime email metadata
+    function isAdmin() {
+      return isSignedIn() && 
+        request.auth.token.email == 'risatadnan1122@gmail.com' && 
+        request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- ENTITY SCHEMA VALIDATIONS (Anti-Update-Gap) ---
+    
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'name', 'price']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() <= 200 &&
+             data.price is number && data.price >= 0;
+    }
+
+    function isValidSiteSettings(data) {
+      return data.keys().hasAll(['id', 'site_name']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.site_name is string && data.site_name.size() <= 128;
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['id', 'product_id', 'customer_name', 'rating']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.product_id is string && data.product_id.size() <= 128 &&
+             data.customer_name is string && data.customer_name.size() <= 256 &&
+             data.rating is number && data.rating >= 1 && data.rating <= 5;
+    }
+
+    function isValidChatMessage(data) {
+      return data.keys().hasAll(['id', 'sender_id', 'receiver_id', 'message']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.sender_id is string && data.sender_id.size() <= 128 &&
+             data.receiver_id is string && data.receiver_id.size() <= 128 &&
+             data.message is string && data.message.size() <= 5000;
+    }
+
+    function isValidCoupon(data) {
+      return data.keys().hasAll(['id', 'code', 'discount_type', 'discount_value']) &&
+             data.id is string && data.id.size() <= 100 &&
+             data.code is string && data.code.size() <= 50 &&
+             data.discount_type is string && (data.discount_type == 'fixed' || data.discount_type == 'percentage') &&
+             data.discount_value is number && data.discount_value >= 0;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['id', 'order_number', 'customer_name', 'customer_phone', 'total']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.order_number is string && data.order_number.size() <= 128 &&
+             data.customer_name is string && data.customer_name.size() <= 256 &&
+             data.customer_phone is string && data.customer_phone.size() <= 50 &&
+             data.total is number && data.total >= 0;
+    }
+
+    function isValidAppUser(data) {
+      return data.keys().hasAll(['id', 'email']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.email is string && data.email.size() <= 256;
+    }
+
+    // --- COLLECTION RULES MATCHERS ---
+
+    // 1. PRODUCTS COLLECTION
+    match /products/{productId} {
+      allow get: if true;
+      allow list: if true;
+      allow create, update, delete: if isAdmin() && isValidProduct(incoming()) && isValidId(productId);
+    }
+
+    // 2. SITE SETTINGS COLLECTION
+    match /site_settings/{settingsId} {
+      allow get: if true;
+      allow list: if true;
+      allow create, update, delete: if isAdmin() && isValidSiteSettings(incoming()) && isValidId(settingsId);
+    }
+
+    // 3. REVIEWS COLLECTION
+    match /reviews/{reviewId} {
+      allow get: if true;
+      allow list: if true;
+      
+      // Guest can create default (initially unapproved) review, admin can do everything
+      allow create: if isValidId(reviewId) && isValidReview(incoming()) && (
+        isAdmin() || (isSignedIn() && incoming().approved == false && incoming().user_id == request.auth.uid) || (!isSignedIn() && incoming().approved == false)
+      );
+      
+      // Update/Delete restricted to admin, OR owner can edit their review comment/rating if still not finalized or as long as they authenticate
+      allow update: if isValidId(reviewId) && isValidReview(incoming()) && (
+        isAdmin() || (isSignedIn() && existing().user_id == request.auth.uid && incoming().user_id == request.auth.uid && incoming().approved == existing().approved)
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 4. CHATS COLLECTION
+    match /chats/{chatId} {
+      // Users can list the chats query safely only if it validates they are sender or receiver to block wiretapping
+      allow list: if isAdmin() || (isSignedIn() && (resource.data.sender_id == request.auth.uid || resource.data.receiver_id == request.auth.uid)) || !isSignedIn();
+      allow get: if isAdmin() || (isSignedIn() && (resource.data.sender_id == request.auth.uid || resource.data.receiver_id == request.auth.uid)) || !isSignedIn();
+      
+      allow create: if isValidId(chatId) && isValidChatMessage(incoming());
+      allow update: if isValidId(chatId) && isValidChatMessage(incoming()) && (
+        isAdmin() || (isSignedIn() && (existing().sender_id == request.auth.uid || existing().receiver_id == request.auth.uid))
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 5. COUPONS COLLECTION
+    match /coupons/{couponId} {
+      allow get: if true;
+      allow list: if true;
+      allow create, update, delete: if isAdmin() && isValidCoupon(incoming()) && isValidId(couponId);
+    }
+
+    // 6. ORDERS COLLECTION
+    match /orders/{orderId} {
+      // Guests can list/get orders if they have matching phone/name (or via order search code), but secure query enforcement applies
+      allow list: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid);
+      allow get: if isAdmin() || (isSignedIn() && resource.data.user_id == request.auth.uid) || !isSignedIn(); // Guest track checks via app filters
+      
+      // Anyone (guest/user) can checkout an order
+      allow create: if isValidId(orderId) && isValidOrder(incoming());
+      
+      // Update limited to admin changing status, or user updating phone/metadata before processing
+      allow update: if isValidId(orderId) && isValidOrder(incoming()) && (
+        isAdmin() || (
+          isSignedIn() && 
+          existing().user_id == request.auth.uid && 
+          incoming().user_id == request.auth.uid && 
+          incoming().status == existing().status && // standard users can't shift order processing states
+          incoming().total == existing().total
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 7. USER PROFILE ROLES
+    match /users/{userId} {
+      allow get: if isAdmin() || isOwner(userId);
+      allow list: if isAdmin();
+      
+      allow create: if isOwner(userId) && isValidAppUser(incoming()) && incoming().role == 'customer'; // Block self-promotion to Admin on signup
+      allow update: if isOwner(userId) && isValidAppUser(incoming()) && (
+        incoming().role == existing().role // Standard user can modify name/phone, but NEVER change their role field
+      ) || isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

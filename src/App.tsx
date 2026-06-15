@@ -2,18 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import Helmet from './components/Helmet';
+import { collection, onSnapshot } from 'firebase/firestore';
 import { 
   getSimulatedDB, 
-  isRealSupabaseConfigured, 
-  realSupabase,
-  initializeDynamicSupabase,
-  loadAllDataFromSupabase,
+  isRealFirebaseConfigured as isRealSupabaseConfigured, 
+  db as realSupabase,
+  loadAllDataFromFirebase as loadAllDataFromSupabase,
   DEFAULT_PRODUCTS,
   DEFAULT_SETTINGS,
   DEFAULT_REVIEWS,
   DEFAULT_COUPONS,
   DEFAULT_CHATS
-} from './supabaseClient';
+} from './firebaseClient';
+const initializeDynamicSupabase = (_url?: string, _key?: string) => {};
 import { 
   Product, Order, Review, Coupon, SiteSettings, ChatMessage, CartItem, AppUser 
 } from './types';
@@ -593,120 +594,67 @@ export default function App() {
     localStorage.setItem('stylex_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  // Sync Supabase listeners (Configures multi-device real-time sync across all clients instantly)
+  // Sync Firebase listeners (Configures multi-device real-time sync across all clients instantly)
   useEffect(() => {
     if (isRealSupabaseConfigured && realSupabase) {
       console.log('[Luxe Realtime] Registering live database synchronizers...');
 
       // 1. Products synchronization
-      const productsChannel = realSupabase
-        .channel('realtime_products_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'products' },
-          (payload: any) => {
-            console.log('[Luxe Sync Products]', payload);
-            if (payload.eventType === 'INSERT') {
-              const fresh = payload.new as Product;
-              setProducts((prev) => {
-                if (prev.some(p => p.id === fresh.id)) return prev;
-                return [...prev, fresh];
-              });
-            } else if (payload.eventType === 'UPDATE') {
-              const revised = payload.new as Product;
-              setProducts((prev) => prev.map(p => p.id === revised.id ? { ...p, ...revised } : p));
-            } else if (payload.eventType === 'DELETE') {
-              const deletedId = payload.old.id;
-              setProducts((prev) => prev.filter(p => p.id !== deletedId));
-            }
-          }
-        )
-        .subscribe();
+      const unsubProducts = onSnapshot(collection(realSupabase, 'products'), (snapshot) => {
+        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as Product);
+        if (list.length > 0) {
+          setProducts(list);
+        }
+      }, (err) => {
+        console.warn('[Luxe Realtime Products error]', err);
+      });
 
       // 2. Reviews synchronization
-      const reviewsChannel = realSupabase
-        .channel('realtime_reviews_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'reviews' },
-          (payload: any) => {
-            console.log('[Luxe Sync Reviews]', payload);
-            if (payload.eventType === 'INSERT') {
-              const fresh = payload.new as Review;
-              setReviews((prev) => {
-                if (prev.some(r => r.id === fresh.id)) return prev;
-                return [fresh, ...prev];
-              });
-            } else if (payload.eventType === 'UPDATE') {
-              const revised = payload.new as Review;
-              setReviews((prev) => prev.map(r => r.id === revised.id ? { ...r, ...revised } : r));
-            } else if (payload.eventType === 'DELETE') {
-              const deletedId = payload.old.id;
-              setReviews((prev) => prev.filter(r => r.id !== deletedId));
-            }
-          }
-        )
-        .subscribe();
+      const unsubReviews = onSnapshot(collection(realSupabase, 'reviews'), (snapshot) => {
+        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as Review);
+        if (list.length > 0) {
+          setReviews(list);
+        }
+      }, (err) => {
+        console.warn('[Luxe Realtime Reviews error]', err);
+      });
 
       // 3. Chat Messages synchronization
-      const chatsChannel = realSupabase
-        .channel('realtime_chats_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'chats' },
-          (payload: any) => {
-            console.log('[Luxe Sync Chats]', payload);
-            if (payload.eventType === 'INSERT') {
-              const fresh = payload.new as ChatMessage;
-              setChats((prev) => {
-                if (prev.some(c => c.id === fresh.id)) return prev;
-                return [...prev, fresh];
-              });
-            }
-          }
-        )
-        .subscribe();
+      const unsubChats = onSnapshot(collection(realSupabase, 'chats'), (snapshot) => {
+        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as ChatMessage);
+        if (list.length > 0) {
+          setChats(list);
+        }
+      }, (err) => {
+        console.warn('[Luxe Realtime Chats error]', err);
+      });
 
       // 4. Orders synchronization
-      const ordersChannel = realSupabase
-        .channel('realtime_orders_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'orders' },
-          (payload: any) => {
-            console.log('[Luxe Sync Orders]', payload);
-            if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
-              loadAllDataFromSupabase().then((data) => {
-                if (data?.orders) {
-                  setOrders(data.orders);
-                }
-              });
-            }
-          }
-        )
-        .subscribe();
+      const unsubOrders = onSnapshot(collection(realSupabase, 'orders'), (snapshot) => {
+        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as Order);
+        if (list.length > 0) {
+          setOrders(list);
+        }
+      }, (err) => {
+        console.warn('[Luxe Realtime Orders error]', err);
+      });
 
       // 5. Site Settings synchronization
-      const settingsChannel = realSupabase
-        .channel('realtime_settings_sync')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'site_settings' },
-          (payload: any) => {
-            console.log('[Luxe Sync Settings]', payload);
-            if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-              setSettings((prev) => ({ ...prev, ...payload.new }));
-            }
-          }
-        )
-        .subscribe();
+      const unsubSettings = onSnapshot(collection(realSupabase, 'site_settings'), (snapshot) => {
+        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as SiteSettings);
+        if (list.length > 0) {
+          setSettings(list[0]);
+        }
+      }, (err) => {
+        console.warn('[Luxe Realtime Settings error]', err);
+      });
 
       return () => {
-        realSupabase.removeChannel(productsChannel);
-        realSupabase.removeChannel(reviewsChannel);
-        realSupabase.removeChannel(chatsChannel);
-        realSupabase.removeChannel(ordersChannel);
-        realSupabase.removeChannel(settingsChannel);
+        unsubProducts();
+        unsubReviews();
+        unsubChats();
+        unsubOrders();
+        unsubSettings();
       };
     }
   }, []);
@@ -726,40 +674,9 @@ export default function App() {
     setProducts(updated);
     db.saveProducts(updated);
 
-    // Fine-grained direct database write to Supabase
-    if (isRealSupabaseConfigured && realSupabase) {
-      try {
-        const payload = {
-          id: fresh.id,
-          name: fresh.name,
-          slug: fresh.slug || fresh.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          price: Number(fresh.price),
-          old_price: fresh.old_price ? Number(fresh.old_price) : null,
-          description: fresh.description || '',
-          category: fresh.category || 'Apparel',
-          sizes: fresh.sizes || [],
-          stock: fresh.stock ? Number(fresh.stock) : 0,
-          featured: !!fresh.featured,
-          image_url: fresh.image_url || '',
-          additional_images: fresh.additional_images || [],
-          coupon_code: fresh.coupon_code || null,
-          coupon_discount: fresh.coupon_discount ? Number(fresh.coupon_discount) : null,
-          free_delivery: !!fresh.free_delivery,
-          bengali_details: fresh.bengali_details || '',
-          majestic_highlight: !!fresh.majestic_highlight,
-          trending: !!fresh.trending,
-          created_at: fresh.created_at,
-          updated_at: fresh.updated_at
-        };
-        const { error } = await realSupabase.from('products').insert([payload]);
-        if (error) {
-          supabaseErrorHandler(error, 'Adding product to database');
-        } else {
-          console.log('[Supabase Add Product SUCCESS]', id);
-        }
-      } catch (err) {
-        supabaseErrorHandler(err, 'Adding product to database');
-      }
+    // Fine-grained direct database write to Supabase (handled by db.saveProducts)
+    if (false && isRealSupabaseConfigured && realSupabase) {
+      // bypassed
     }
   };
 
@@ -768,41 +685,9 @@ export default function App() {
     setProducts(updated);
     db.saveProducts(updated);
 
-    // Fine-grained direct database write to Supabase
-    if (isRealSupabaseConfigured && realSupabase) {
-      try {
-        const payload = {
-          name: revisedProd.name,
-          slug: revisedProd.slug || revisedProd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          price: Number(revisedProd.price),
-          old_price: revisedProd.old_price ? Number(revisedProd.old_price) : null,
-          description: revisedProd.description || '',
-          category: revisedProd.category || 'Apparel',
-          sizes: revisedProd.sizes || [],
-          stock: revisedProd.stock ? Number(revisedProd.stock) : 0,
-          featured: !!revisedProd.featured,
-          image_url: revisedProd.image_url || '',
-          additional_images: revisedProd.additional_images || [],
-          coupon_code: revisedProd.coupon_code || null,
-          coupon_discount: revisedProd.coupon_discount ? Number(revisedProd.coupon_discount) : null,
-          free_delivery: !!revisedProd.free_delivery,
-          bengali_details: revisedProd.bengali_details || '',
-          majestic_highlight: !!revisedProd.majestic_highlight,
-          trending: !!revisedProd.trending,
-          updated_at: new Date().toISOString()
-        };
-        const { error } = await realSupabase
-          .from('products')
-          .update(payload)
-          .eq('id', revisedProd.id);
-        if (error) {
-          supabaseErrorHandler(error, 'Updating product specifications');
-        } else {
-          console.log('[Supabase Update Product SUCCESS]', revisedProd.id);
-        }
-      } catch (err) {
-        supabaseErrorHandler(err, 'Updating product specifications');
-      }
+    // Fine-grained direct database write to Supabase (handled by db.saveProducts)
+    if (false && isRealSupabaseConfigured && realSupabase) {
+      // bypassed
     }
   };
 
@@ -811,18 +696,12 @@ export default function App() {
     setProducts(updated);
     db.saveProducts(updated);
 
-    // Fine-grained direct database write to Supabase
+    // Fine-grained direct database write to Supabase (deletes document from Firestore)
     if (isRealSupabaseConfigured && realSupabase) {
       try {
-        const { error } = await realSupabase
-          .from('products')
-          .delete()
-          .eq('id', id);
-        if (error) {
-          supabaseErrorHandler(error, 'Retiring catalog product');
-        } else {
-          console.log('[Supabase Delete Product SUCCESS]', id);
-        }
+        const { deleteDoc, doc } = await import('firebase/firestore');
+        await deleteDoc(doc(realSupabase, 'products', id));
+        console.log('[Firebase Delete Product SUCCESS]', id);
       } catch (err) {
         supabaseErrorHandler(err, 'Retiring catalog product');
       }
