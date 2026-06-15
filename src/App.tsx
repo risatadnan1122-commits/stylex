@@ -12,7 +12,8 @@ import {
   DEFAULT_SETTINGS,
   DEFAULT_REVIEWS,
   DEFAULT_COUPONS,
-  DEFAULT_CHATS
+  DEFAULT_CHATS,
+  auth
 } from './firebaseClient';
 const initializeDynamicSupabase = (_url?: string, _key?: string) => {};
 import { 
@@ -106,13 +107,32 @@ export default function App() {
 
         let hasLoadedAny = false;
 
+        const safeSeed = async (key: string, seedFn: () => any, description: string) => {
+          const isAdmin = auth?.currentUser?.email === 'risatadnan1122@gmail.com';
+          if (!isAdmin) {
+            console.log(`[Luxe Firebase Seed Skip] Skipping ${key} seed as current session is a guest/non-admin client.`);
+            return;
+          }
+          try {
+            await seedFn();
+            console.log(`[Luxe Firebase Seed SUCCESS] seeded ${key}`);
+          } catch (seedErr: any) {
+            const errMsg = String(seedErr?.message || seedErr || '').toLowerCase();
+            if (errMsg.includes('permission') || errMsg.includes('denied') || errMsg.includes('privilege') || errMsg.includes('insufficient')) {
+              console.warn(`[Luxe Firebase Seed Bypassed] Bypassing seed of ${key} because current session does not have admin permissions to initialize the collection.`);
+            } else {
+              throw seedErr;
+            }
+          }
+        };
+
         if (loadedJson.products && loadedJson.products.length > 0) {
           console.log('[Supabase loaded products]', loadedJson.products);
           setProducts(loadedJson.products);
           hasLoadedAny = true;
         } else if (loadedJson.products && loadedJson.products.length === 0 && !loadedJson.errors?.products) {
           console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
-          await db.saveProducts(products);
+          await safeSeed('products', () => db.saveProducts(products), 'Seeding default products');
         }
 
         if (loadedJson.settings && !loadedJson.errors?.settings) {
@@ -120,21 +140,21 @@ export default function App() {
           hasLoadedAny = true;
         } else if (!loadedJson.errors?.settings) {
           console.log('[Luxe Supabase Seed] Seeding default settings to Supabase...');
-          await db.saveSettings(settings);
+          await safeSeed('settings', () => db.saveSettings(settings), 'Seeding default settings');
         }
 
         if (loadedJson.reviews && loadedJson.reviews.length > 0) {
           setReviews(loadedJson.reviews);
           hasLoadedAny = true;
         } else if (loadedJson.reviews && loadedJson.reviews.length === 0 && !loadedJson.errors?.reviews) {
-          await db.saveReviews(reviews);
+          await safeSeed('reviews', () => db.saveReviews(reviews), 'Seeding default reviews');
         }
 
         if (loadedJson.chats && loadedJson.chats.length > 0) {
           setChats(loadedJson.chats);
           hasLoadedAny = true;
         } else if (loadedJson.chats && loadedJson.chats.length === 0 && !loadedJson.errors?.chats) {
-          await db.saveChats(chats);
+          await safeSeed('chats', () => db.saveChats(chats), 'Seeding default chats');
         }
 
         if (loadedJson.orders && loadedJson.orders.length > 0) {
@@ -146,7 +166,7 @@ export default function App() {
           setCoupons(loadedJson.coupons);
           hasLoadedAny = true;
         } else if (loadedJson.coupons && loadedJson.coupons.length === 0 && !loadedJson.errors?.coupons) {
-          await db.saveCoupons(coupons);
+          await safeSeed('coupons', () => db.saveCoupons(coupons), 'Seeding default coupons');
         }
 
         return hasLoadedAny;

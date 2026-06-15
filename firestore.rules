@@ -95,14 +95,16 @@ service cloud.firestore {
     match /products/{productId} {
       allow get: if true;
       allow list: if true;
-      allow create, update, delete: if isAdmin() && isValidProduct(incoming()) && isValidId(productId);
+      allow create, update: if isAdmin() && isValidProduct(incoming()) && isValidId(productId);
+      allow delete: if isAdmin() && isValidId(productId);
     }
 
     // 2. SITE SETTINGS COLLECTION
     match /site_settings/{settingsId} {
       allow get: if true;
       allow list: if true;
-      allow create, update, delete: if isAdmin() && isValidSiteSettings(incoming()) && isValidId(settingsId);
+      allow create, update: if isAdmin() && isValidSiteSettings(incoming()) && isValidId(settingsId);
+      allow delete: if isAdmin() && isValidId(settingsId);
     }
 
     // 3. REVIEWS COLLECTION
@@ -139,7 +141,8 @@ service cloud.firestore {
     match /coupons/{couponId} {
       allow get: if true;
       allow list: if true;
-      allow create, update, delete: if isAdmin() && isValidCoupon(incoming()) && isValidId(couponId);
+      allow create, update: if isAdmin() && isValidCoupon(incoming()) && isValidId(couponId);
+      allow delete: if isAdmin() && isValidId(couponId);
     }
 
     // 6. ORDERS COLLECTION
