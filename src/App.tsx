@@ -52,14 +52,14 @@ const generateUUID = (): string => {
 export default function App() {
   const db = getSimulatedDB();
 
-  // Primary State Channels initialized with safe default configurations directly
-  const [products, setProducts] = useState<Product[]>(DEFAULT_PRODUCTS);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [reviews, setReviews] = useState<Review[]>(DEFAULT_REVIEWS);
-  const [coupons, setCoupons] = useState<Coupon[]>(DEFAULT_COUPONS);
-  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
-  const [chats, setChats] = useState<ChatMessage[]>(DEFAULT_CHATS);
-  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  // Primary State Channels initialized with safe default configurations directly from persistent local storage via db
+  const [products, setProducts] = useState<Product[]>(() => db.products || DEFAULT_PRODUCTS);
+  const [orders, setOrders] = useState<Order[]>(() => db.orders || []);
+  const [reviews, setReviews] = useState<Review[]>(() => db.reviews || DEFAULT_REVIEWS);
+  const [coupons, setCoupons] = useState<Coupon[]>(() => db.coupons || DEFAULT_COUPONS);
+  const [settings, setSettings] = useState<SiteSettings>(() => db.settings || DEFAULT_SETTINGS);
+  const [chats, setChats] = useState<ChatMessage[]>(() => db.chats || DEFAULT_CHATS);
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(() => db.currentUser);
 
   // Load unified database state from server-side database in background on startup
   useEffect(() => {

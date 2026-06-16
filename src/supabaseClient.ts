@@ -623,10 +623,10 @@ const syncToServer = async (key: string, value: any) => {
   }
 };
 
-// Memory cache stores to completely replace localStorage for products, orders, and reviews
-export let memoryProducts: Product[] = [...DEFAULT_PRODUCTS];
-export let memoryReviews: Review[] = [...DEFAULT_REVIEWS];
-export let memoryOrders: Order[] = [];
+// Memory cache stores to completely replace localStorage for products, orders, and reviews during direct access, but loaded from and backed by localStorage for reload persistence.
+export let memoryProducts: Product[] = getStored<Product[]>('stylex_products', DEFAULT_PRODUCTS);
+export let memoryReviews: Review[] = getStored<Review[]>('stylex_reviews', DEFAULT_REVIEWS);
+export let memoryOrders: Order[] = getStored<Order[]>('stylex_orders', []);
 
 // VIRTUAL MEMORY MANAGER
 export const getSimulatedDB = () => {
@@ -804,12 +804,12 @@ export const getSimulatedDB = () => {
     chats,
     orders,
     currentUser,
-    saveProducts: (p: Product[]) => { memoryProducts = p; syncToServer('products', p); },
+    saveProducts: (p: Product[]) => { memoryProducts = p; setStored('stylex_products', p); syncToServer('products', p); },
     saveSettings: (s: SiteSettings) => { setStored('stylex_settings', s); syncToServer('settings', s); },
     saveCoupons: (c: Coupon[]) => { setStored('stylex_coupons', c); syncToServer('coupons', c); },
-    saveReviews: (r: Review[]) => { memoryReviews = r; syncToServer('reviews', r); },
+    saveReviews: (r: Review[]) => { memoryReviews = r; setStored('stylex_reviews', r); syncToServer('reviews', r); },
     saveChats: (ch: ChatMessage[]) => { setStored('stylex_chats', ch); syncToServer('chats', ch); },
-    saveOrders: (o: Order[]) => { memoryOrders = o; syncToServer('orders', o); },
+    saveOrders: (o: Order[]) => { memoryOrders = o; setStored('stylex_orders', o); syncToServer('orders', o); },
     saveCurrentUser: (user: AppUser | null) => { setStored('stylex_current_user', user); syncToServer('currentUser', user); }
   };
 };
