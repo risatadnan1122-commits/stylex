@@ -4,8 +4,8 @@ import 'lenis/dist/lenis.css';
 import Helmet from './components/Helmet';
 import { 
   getSimulatedDB, 
-  isRealSupabaseConfigured, 
-  realSupabase,
+  getIsRealSupabaseConfigured, 
+  getRealSupabase,
   loadAllDataFromSupabase,
   DEFAULT_PRODUCTS,
   DEFAULT_SETTINGS,
@@ -96,7 +96,7 @@ export default function App() {
     };
 
     const loadFromSupabase = async (): Promise<boolean> => {
-      if (!isRealSupabaseConfigured || !realSupabase) return false;
+      if (!getIsRealSupabaseConfigured() || !getRealSupabase()) return false;
       try {
         console.log("[Luxe Sync] Loading initial database state from Supabase...");
         const loadedJson = await loadAllDataFromSupabase();
@@ -226,14 +226,14 @@ export default function App() {
       }
 
       // 2. Load from Supabase if configured dynamically
-      if (isRealSupabaseConfigured && realSupabase) {
+      if (getIsRealSupabaseConfigured() && getRealSupabase()) {
         const success = await loadFromSupabase();
         if (success) {
           console.log("[Luxe Sync] Loaded initial real-time database successfully from Supabase.");
           
           if (active) {
             console.log('[Luxe Realtime] Registering live database synchronizers...');
-            channel = realSupabase
+            channel = getRealSupabase()
               .channel('public-db-changes')
               .on('postgres_changes', { event: '*', schema: 'public' }, (payload: any) => {
                 console.log('[Luxe Realtime Supabase Change]', payload);
@@ -300,8 +300,8 @@ export default function App() {
 
     return () => {
       active = false;
-      if (channel && realSupabase) {
-        realSupabase.removeChannel(channel);
+      if (channel && getRealSupabase()) {
+        getRealSupabase().removeChannel(channel);
       }
     };
   }, []);
@@ -639,7 +639,7 @@ export default function App() {
     db.saveProducts(updated);
 
     // Fine-grained direct database write to Supabase (handled by db.saveProducts)
-    if (false && isRealSupabaseConfigured && realSupabase) {
+    if (false && getIsRealSupabaseConfigured() && getRealSupabase()) {
       // bypassed
     }
   };
@@ -650,7 +650,7 @@ export default function App() {
     db.saveProducts(updated);
 
     // Fine-grained direct database write to Supabase (handled by db.saveProducts)
-    if (false && isRealSupabaseConfigured && realSupabase) {
+    if (false && getIsRealSupabaseConfigured() && getRealSupabase()) {
       // bypassed
     }
   };
@@ -661,9 +661,9 @@ export default function App() {
     db.saveProducts(updated);
 
     // Fine-grained direct database write to Supabase (deletes row from Supabase)
-    if (isRealSupabaseConfigured && realSupabase) {
+    if (getIsRealSupabaseConfigured() && getRealSupabase()) {
       try {
-        const { error } = await realSupabase.from('products').delete().eq('id', id);
+        const { error } = await getRealSupabase().from('products').delete().eq('id', id);
         if (error) throw error;
         console.log('[Supabase Delete Product SUCCESS]', id);
       } catch (err) {

@@ -35,6 +35,10 @@ export let realSupabase: any = (() => {
   }
 })();
 
+export const getIsRealSupabaseConfigured = (): boolean => isRealSupabaseConfigured;
+export const getRealSupabase = (): any => realSupabase;
+
+
 // Initialize dynamic runtime configurations (e.g. from server-side environment fetched dynamically)
 export const initializeDynamicSupabase = (url: string, key: string) => {
   if (checkSupabaseConfig(url, key)) {
@@ -402,6 +406,23 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       orders: oErr || null,
       coupons: cpErr || null
     };
+
+    // Update local memory cache and localStorage so it is instantly available on reload / refresh without layout shifts
+    if (formattedProducts.length > 0) {
+      memoryProducts = formattedProducts;
+      setStored('stylex_products', formattedProducts);
+    }
+    if (formattedReviews.length > 0) {
+      memoryReviews = formattedReviews;
+      setStored('stylex_reviews', formattedReviews);
+    }
+    if (formattedOrders.length > 0) {
+      memoryOrders = formattedOrders;
+      setStored('stylex_orders', formattedOrders);
+    }
+    setStored('stylex_settings', siteSettings);
+    setStored('stylex_coupons', formattedCoupons);
+    setStored('stylex_chats', formattedChats);
 
     return {
       products: formattedProducts,

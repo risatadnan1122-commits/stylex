@@ -219,15 +219,57 @@ create policy "Public view settings" on public.site_settings for select using (t
 drop policy if exists "Anyone edit settings" on public.site_settings;
 create policy "Anyone edit settings" on public.site_settings for all using (true);
 
--- ENABLE REPLICATION FOR REALTIME CHATS
+-- ENABLE REPLICATION FOR REALTIME CHATS AND CORE TABLES
 do $$
 begin
+  -- chats
   if not exists (
     select 1 from pg_publication_tables 
     where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'chats'
   ) then
     alter publication supabase_realtime add table public.chats;
   end if;
+
+  -- products
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'products'
+  ) then
+    alter publication supabase_realtime add table public.products;
+  end if;
+
+  -- site_settings
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'site_settings'
+  ) then
+    alter publication supabase_realtime add table public.site_settings;
+  end if;
+
+  -- orders
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'orders'
+  ) then
+    alter publication supabase_realtime add table public.orders;
+  end if;
+
+  -- reviews
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'reviews'
+  ) then
+    alter publication supabase_realtime add table public.reviews;
+  end if;
+
+  -- coupons
+  if not exists (
+    select 1 from pg_publication_tables 
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'coupons'
+  ) then
+    alter publication supabase_realtime add table public.coupons;
+  end if;
+
 exception
   when others then null;
 end;
