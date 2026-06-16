@@ -178,6 +178,16 @@ create policy "Customers manage own orders" on public.orders for all using (true
 drop policy if exists "Allow anonymous order generation" on public.orders;
 create policy "Allow anonymous order generation" on public.orders for insert with check (true);
 
+-- 13.5. POLICIES: ORDER ITEMS TABLE
+drop policy if exists "Admins manage order items" on public.order_items;
+create policy "Admins manage order items" on public.order_items for all using (true);
+
+drop policy if exists "Customers manage own order items" on public.order_items;
+create policy "Customers manage own order items" on public.order_items for all using (true);
+
+drop policy if exists "Allow anonymous order item generation" on public.order_items;
+create policy "Allow anonymous order item generation" on public.order_items for insert with check (true);
+
 -- 14. POLICIES: REVIEWS TABLE
 drop policy if exists "Public view reviews" on public.reviews;
 create policy "Public view reviews" on public.reviews for select using (true);
@@ -222,3 +232,34 @@ exception
   when others then null;
 end;
 $$;
+
+-- 18. STORAGE CONFIGURATIONS (Saves product imagery in dedicated 'products' storage container)
+-- Create 'products' bucket if it doesn't already exist
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('products', 'products', true, 5242880, '{"image/*"}')
+on conflict (id) do nothing;
+
+-- Set up policies for the 'products' bucket to allow public read, insert, update, and delete access.
+-- We omit 'alter table storage.objects enable row level security;' to avoid permission/ownership errors,
+-- since Row Level Security is already enabled on system-constructed tables by default in Supabase.
+drop policy if exists "Public Access to Products Bucket" on storage.objects;
+create policy "Public Access to Products Bucket"
+on storage.objects for select
+using ( bucket_id = 'products' );
+
+drop policy if exists "Public Insert to Products Bucket" on storage.objects;
+create policy "Public Insert to Products Bucket"
+on storage.objects for insert
+with check ( bucket_id = 'products' );
+
+drop policy if exists "Public Update to Products Bucket" on storage.objects;
+create policy "Public Update to Products Bucket"
+on storage.objects for update
+using ( bucket_id = 'products' );
+
+drop policy if exists "Public Delete from Products Bucket" on storage.objects;
+create policy "Public Delete from Products Bucket"
+on storage.objects for delete
+using ( bucket_id = 'products' );
+
+

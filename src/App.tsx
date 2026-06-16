@@ -2,20 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import Helmet from './components/Helmet';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { 
   getSimulatedDB, 
-  isRealFirebaseConfigured as isRealSupabaseConfigured, 
-  db as realSupabase,
-  loadAllDataFromFirebase as loadAllDataFromSupabase,
+  isRealSupabaseConfigured, 
+  realSupabase,
+  loadAllDataFromSupabase,
   DEFAULT_PRODUCTS,
   DEFAULT_SETTINGS,
   DEFAULT_REVIEWS,
   DEFAULT_COUPONS,
   DEFAULT_CHATS,
-  auth
-} from './firebaseClient';
-const initializeDynamicSupabase = (_url?: string, _key?: string) => {};
+  initializeDynamicSupabase
+} from './supabaseClient';
 import { 
   Product, Order, Review, Coupon, SiteSettings, ChatMessage, CartItem, AppUser 
 } from './types';
@@ -66,6 +64,7 @@ export default function App() {
   // Load unified database state from server-side database in background on startup
   useEffect(() => {
     let active = true;
+    let channel: any = null;
 
     const deepMergeProducts = (existing: Product[], incoming: Product[]): Product[] => {
       const mergedMap = new Map<string, Product>();
@@ -108,21 +107,11 @@ export default function App() {
         let hasLoadedAny = false;
 
         const safeSeed = async (key: string, seedFn: () => any, description: string) => {
-          const isAdmin = auth?.currentUser?.email === 'risatadnan1122@gmail.com';
-          if (!isAdmin) {
-            console.log(`[Luxe Firebase Seed Skip] Skipping ${key} seed as current session is a guest/non-admin client.`);
-            return;
-          }
           try {
             await seedFn();
-            console.log(`[Luxe Firebase Seed SUCCESS] seeded ${key}`);
+            console.log(`[Luxe Database Seed SUCCESS] seeded ${key}`);
           } catch (seedErr: any) {
-            const errMsg = String(seedErr?.message || seedErr || '').toLowerCase();
-            if (errMsg.includes('permission') || errMsg.includes('denied') || errMsg.includes('privilege') || errMsg.includes('insufficient')) {
-              console.warn(`[Luxe Firebase Seed Bypassed] Bypassing seed of ${key} because current session does not have admin permissions to initialize the collection.`);
-            } else {
-              throw seedErr;
-            }
+            console.warn(`[Luxe Database Seed Bypassed] Bypassing seed of ${key} due to writing restriction:`, seedErr);
           }
         };
 
@@ -241,6 +230,21 @@ export default function App() {
         const success = await loadFromSupabase();
         if (success) {
           console.log("[Luxe Sync] Loaded initial real-time database successfully from Supabase.");
+          
+          if (active) {
+            console.log('[Luxe Realtime] Registering live database synchronizers...');
+            channel = realSupabase
+              .channel('public-db-changes')
+              .on('postgres_changes', { event: '*', schema: 'public' }, (payload: any) => {
+                console.log('[Luxe Realtime Supabase Change]', payload);
+                if (active) {
+                  loadFromSupabase();
+                }
+              })
+              .subscribe((status: string) => {
+                console.log(`[Luxe Realtime Supabase Status]: ${status}`);
+              });
+          }
           return;
         }
       }
@@ -296,6 +300,9 @@ export default function App() {
 
     return () => {
       active = false;
+      if (channel && realSupabase) {
+        realSupabase.removeChannel(channel);
+      }
     };
   }, []);
 
@@ -614,70 +621,7 @@ export default function App() {
     localStorage.setItem('stylex_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  // Sync Firebase listeners (Configures multi-device real-time sync across all clients instantly)
-  useEffect(() => {
-    if (isRealSupabaseConfigured && realSupabase) {
-      console.log('[Luxe Realtime] Registering live database synchronizers...');
 
-      // 1. Products synchronization
-      const unsubProducts = onSnapshot(collection(realSupabase, 'products'), (snapshot) => {
-        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as Product);
-        if (list.length > 0) {
-          setProducts(list);
-        }
-      }, (err) => {
-        console.warn('[Luxe Realtime Products error]', err);
-      });
-
-      // 2. Reviews synchronization
-      const unsubReviews = onSnapshot(collection(realSupabase, 'reviews'), (snapshot) => {
-        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as Review);
-        if (list.length > 0) {
-          setReviews(list);
-        }
-      }, (err) => {
-        console.warn('[Luxe Realtime Reviews error]', err);
-      });
-
-      // 3. Chat Messages synchronization
-      const unsubChats = onSnapshot(collection(realSupabase, 'chats'), (snapshot) => {
-        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as ChatMessage);
-        if (list.length > 0) {
-          setChats(list);
-        }
-      }, (err) => {
-        console.warn('[Luxe Realtime Chats error]', err);
-      });
-
-      // 4. Orders synchronization
-      const unsubOrders = onSnapshot(collection(realSupabase, 'orders'), (snapshot) => {
-        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as Order);
-        if (list.length > 0) {
-          setOrders(list);
-        }
-      }, (err) => {
-        console.warn('[Luxe Realtime Orders error]', err);
-      });
-
-      // 5. Site Settings synchronization
-      const unsubSettings = onSnapshot(collection(realSupabase, 'site_settings'), (snapshot) => {
-        const list = snapshot.docs.map(doc => ({ ...doc.data() }) as SiteSettings);
-        if (list.length > 0) {
-          setSettings(list[0]);
-        }
-      }, (err) => {
-        console.warn('[Luxe Realtime Settings error]', err);
-      });
-
-      return () => {
-        unsubProducts();
-        unsubReviews();
-        unsubChats();
-        unsubOrders();
-        unsubSettings();
-      };
-    }
-  }, []);
 
   // 1. ADD / EDIT / DELETE PRODUCTS CABINETS
   const handleAddProduct = async (newProd: Omit<Product, 'id'>) => {
@@ -716,12 +660,12 @@ export default function App() {
     setProducts(updated);
     db.saveProducts(updated);
 
-    // Fine-grained direct database write to Supabase (deletes document from Firestore)
+    // Fine-grained direct database write to Supabase (deletes row from Supabase)
     if (isRealSupabaseConfigured && realSupabase) {
       try {
-        const { deleteDoc, doc } = await import('firebase/firestore');
-        await deleteDoc(doc(realSupabase, 'products', id));
-        console.log('[Firebase Delete Product SUCCESS]', id);
+        const { error } = await realSupabase.from('products').delete().eq('id', id);
+        if (error) throw error;
+        console.log('[Supabase Delete Product SUCCESS]', id);
       } catch (err) {
         supabaseErrorHandler(err, 'Retiring catalog product');
       }
