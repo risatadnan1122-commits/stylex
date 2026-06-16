@@ -131,7 +131,8 @@ create table if not exists public.chats (
 );
 
 -- 8. CREATE SITE SETTINGS TABLE (Text ID for settings_main)
-create table if not exists public.site_settings (
+drop table if exists public.site_settings cascade;
+create table public.site_settings (
   id text primary key,
   site_name text default 'STYLE X COLLECTIVE',
   whatsapp_number text default '8801700000000',
