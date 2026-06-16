@@ -120,8 +120,14 @@ export default function App() {
           setProducts(loadedJson.products);
           hasLoadedAny = true;
         } else if (loadedJson.products && loadedJson.products.length === 0 && !loadedJson.errors?.products) {
-          console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
-          await safeSeed('products', () => db.saveProducts(products), 'Seeding default products');
+          if (loadedJson.settingsExistsInDb) {
+            console.log('[Luxe Supabase Loader] Products list is intentionally empty in database (seeded state). Keeping empty products list.');
+            setProducts([]);
+            hasLoadedAny = true;
+          } else {
+            console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
+            await safeSeed('products', () => db.saveProducts(products), 'Seeding default products');
+          }
         }
 
         if (loadedJson.settings && !loadedJson.errors?.settings) {
@@ -136,18 +142,33 @@ export default function App() {
           setReviews(loadedJson.reviews);
           hasLoadedAny = true;
         } else if (loadedJson.reviews && loadedJson.reviews.length === 0 && !loadedJson.errors?.reviews) {
-          await safeSeed('reviews', () => db.saveReviews(reviews), 'Seeding default reviews');
+          if (loadedJson.settingsExistsInDb) {
+            console.log('[Luxe Supabase Loader] Reviews list is intentionally empty in database. Keeping empty reviews.');
+            setReviews([]);
+            hasLoadedAny = true;
+          } else {
+            await safeSeed('reviews', () => db.saveReviews(reviews), 'Seeding default reviews');
+          }
         }
 
         if (loadedJson.chats && loadedJson.chats.length > 0) {
           setChats(loadedJson.chats);
           hasLoadedAny = true;
         } else if (loadedJson.chats && loadedJson.chats.length === 0 && !loadedJson.errors?.chats) {
-          await safeSeed('chats', () => db.saveChats(chats), 'Seeding default chats');
+          if (loadedJson.settingsExistsInDb) {
+            console.log('[Luxe Supabase Loader] Chats list is intentionally empty in database. Keeping empty chats.');
+            setChats([]);
+            hasLoadedAny = true;
+          } else {
+            await safeSeed('chats', () => db.saveChats(chats), 'Seeding default chats');
+          }
         }
 
         if (loadedJson.orders && loadedJson.orders.length > 0) {
           setOrders(loadedJson.orders);
+          hasLoadedAny = true;
+        } else if (loadedJson.orders && loadedJson.orders.length === 0 && !loadedJson.errors?.orders) {
+          setOrders([]);
           hasLoadedAny = true;
         }
 
@@ -155,7 +176,13 @@ export default function App() {
           setCoupons(loadedJson.coupons);
           hasLoadedAny = true;
         } else if (loadedJson.coupons && loadedJson.coupons.length === 0 && !loadedJson.errors?.coupons) {
-          await safeSeed('coupons', () => db.saveCoupons(coupons), 'Seeding default coupons');
+          if (loadedJson.settingsExistsInDb) {
+            console.log('[Luxe Supabase Loader] Coupons list is intentionally empty in database. Keeping empty coupons.');
+            setCoupons([]);
+            hasLoadedAny = true;
+          } else {
+            await safeSeed('coupons', () => db.saveCoupons(coupons), 'Seeding default coupons');
+          }
         }
 
         return hasLoadedAny;
@@ -173,7 +200,7 @@ export default function App() {
       await Promise.all(
         keys.map(async (key) => {
           try {
-            const r = await fetch(`https://kvdb.io/MccUniDWnyYmhrF9HjQC1L/${key}`);
+            const r = await fetch(`https://kvdb.io/MccUniDWnyYmhrF9HjQC1L/${key}?v=${Date.now()}`, { cache: 'no-store' });
             if (r.ok) {
               const text = await r.text();
               if (text && text.trim() && !text.startsWith('<!DOCTYPE') && !text.startsWith('<html')) {
@@ -189,7 +216,7 @@ export default function App() {
       if (!active) return;
       
       console.log("[Luxe Cloud Fallback] Pulled state from public cloud:", results);
-      if (results.products && Array.isArray(results.products) && results.products.length > 0) {
+      if (results.products && Array.isArray(results.products)) {
         const incoming = results.products.filter((p: any) => p && p.id);
         setProducts(incoming);
       }
@@ -213,7 +240,7 @@ export default function App() {
     const initLoad = async () => {
       // 1. Core check: load dynamic backend keys at runtime (Vercel / Cloud Run fluid environment)
       try {
-        const configRes = await fetch('/api/config');
+        const configRes = await fetch(`/api/config?v=${Date.now()}`, { cache: 'no-store' });
         if (configRes.ok) {
           const configData = await configRes.json();
           if (configData.supabaseUrl && configData.supabaseKey) {
@@ -250,7 +277,7 @@ export default function App() {
       }
 
       // 3. Fallback to API endpoints or Cloud KVDB
-      fetch('/api/db')
+      fetch(`/api/db?v=${Date.now()}`, { cache: 'no-store' })
         .then(res => {
           if (!res.ok) throw new Error(`HTTP status: ${res.status}`);
           const contentType = res.headers.get('content-type');
@@ -267,7 +294,7 @@ export default function App() {
           const data = JSON.parse(text);
           console.log("[Luxe Sync] Universal local backend state fetched successfully!", data);
 
-          if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+          if (data.products && Array.isArray(data.products)) {
             const incoming = data.products.filter((p: any) => p && p.id);
             setProducts(incoming);
           }
@@ -657,7 +684,6 @@ export default function App() {
 
   const handleDeleteProduct = async (id: string) => {
     const updated = products.filter(p => p.id !== id);
-    setProducts(updated);
     db.saveProducts(updated);
 
     // Fine-grained direct database write to Supabase (deletes row from Supabase)
@@ -666,9 +692,12 @@ export default function App() {
         const { error } = await getRealSupabase().from('products').delete().eq('id', id);
         if (error) throw error;
         console.log('[Supabase Delete Product SUCCESS]', id);
+        setProducts(prev => prev.filter(p => p.id !== id));
       } catch (err) {
         supabaseErrorHandler(err, 'Retiring catalog product');
       }
+    } else {
+      setProducts(prev => prev.filter(p => p.id !== id));
     }
   };
 

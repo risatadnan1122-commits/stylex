@@ -28,7 +28,20 @@ export let isRealSupabaseConfigured = checkSupabaseConfig(defaultSupabaseUrl, de
 export let realSupabase: any = (() => {
   if (!isRealSupabaseConfigured) return null;
   try {
-    return createClient(defaultSupabaseUrl, defaultSupabaseKey);
+    return createClient(defaultSupabaseUrl, defaultSupabaseKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      },
+      global: {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
+    });
   } catch (err) {
     console.error('Supabase client failed to initialize securely:', err);
     return null;
@@ -43,7 +56,20 @@ export const getRealSupabase = (): any => realSupabase;
 export const initializeDynamicSupabase = (url: string, key: string) => {
   if (checkSupabaseConfig(url, key)) {
     try {
-      realSupabase = createClient(url, key);
+      realSupabase = createClient(url, key, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        },
+        global: {
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        }
+      });
       isRealSupabaseConfigured = true;
       console.log('[Luxe Dynamic Supabase Client] Successfully enabled runtime database synchronization with:', url);
     } catch (err) {
@@ -209,6 +235,7 @@ export interface SupabaseData {
   orders: Order[];
   coupons: Coupon[];
   currentUser: AppUser | null;
+  settingsExistsInDb?: boolean;
   errors?: {
     products?: any;
     settings?: any;
@@ -398,6 +425,8 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       coupons: formattedCoupons.length
     });
 
+    const settingsExistsInDb = !sErr && settingsData && settingsData.length > 0;
+
     const queryErrors = {
       products: pErr || null,
       settings: sErr || null,
@@ -408,21 +437,27 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
     };
 
     // Update local memory cache and localStorage so it is instantly available on reload / refresh without layout shifts
-    if (formattedProducts.length > 0) {
+    if (!pErr && prods !== null) {
       memoryProducts = formattedProducts;
       setStored('stylex_products', formattedProducts);
     }
-    if (formattedReviews.length > 0) {
+    if (!rErr && revs !== null) {
       memoryReviews = formattedReviews;
       setStored('stylex_reviews', formattedReviews);
     }
-    if (formattedOrders.length > 0) {
+    if (!oErr && ords !== null) {
       memoryOrders = formattedOrders;
       setStored('stylex_orders', formattedOrders);
     }
-    setStored('stylex_settings', siteSettings);
-    setStored('stylex_coupons', formattedCoupons);
-    setStored('stylex_chats', formattedChats);
+    if (!sErr && settingsData !== null) {
+      setStored('stylex_settings', siteSettings);
+    }
+    if (!cpErr && cpns !== null) {
+      setStored('stylex_coupons', formattedCoupons);
+    }
+    if (!cErr && chatsData !== null) {
+      setStored('stylex_chats', formattedChats);
+    }
 
     return {
       products: formattedProducts,
@@ -432,6 +467,7 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       orders: formattedOrders,
       coupons: formattedCoupons,
       currentUser: null,
+      settingsExistsInDb,
       errors: queryErrors
     };
   } catch (err) {
