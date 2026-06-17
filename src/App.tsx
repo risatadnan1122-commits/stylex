@@ -657,9 +657,10 @@ export default function App() {
       const supabase = getRealSupabase();
       const isConfigured = getIsRealSupabaseConfigured() && supabase;
       
-      // ১. গ্যারান্টি দেওয়া হচ্ছে যেন প্রোডাক্টটি সরাসরি পাবলিক বা ভিজিবল থাকে
       const id = (productData as any).id || generateUUID();
       const slug = (productData as any).slug || productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+      // ১. গ্যারান্টি দেওয়া হচ্ছে যেন প্রোডাক্টটি সরাসরি পাবলিক বা ভিজিবল থাকে
       const newProductPayload = {
         id,
         slug,
@@ -682,16 +683,18 @@ export default function App() {
           .select();
 
         if (error) {
-          console.warn("[Supabase Add Product Fail] Resilient fallback try without 'published' column:", error);
+          console.error("Supabase direct insert encountered an error, trying fallback retry:", error);
+          // If the table lacks the 'published' column or other dynamic elements, retry without it to ensure resilience
           const backupPayload = { ...newProductPayload } as any;
           delete backupPayload.published;
+          
           const { data: retryData, error: retryError } = await supabase
             .from('products')
             .insert([backupPayload])
             .select();
 
           if (retryError) {
-            console.error("Supabase direct insert encountered an error:", retryError);
+            console.error("Supabase direct insert retry encountered an error:", retryError);
             throw retryError;
           }
           if (retryData && retryData.length > 0) {
@@ -704,7 +707,10 @@ export default function App() {
 
       // If Supabase is disabled or didn't return data (simulated fallback path)
       if (!insertedProduct) {
-        insertedProduct = newProductPayload as Product;
+        insertedProduct = {
+          ...newProductPayload,
+          id
+        } as Product;
       }
 
       // ৩. লোকাল স্টেট আপডেট (লিস্টের একদম শুরুতে নতুন প্রোডাক্ট পুশ করা হচ্ছে)
