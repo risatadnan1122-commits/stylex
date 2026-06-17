@@ -143,6 +143,43 @@ insert into public.site_settings (id, site_name, whatsapp_number, delivery_charg
 values ('settings_main', 'STYLE X COLLECTIVE', '8801700000000', 15)
 on conflict (id) do nothing;
 
+-- 9.5. SAFE COLUMN UPGRADES (Run if tables already exist to append missing columns gracefully)
+-- Safely upgrade products columns
+alter table public.products add column if not exists bengali_details text;
+alter table public.products add column if not exists majestic_highlight boolean default false;
+alter table public.products add column if not exists trending boolean default false;
+alter table public.products add column if not exists published boolean default true;
+alter table public.products add column if not exists coupon_code text;
+alter table public.products add column if not exists coupon_discount numeric default 0;
+
+-- Safely upgrade site_settings columns
+alter table public.site_settings add column if not exists seo_title text;
+alter table public.site_settings add column if not exists seo_description text;
+alter table public.site_settings add column if not exists seo_keywords text;
+alter table public.site_settings add column if not exists seo_og_image text;
+alter table public.site_settings add column if not exists apps_script_url text;
+alter table public.site_settings add column if not exists logo_text_s text;
+alter table public.site_settings add column if not exists logo_text_x text;
+alter table public.site_settings add column if not exists logo_text_title text;
+alter table public.site_settings add column if not exists logo_text_subtitle text;
+alter table public.site_settings add column if not exists banners text[] default '{}'::text[];
+alter table public.site_settings add column if not exists lottery_coin_reward numeric default 500;
+alter table public.site_settings add column if not exists campaign_coin_reward numeric default 1000;
+alter table public.site_settings add column if not exists gift_discount_percent numeric default 25;
+alter table public.site_settings add column if not exists gift_discount_type text default 'percentage';
+alter table public.site_settings add column if not exists gift_discount_value numeric default 25;
+alter table public.site_settings add column if not exists lottery_prizes jsonb default '[]'::jsonb;
+alter table public.site_settings add column if not exists lottery_enabled boolean default true;
+alter table public.site_settings add column if not exists popup_enabled boolean default true;
+alter table public.site_settings add column if not exists popup_title text;
+alter table public.site_settings add column if not exists popup_message text;
+alter table public.site_settings add column if not exists popup_coupon_code text;
+alter table public.site_settings add column if not exists popup_image_url text;
+
+-- Safely upgrade orders columns
+alter table public.orders add column if not exists payment_method text default 'Cash On Delivery';
+alter table public.orders add column if not exists status text default 'Pending';
+
 -- 10. ENABLE ROW LEVEL SECURITY (RLS) FOR DATA INTEGRITY
 alter table public.users enable row level security;
 alter table public.products enable row level security;

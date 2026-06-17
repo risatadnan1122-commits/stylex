@@ -127,6 +127,7 @@ export default function App() {
           } else {
             console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
             await safeSeed('products', () => db.saveProducts(products), 'Seeding default products');
+            hasLoadedAny = true;
           }
         }
 
@@ -136,6 +137,7 @@ export default function App() {
         } else if (!loadedJson.errors?.settings) {
           console.log('[Luxe Supabase Seed] Seeding default settings to Supabase...');
           await safeSeed('settings', () => db.saveSettings(settings), 'Seeding default settings');
+          hasLoadedAny = true;
         }
 
         if (loadedJson.reviews && loadedJson.reviews.length > 0) {
@@ -148,6 +150,7 @@ export default function App() {
             hasLoadedAny = true;
           } else {
             await safeSeed('reviews', () => db.saveReviews(reviews), 'Seeding default reviews');
+            hasLoadedAny = true;
           }
         }
 
@@ -161,6 +164,7 @@ export default function App() {
             hasLoadedAny = true;
           } else {
             await safeSeed('chats', () => db.saveChats(chats), 'Seeding default chats');
+            hasLoadedAny = true;
           }
         }
 
@@ -182,6 +186,7 @@ export default function App() {
             hasLoadedAny = true;
           } else {
             await safeSeed('coupons', () => db.saveCoupons(coupons), 'Seeding default coupons');
+            hasLoadedAny = true;
           }
         }
 
@@ -689,7 +694,7 @@ export default function App() {
           trending: !!fresh.trending,
           published: fresh.published !== false
         };
-        const { error } = await getRealSupabase().from('products').insert(payload);
+        const { error } = await getRealSupabase().from('products').insert([payload]);
         if (error) throw error;
         console.log('[Supabase Add Product SUCCESS]', fresh);
       } catch (err) {
