@@ -200,7 +200,7 @@ export default function App() {
       if (!active) return;
       
       console.log("[Luxe Cloud Fallback] Pulled state from public cloud:", results);
-      if (results.products && Array.isArray(results.products)) {
+      if (results.products && Array.isArray(results.products) && results.products.length > 0) {
         const incoming = results.products.filter((p: any) => p && p.id);
         setProducts(incoming);
       }
@@ -249,6 +249,7 @@ export default function App() {
             if (active) {
               if (data.products && Array.isArray(data.products) && data.products.length > 0) {
                 setProducts(data.products.filter((p: any) => p && p.id));
+                baselineSucceeded = true;
               }
               if (data.settings) {
                 setSettings(data.settings);
@@ -268,7 +269,6 @@ export default function App() {
               if (data.currentUser !== undefined) {
                 setCurrentUser(data.currentUser);
               }
-              baselineSucceeded = true;
             }
           }
         }
@@ -645,7 +645,7 @@ export default function App() {
     };
     
     // Optimistic local update
-    const updated = [...products, fresh];
+    const updated = [fresh, ...products];
     setProducts(updated);
     db.saveProducts(updated);
 
@@ -1073,18 +1073,31 @@ export default function App() {
   };
 
   // Category selection and SEO searches
-  const filteredProducts = products.filter(p => {
-    if (p.published === false) return false;
-    const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
-    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const filteredProducts = products
+    .filter(p => {
+      if (p.published === false) return false;
+      const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            p.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      if (dateA !== dateB) return dateB - dateA;
+      return 0;
+    });
 
   const majesticHasHighlight = products.some(p => p.majestic_highlight === true && p.published !== false);
-  const featuredList = majesticHasHighlight 
+  const featuredList = (majesticHasHighlight 
     ? products.filter(p => p.majestic_highlight && p.published !== false) 
-    : products.filter(p => p.featured && p.published !== false);
+    : products.filter(p => p.featured && p.published !== false)
+  ).sort((a, b) => {
+    const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    if (dateA !== dateB) return dateB - dateA;
+    return 0;
+  });
 
   return (
     <div className="min-h-screen bg-luxury-black text-white relative overflow-x-hidden selection:bg-[#D4AF37] selection:text-black">
