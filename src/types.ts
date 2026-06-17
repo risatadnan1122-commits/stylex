@@ -29,6 +29,7 @@ export interface Product {
   bengali_details?: string;
   majestic_highlight?: boolean;
   trending?: boolean;
+  published?: boolean;
 }
 
 export interface Order {

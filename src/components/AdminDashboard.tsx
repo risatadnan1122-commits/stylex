@@ -57,7 +57,7 @@ export default function AdminDashboard({
   
   // States for CRUD forms
   const [productForm, setProductForm] = useState<Partial<Product>>({
-    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', additional_images: [], free_delivery: false, bengali_details: ''
+    name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', additional_images: [], free_delivery: false, bengali_details: '', published: true
   });
   const [additionalImageInput, setAdditionalImageInput] = useState('');
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -242,7 +242,8 @@ export default function AdminDashboard({
       coupon_code: productForm.coupon_code || undefined,
       coupon_discount: productForm.coupon_discount ? Number(productForm.coupon_discount) : undefined,
       free_delivery: !!productForm.free_delivery,
-      bengali_details: productForm.bengali_details || ''
+      bengali_details: productForm.bengali_details || '',
+      published: productForm.published !== false
     };
 
     if (editingProductId) {
@@ -253,7 +254,7 @@ export default function AdminDashboard({
     }
 
     // Reset Form
-    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', additional_images: [], coupon_code: '', coupon_discount: undefined, free_delivery: false, bengali_details: '' });
+    setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', additional_images: [], coupon_code: '', coupon_discount: undefined, free_delivery: false, bengali_details: '', published: true });
     setAdditionalImageInput('');
     setShowProductForm(false);
   };
@@ -276,7 +277,8 @@ export default function AdminDashboard({
       coupon_code: prod.coupon_code || '',
       coupon_discount: prod.coupon_discount,
       free_delivery: !!prod.free_delivery,
-      bengali_details: prod.bengali_details || ''
+      bengali_details: prod.bengali_details || '',
+      published: prod.published !== false
     });
     setAdditionalImageInput('');
     setShowProductForm(true);
@@ -694,7 +696,7 @@ export default function AdminDashboard({
                           type="button"
                           onClick={() => {
                             setEditingProductId(null);
-                            setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', coupon_code: '', coupon_discount: undefined });
+                            setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', coupon_code: '', coupon_discount: undefined, published: true });
                             setShowProductForm(false);
                           }}
                           className="px-4 py-2 border border-gray-700 hover:border-[#D4AF37] text-gray-300 hover:text-white text-[10.5px] font-mono hover:scale-[1.02] active:scale-95 tracking-widest uppercase rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 shadow-[0_0_8px_rgba(212,175,55,0.05)] hover:shadow-[0_0_18px_rgba(212,175,55,0.5)]"
@@ -741,7 +743,7 @@ export default function AdminDashboard({
                                 className="w-full bg-black text-xs text-white border border-[#D4AF37]/35 p-2.5 focus:outline-none focus:border-[#D4AF37] rounded font-mono transition-all"
                               />
                             </div>
-                          </div>                           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-1">
+                          </div>                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-1">
                             <div>
                               <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Category Classification *</label>
                               <select
@@ -811,6 +813,28 @@ export default function AdminDashboard({
                                 />
                                 <label htmlFor="free_delivery_atelier" className="text-[9.5px] font-mono text-[#D4AF37] uppercase font-bold ml-2.5 select-none cursor-pointer">
                                   ⚡ Free Delivery
+                                </label>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[9px] font-mono text-gray-400 uppercase block mb-1">Catalog Status</label>
+                              <div className={`flex items-center h-10 px-3 border rounded transition-all duration-300 ${
+                                productForm.published !== false
+                                  ? 'bg-[#0f1710] border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)] ring-1 ring-emerald-500/25' 
+                                  : 'bg-black/60 border-gold-border/15 hover:border-red-500/40'
+                              }`}>
+                                <input
+                                  type="checkbox"
+                                  id="published_status_atelier"
+                                  checked={productForm.published !== false}
+                                  onChange={(e) => setProductForm({ ...productForm, published: e.target.checked })}
+                                  className="accent-emerald-500 h-4 w-4 cursor-pointer"
+                                />
+                                <label htmlFor="published_status_atelier" className={`text-[9.5px] font-mono uppercase ml-2.5 select-none cursor-pointer font-bold flex items-center gap-1 transition-all duration-300 ${
+                                  productForm.published !== false ? 'text-emerald-400' : 'text-gray-500 line-through'
+                                }`}>
+                                  <span>{productForm.published !== false ? '● Published' : '○ Draft'}</span>
                                 </label>
                               </div>
                             </div>
@@ -1099,7 +1123,7 @@ export default function AdminDashboard({
                             type="button"
                             onClick={() => {
                               setEditingProductId(null);
-                              setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', coupon_code: '', coupon_discount: undefined });
+                              setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', coupon_code: '', coupon_discount: undefined, published: true });
                               setShowProductForm(false);
                             }}
                             className="px-6 py-3 border border-gray-700 hover:border-gray-500 text-gray-400 rounded-lg text-xs font-mono tracking-widest uppercase transition-colors"
@@ -1333,7 +1357,7 @@ export default function AdminDashboard({
                   <button
                     onClick={() => {
                       setEditingProductId(null);
-                      setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '' });
+                      setProductForm({ name: '', slug: '', price: 0, old_price: undefined, description: '', category: 'Apparel', sizes: [], stock: 10, featured: false, majestic_highlight: false, image_url: '', published: true });
                       setShowProductForm(true);
                     }}
                     className="w-full sm:w-auto bg-white hover:bg-[#CFCFCF] text-black text-xs font-bold py-3 px-8 rounded-xl tracking-widest uppercase shrink-0 transition-colors duration-200 shadow-md cursor-pointer text-center"
@@ -1379,8 +1403,13 @@ export default function AdminDashboard({
                                 <div className="flex flex-col text-left">
                                   <span className="serif-title font-serif italic text-sm text-[#CFCFCF] group-hover:text-white transition-colors">{prod.name}</span>
                                   <span className="text-[9px] font-mono text-gray-500 tracking-wider lowercase mt-0.5">{prod.id.substring(0, 8)}</span>
-                                  {(prod.featured || prod.majestic_highlight) && (
+                                  {(prod.featured || prod.majestic_highlight || prod.published === false) && (
                                     <div className="flex items-center gap-1.5 mt-1.5">
+                                      {prod.published === false && (
+                                        <span className="text-[7.5px] font-mono leading-none tracking-wider font-bold bg-red-950/40 text-red-400 border border-red-500/30 px-1 py-0.5 rounded">
+                                          ○ Draft
+                                        </span>
+                                      )}
                                       {prod.featured && (
                                         <span className="text-[7.5px] font-mono leading-none tracking-wider font-bold bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/35 px-1 py-0.5 rounded">
                                           ✧ Featured

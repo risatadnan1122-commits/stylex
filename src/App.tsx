@@ -439,7 +439,7 @@ export default function App() {
       const targetId = productId || hashProductId;
       if (targetId && products.length > 0) {
         const matchingProduct = products.find(p => p.id === targetId || String(p.id) === String(targetId));
-        if (matchingProduct) {
+        if (matchingProduct && (matchingProduct.published !== false || (currentUser && currentUser.role === 'admin'))) {
           setQuickViewProduct(matchingProduct);
         }
       }
@@ -1036,16 +1036,17 @@ export default function App() {
 
   // Category selection and SEO searches
   const filteredProducts = products.filter(p => {
+    if (p.published === false) return false;
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const majesticHasHighlight = products.some(p => p.majestic_highlight === true);
+  const majesticHasHighlight = products.some(p => p.majestic_highlight === true && p.published !== false);
   const featuredList = majesticHasHighlight 
-    ? products.filter(p => p.majestic_highlight) 
-    : products.filter(p => p.featured);
+    ? products.filter(p => p.majestic_highlight && p.published !== false) 
+    : products.filter(p => p.featured && p.published !== false);
 
   return (
     <div className="min-h-screen bg-luxury-black text-white relative overflow-x-hidden selection:bg-[#D4AF37] selection:text-black">
@@ -1249,10 +1250,10 @@ export default function App() {
 
           {/* Dynamic Luxury Category Selector Pills */}
           <div className="flex items-center space-x-2.5 overflow-x-auto pb-4 pt-1.5 no-scrollbar scroll-smooth">
-            {['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))].map((cat) => {
+            {['All', ...Array.from(new Set(products.filter(p => p.published !== false).map(p => p.category).filter(Boolean)))].map((cat) => {
               const count = cat === 'All' 
-                ? products.length 
-                : products.filter(p => p.category === cat).length;
+                ? products.filter(p => p.published !== false).length 
+                : products.filter(p => p.category === cat && p.published !== false).length;
               return (
                 <button
                   key={cat}
