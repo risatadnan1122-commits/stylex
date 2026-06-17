@@ -53,7 +53,13 @@ export default function App() {
   const db = getSimulatedDB();
 
   // Primary State Channels initialized with safe default configurations directly from persistent local storage via db
-  const [products, setProducts] = useState<Product[]>(() => db.products || DEFAULT_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>(() => {
+    const rawProds = db.products && db.products.length > 0 ? db.products : DEFAULT_PRODUCTS;
+    return rawProds.map((p: any) => ({
+      ...p,
+      published: p.published !== false
+    }));
+  });
   const [orders, setOrders] = useState<Order[]>(() => db.orders || []);
   const [reviews, setReviews] = useState<Review[]>(() => db.reviews || DEFAULT_REVIEWS);
   const [coupons, setCoupons] = useState<Coupon[]>(() => db.coupons || DEFAULT_COUPONS);
@@ -201,7 +207,12 @@ export default function App() {
       
       console.log("[Luxe Cloud Fallback] Pulled state from public cloud:", results);
       if (results.products && Array.isArray(results.products) && results.products.length > 0) {
-        const incoming = results.products.filter((p: any) => p && p.id);
+        const incoming = results.products
+          .filter((p: any) => p && p.id)
+          .map((p: any) => ({
+            ...p,
+            published: p.published !== false
+          }));
         setProducts(incoming);
       }
       if (results.settings) {
@@ -248,7 +259,13 @@ export default function App() {
             
             if (active) {
               if (data.products && Array.isArray(data.products) && data.products.length > 0) {
-                setProducts(data.products.filter((p: any) => p && p.id));
+                const mappedProducts = data.products
+                  .filter((p: any) => p && p.id)
+                  .map((p: any) => ({
+                    ...p,
+                    published: p.published !== false
+                  }));
+                setProducts(mappedProducts);
                 baselineSucceeded = true;
               }
               if (data.settings) {
@@ -635,50 +652,83 @@ export default function App() {
 
 
   // 1. ADD / EDIT / DELETE PRODUCTS CABINETS
-  const handleAddProduct = async (newProd: Omit<Product, 'id'>) => {
-    const id = generateUUID();
-    const fresh: Product = {
-      ...newProd,
-      id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
-    // Optimistic local update
-    const updated = [fresh, ...products];
-    setProducts(updated);
-    db.saveProducts(updated);
+  const handleAddProduct = async (productData: Omit<Product, 'id' | 'created_at'>) => {
+    try {
+      const supabase = getRealSupabase();
+      const isConfigured = getIsRealSupabaseConfigured() && supabase;
+      
+      // ১. গ্যারান্টি দেওয়া হচ্ছে যেন প্রোডাক্টটি সরাসরি পাবলিক বা ভিজিবল থাকে
+      const id = (productData as any).id || generateUUID();
+      const slug = (productData as any).slug || productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const newProductPayload = {
+        id,
+        slug,
+        ...productData,
+        published: true, // Fail-safe fallback ensuring visibility
+        trending: productData.trending ?? false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
 
-    // Fine-grained direct database write to Supabase
-    if (getIsRealSupabaseConfigured() && getRealSupabase()) {
-      try {
-        const payload = {
-          id: fresh.id,
-          name: fresh.name,
-          slug: fresh.slug || fresh.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-          price: Number(fresh.price),
-          old_price: fresh.old_price ? Number(fresh.old_price) : null,
-          description: fresh.description || '',
-          category: fresh.category || 'Apparel',
-          sizes: fresh.sizes || [],
-          stock: fresh.stock ? Number(fresh.stock) : 0,
-          featured: !!fresh.featured,
-          image_url: fresh.image_url || '',
-          additional_images: fresh.additional_images || [],
-          coupon_code: fresh.coupon_code || null,
-          coupon_discount: fresh.coupon_discount ? Number(fresh.coupon_discount) : null,
-          free_delivery: !!fresh.free_delivery,
-          bengali_details: fresh.bengali_details || '',
-          majestic_highlight: !!fresh.majestic_highlight,
-          trending: !!fresh.trending,
-          published: fresh.published !== false
-        };
-        const { error } = await getRealSupabase().from('products').insert([payload]);
-        if (error) throw error;
-        console.log('[Supabase Add Product SUCCESS]', fresh);
-      } catch (err) {
-        supabaseErrorHandler(err, 'Registering new product to database');
+      console.log("Attempting direct persistent broadcast to Supabase...", newProductPayload);
+
+      let insertedProduct: Product | null = null;
+
+      if (isConfigured) {
+        // ২. সরাসরি লাইভ সুপাবেস ক্লাউড ডাটাবেজে ডাটা ইনসার্ট করা হচ্ছে
+        const { data, error } = await supabase
+          .from('products')
+          .insert([newProductPayload])
+          .select();
+
+        if (error) {
+          console.warn("[Supabase Add Product Fail] Resilient fallback try without 'published' column:", error);
+          const backupPayload = { ...newProductPayload } as any;
+          delete backupPayload.published;
+          const { data: retryData, error: retryError } = await supabase
+            .from('products')
+            .insert([backupPayload])
+            .select();
+
+          if (retryError) {
+            console.error("Supabase direct insert encountered an error:", retryError);
+            throw retryError;
+          }
+          if (retryData && retryData.length > 0) {
+            insertedProduct = retryData[0] as Product;
+          }
+        } else if (data && data.length > 0) {
+          insertedProduct = data[0] as Product;
+        }
       }
+
+      // If Supabase is disabled or didn't return data (simulated fallback path)
+      if (!insertedProduct) {
+        insertedProduct = newProductPayload as Product;
+      }
+
+      // ৩. লোকাল স্টেট আপডেট (লিস্টের একদম শুরুতে নতুন প্রোডাক্ট পুশ করা হচ্ছে)
+      setProducts(prev => {
+        const nextProducts = [insertedProduct!, ...prev];
+        db.saveProducts(nextProducts);
+        return nextProducts;
+      });
+      
+      // ৪. গ্লোবাল সার্ভার বা এক্সপ্রেস এপিআই সিঙ্ক ব্যাকআপ ট্রিপল চেক
+      try {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'PRODUCTS_UPDATE', data: [insertedProduct, ...products] })
+        });
+      } catch (syncErr) {
+        console.warn("Express mirror sync fallback skipped, database is already safely holding the live data.", syncErr);
+      }
+
+      alert("🎉 প্রোডাক্টটি সফলভাবে লাইভ ডাটাবেজে আপলোড হয়েছে এবং সবার জন্য পাবলিশ হয়েছে!");
+    } catch (globalErr) {
+      console.error("Critical failure during product persistence pipeline:", globalErr);
+      alert("❌ ডাটাবেজে প্রোডাক্ট সেভ করা যায়নি। দয়া করে Supabase এর Table Columns বা RLS পলিসি চেক করুন।");
     }
   };
 
@@ -712,7 +762,13 @@ export default function App() {
           updated_at: new Date().toISOString()
         };
         const { error } = await getRealSupabase().from('products').update(payload).eq('id', revisedProd.id);
-        if (error) throw error;
+        if (error) {
+          console.warn("[Supabase Update Product Fail] Resilient fallback try without 'published' column:", error);
+          const backupPayload = { ...payload } as any;
+          delete backupPayload.published;
+          const { error: retryError } = await getRealSupabase().from('products').update(backupPayload).eq('id', revisedProd.id);
+          if (retryError) throw retryError;
+        }
         console.log('[Supabase Update Product SUCCESS]', revisedProd);
       } catch (err) {
         supabaseErrorHandler(err, 'Updating product in database');

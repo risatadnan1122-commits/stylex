@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { 
   X, BarChart3, Plus, Edit3, Trash2, MailOpen, Layers, 
   Settings2, Percent, Check, Trash, CheckSquare, MessageCircle, AlertCircle, Save, Sparkles,
-  LayoutDashboard, Package, ClipboardList, Image as ImageIcon, Megaphone, Coins, Globe, Search, MessageSquare, Database
+  LayoutDashboard, Package, ClipboardList, Image as ImageIcon, Megaphone, Coins, Globe, Search, MessageSquare, Database,
+  Eye, EyeOff
 } from 'lucide-react';
 import { Product, Order, Review, Coupon, SiteSettings, ChatMessage } from '../types';
 import SweepstakeLiveDrawModal from './SweepstakeLiveDrawModal';
@@ -1448,7 +1449,18 @@ export default function AdminDashboard({
                               </td>
 
                               {/* ACTIONS (Minimalist lines) */}
-                              <td className="p-4 pr-6 text-right space-x-2.5 whitespace-nowrap">
+                              <td className="p-4 pr-6 text-right space-x-3 whitespace-nowrap">
+                                <button
+                                  onClick={() => onUpdateProduct({ ...prod, published: prod.published === false })}
+                                  className={`transition-all duration-300 cursor-pointer ${
+                                    prod.published !== false 
+                                      ? 'text-emerald-500/75 hover:text-emerald-400' 
+                                      : 'text-gray-500 hover:text-[#D4AF37]'
+                                  }`}
+                                  title={prod.published !== false ? "Click to set as Draft (Hide from Customers)" : "Click to Publish (Show to Customers)"}
+                                >
+                                  {prod.published !== false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                </button>
                                 <button
                                   onClick={() => startEditProduct(prod)}
                                   className="text-gray-400 hover:text-[#D4AF37] transition-colors cursor-pointer"
