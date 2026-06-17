@@ -366,6 +366,7 @@ export const loadAllDataFromSupabase = async (): Promise<SupabaseData | null> =>
       free_delivery: !!p.free_delivery,
       majestic_highlight: !!p.majestic_highlight,
       trending: !!p.trending,
+      published: p.published !== false,
       additional_images: Array.isArray(p.additional_images) ? p.additional_images : []
     }));
 
@@ -540,7 +541,8 @@ const syncToServer = async (key: string, value: any) => {
           free_delivery: !!p.free_delivery,
           bengali_details: p.bengali_details || '',
           majestic_highlight: !!p.majestic_highlight,
-          trending: !!p.trending
+          trending: !!p.trending,
+          published: p.published !== false
         }));
         
         // Save/Upsert active products
@@ -918,7 +920,7 @@ export const uploadProductImage = async (file: File): Promise<string> => {
            });
            
            if (createBucketError) {
-             console.error('[Luxe Storage] Auto bucket provisioning failed:', createBucketError);
+             console.warn('[Luxe Storage Warning] Active lazy provisioning bypass. Graceful base64 fallback will resolve this upload context.', createBucketError);
              throw error; // Re-throw the original error
            }
          } catch {
@@ -952,8 +954,13 @@ export const uploadProductImage = async (file: File): Promise<string> => {
     console.log('[Luxe Storage Direct Upload SUCCESS]', publicUrlData.publicUrl);
     return publicUrlData.publicUrl;
   } catch (err) {
-    console.error('[Luxe Storage Upload Handshake Fail]', err);
-    supabaseErrorHandler(err, `Uploading catalog asset: ${file.name}`);
+    console.warn('[Luxe Storage Upload Handshake Warn] Storage client bypassed remote repository uploading. Activating premium base64 fallback state.', err);
+    const errorMsg = String(err?.message || err).toLowerCase();
+    if (errorMsg.includes('not found') || errorMsg.includes('row-level security') || errorMsg.includes('privilege') || errorMsg.includes('bucket')) {
+      console.log('[Luxe Storage Handshake Bypassed] Base64 fallback active for seamless item upload.');
+    } else {
+      supabaseErrorHandler(err, `Uploading catalog asset: ${file.name}`);
+    }
     
     // Graceful, seamless degradation back to elegant Base64 representation
     console.log('[Luxe Storage Fallback recovery] Initiating Base64 fallback post-crash.');

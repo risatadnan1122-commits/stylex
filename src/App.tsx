@@ -665,9 +665,36 @@ export default function App() {
     setProducts(updated);
     db.saveProducts(updated);
 
-    // Fine-grained direct database write to Supabase (handled by db.saveProducts)
-    if (false && getIsRealSupabaseConfigured() && getRealSupabase()) {
-      // bypassed
+    // Fine-grained direct database write to Supabase
+    if (getIsRealSupabaseConfigured() && getRealSupabase()) {
+      try {
+        const payload = {
+          id: fresh.id,
+          name: fresh.name,
+          slug: fresh.slug || fresh.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          price: Number(fresh.price),
+          old_price: fresh.old_price ? Number(fresh.old_price) : null,
+          description: fresh.description || '',
+          category: fresh.category || 'Apparel',
+          sizes: fresh.sizes || [],
+          stock: fresh.stock ? Number(fresh.stock) : 0,
+          featured: !!fresh.featured,
+          image_url: fresh.image_url || '',
+          additional_images: fresh.additional_images || [],
+          coupon_code: fresh.coupon_code || null,
+          coupon_discount: fresh.coupon_discount ? Number(fresh.coupon_discount) : null,
+          free_delivery: !!fresh.free_delivery,
+          bengali_details: fresh.bengali_details || '',
+          majestic_highlight: !!fresh.majestic_highlight,
+          trending: !!fresh.trending,
+          published: fresh.published !== false
+        };
+        const { error } = await getRealSupabase().from('products').insert(payload);
+        if (error) throw error;
+        console.log('[Supabase Add Product SUCCESS]', fresh);
+      } catch (err) {
+        supabaseErrorHandler(err, 'Registering new product to database');
+      }
     }
   };
 
@@ -676,9 +703,36 @@ export default function App() {
     setProducts(updated);
     db.saveProducts(updated);
 
-    // Fine-grained direct database write to Supabase (handled by db.saveProducts)
-    if (false && getIsRealSupabaseConfigured() && getRealSupabase()) {
-      // bypassed
+    // Fine-grained direct database write to Supabase
+    if (getIsRealSupabaseConfigured() && getRealSupabase()) {
+      try {
+        const payload = {
+          name: revisedProd.name,
+          slug: revisedProd.slug || revisedProd.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          price: Number(revisedProd.price),
+          old_price: revisedProd.old_price ? Number(revisedProd.old_price) : null,
+          description: revisedProd.description || '',
+          category: revisedProd.category || 'Apparel',
+          sizes: revisedProd.sizes || [],
+          stock: revisedProd.stock ? Number(revisedProd.stock) : 0,
+          featured: !!revisedProd.featured,
+          image_url: revisedProd.image_url || '',
+          additional_images: revisedProd.additional_images || [],
+          coupon_code: revisedProd.coupon_code || null,
+          coupon_discount: revisedProd.coupon_discount ? Number(revisedProd.coupon_discount) : null,
+          free_delivery: !!revisedProd.free_delivery,
+          bengali_details: revisedProd.bengali_details || '',
+          majestic_highlight: !!revisedProd.majestic_highlight,
+          trending: !!revisedProd.trending,
+          published: revisedProd.published !== false,
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await getRealSupabase().from('products').update(payload).eq('id', revisedProd.id);
+        if (error) throw error;
+        console.log('[Supabase Update Product SUCCESS]', revisedProd);
+      } catch (err) {
+        supabaseErrorHandler(err, 'Updating product in database');
+      }
     }
   };
 

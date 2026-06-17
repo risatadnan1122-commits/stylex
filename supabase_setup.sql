@@ -45,6 +45,7 @@ create table if not exists public.products (
   bengali_details text,
   majestic_highlight boolean default false,
   trending boolean default false,
+  published boolean default true,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
