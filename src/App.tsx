@@ -120,15 +120,9 @@ export default function App() {
           setProducts(loadedJson.products);
           hasLoadedAny = true;
         } else if (loadedJson.products && loadedJson.products.length === 0 && !loadedJson.errors?.products) {
-          if (loadedJson.settingsExistsInDb) {
-            console.log('[Luxe Supabase Loader] Products list is intentionally empty in database (seeded state). Keeping empty products list.');
-            setProducts([]);
-            hasLoadedAny = true;
-          } else {
-            console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
-            await safeSeed('products', () => db.saveProducts(products), 'Seeding default products');
-            hasLoadedAny = true;
-          }
+          console.log('[Luxe Supabase Seed] Seeding default products to Supabase...');
+          await safeSeed('products', () => db.saveProducts(products), 'Seeding default products');
+          hasLoadedAny = true;
         }
 
         if (loadedJson.settings && !loadedJson.errors?.settings) {
@@ -144,28 +138,18 @@ export default function App() {
           setReviews(loadedJson.reviews);
           hasLoadedAny = true;
         } else if (loadedJson.reviews && loadedJson.reviews.length === 0 && !loadedJson.errors?.reviews) {
-          if (loadedJson.settingsExistsInDb) {
-            console.log('[Luxe Supabase Loader] Reviews list is intentionally empty in database. Keeping empty reviews.');
-            setReviews([]);
-            hasLoadedAny = true;
-          } else {
-            await safeSeed('reviews', () => db.saveReviews(reviews), 'Seeding default reviews');
-            hasLoadedAny = true;
-          }
+          console.log('[Luxe Supabase Seed] Seeding default reviews to Supabase...');
+          await safeSeed('reviews', () => db.saveReviews(reviews), 'Seeding default reviews');
+          hasLoadedAny = true;
         }
 
         if (loadedJson.chats && loadedJson.chats.length > 0) {
           setChats(loadedJson.chats);
           hasLoadedAny = true;
         } else if (loadedJson.chats && loadedJson.chats.length === 0 && !loadedJson.errors?.chats) {
-          if (loadedJson.settingsExistsInDb) {
-            console.log('[Luxe Supabase Loader] Chats list is intentionally empty in database. Keeping empty chats.');
-            setChats([]);
-            hasLoadedAny = true;
-          } else {
-            await safeSeed('chats', () => db.saveChats(chats), 'Seeding default chats');
-            hasLoadedAny = true;
-          }
+          console.log('[Luxe Supabase Seed] Seeding default chats to Supabase...');
+          await safeSeed('chats', () => db.saveChats(chats), 'Seeding default chats');
+          hasLoadedAny = true;
         }
 
         if (loadedJson.orders && loadedJson.orders.length > 0) {
@@ -180,14 +164,9 @@ export default function App() {
           setCoupons(loadedJson.coupons);
           hasLoadedAny = true;
         } else if (loadedJson.coupons && loadedJson.coupons.length === 0 && !loadedJson.errors?.coupons) {
-          if (loadedJson.settingsExistsInDb) {
-            console.log('[Luxe Supabase Loader] Coupons list is intentionally empty in database. Keeping empty coupons.');
-            setCoupons([]);
-            hasLoadedAny = true;
-          } else {
-            await safeSeed('coupons', () => db.saveCoupons(coupons), 'Seeding default coupons');
-            hasLoadedAny = true;
-          }
+          console.log('[Luxe Supabase Seed] Seeding default coupons to Supabase...');
+          await safeSeed('coupons', () => db.saveCoupons(coupons), 'Seeding default coupons');
+          hasLoadedAny = true;
         }
 
         return hasLoadedAny;
