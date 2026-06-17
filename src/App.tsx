@@ -238,25 +238,65 @@ export default function App() {
     };
 
     const initLoad = async () => {
-      // 1. Core check: load dynamic backend keys at runtime (Vercel / Cloud Run fluid environment)
+      // 1. Core check: load dynamic backend credentials at runtime
       try {
         const configRes = await fetch(`/api/config?v=${Date.now()}`, { cache: 'no-store' });
         if (configRes.ok) {
           const configData = await configRes.json();
           if (configData.supabaseUrl && configData.supabaseKey) {
-            console.log("[Luxe Dynamic Config] Successfully fetched credentials from the host server. Initializing client...");
+            console.log("[Luxe Dynamic Config] Successfully fetched credentials from host server. Initializing client...");
             initializeDynamicSupabase(configData.supabaseUrl, configData.supabaseKey);
           }
         }
       } catch (err) {
-        console.warn("[Luxe Dynamic Config] No backend configuration could be read, utilizing default environment variables:", err);
+        console.warn("[Luxe Dynamic Config] No backend config read, using default env vars:", err);
       }
 
-      // 2. Load from Supabase if configured dynamically
+      // 2. Pre-load local server-db.json baseline FIRST so we always have all recently uploaded products instantly available
+      let baselineSucceeded = false;
+      try {
+        const baselineRes = await fetch(`/api/db?v=${Date.now()}`, { cache: 'no-store' });
+        if (baselineRes.ok) {
+          const text = await baselineRes.text();
+          if (text && !text.trim().startsWith('<') && !text.trim().startsWith('<!DOCTYPE')) {
+            const data = JSON.parse(text);
+            console.log("[Luxe Baseline] Successfully loaded baseline database state before overlaying:", data);
+            
+            if (active) {
+              if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+                setProducts(data.products.filter((p: any) => p && p.id));
+              }
+              if (data.settings) {
+                setSettings(data.settings);
+              }
+              if (data.coupons && Array.isArray(data.coupons)) {
+                setCoupons(data.coupons);
+              }
+              if (data.reviews && Array.isArray(data.reviews)) {
+                setReviews(data.reviews);
+              }
+              if (data.chats && Array.isArray(data.chats)) {
+                setChats(data.chats);
+              }
+              if (data.orders && Array.isArray(data.orders)) {
+                setOrders(data.orders);
+              }
+              if (data.currentUser !== undefined) {
+                setCurrentUser(data.currentUser);
+              }
+              baselineSucceeded = true;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[Luxe Baseline Warning] Pre-loading local server backend baseline was bypassed:", err);
+      }
+
+      // 3. Load from Supabase if configured dynamically (will overlay on top of our baseline)
       if (getIsRealSupabaseConfigured() && getRealSupabase()) {
         const success = await loadFromSupabase();
         if (success) {
-          console.log("[Luxe Sync] Loaded initial real-time database successfully from Supabase.");
+          console.log("[Luxe Sync] Overlayed database state from Supabase.");
           
           if (active) {
             console.log('[Luxe Realtime] Registering live database synchronizers...');
@@ -276,51 +316,11 @@ export default function App() {
         }
       }
 
-      // 3. Fallback to API endpoints or Cloud KVDB
-      fetch(`/api/db?v=${Date.now()}`, { cache: 'no-store' })
-        .then(res => {
-          if (!res.ok) throw new Error(`HTTP status: ${res.status}`);
-          const contentType = res.headers.get('content-type');
-          if (contentType && contentType.includes('text/html')) {
-            throw new Error('HTML response (Vercel routing rewrite detected)');
-          }
-          return res.text();
-        })
-        .then(text => {
-          if (!active) return;
-          if (text.trim().startsWith('<') || text.trim().startsWith('<!DOCTYPE')) {
-            throw new Error('HTML response instead of JSON');
-          }
-          const data = JSON.parse(text);
-          console.log("[Luxe Sync] Universal local backend state fetched successfully!", data);
-
-          if (data.products && Array.isArray(data.products)) {
-            const incoming = data.products.filter((p: any) => p && p.id);
-            setProducts(incoming);
-          }
-          if (data.settings) {
-            setSettings(data.settings);
-          }
-          if (data.coupons && Array.isArray(data.coupons)) {
-            setCoupons(data.coupons);
-          }
-          if (data.reviews && Array.isArray(data.reviews)) {
-            setReviews(data.reviews);
-          }
-          if (data.chats && Array.isArray(data.chats)) {
-            setChats(data.chats);
-          }
-          if (data.orders && Array.isArray(data.orders)) {
-            setOrders(data.orders);
-          }
-          if (data.currentUser !== undefined) {
-            setCurrentUser(data.currentUser);
-          }
-        })
-        .catch(err => {
-          console.warn("[Luxe Sync Local] local api failed or redirected, falling back to cloud sync...", err);
-          loadFromKVDB();
-        });
+      // 4. Default Fallback/Cloud KVDB (only in case baseline fetch failed)
+      if (!baselineSucceeded) {
+        console.log("[Luxe Baseline Alternate] Local baseline failed. Invoking Cloud KVDB fallback...");
+        loadFromKVDB();
+      }
     };
 
     initLoad();
